@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Button, Input, Select, Tag, Tabs, Checkbox, Dialog, Icon } from '@org/shared-ui';
+import { useScrollReveal } from '@org/shared-utils';
+import PageHero from '~/components/PageHero.vue';
 import TripGrid from '~/components/TripGrid.vue';
 import { CATEGORIES, TRIPS } from '~/data/site';
 
@@ -35,6 +37,9 @@ const results = computed(() =>
   })
 );
 
+const resultsGrid = ref<HTMLElement | null>(null);
+useScrollReveal(resultsGrid, { selector: '.grid-trips > *', stagger: 0.07 });
+
 function goTrip(id: string) {
   navigateTo(localePath(`/trip/${id}`));
 }
@@ -42,12 +47,16 @@ function goTrip(id: string) {
 
 <template>
   <div>
-    <section class="dest-head">
-      <div class="container">
-        <div class="eyebrow">{{ t('destinations.eyebrow') }}</div>
-        <h1 class="h-sec">{{ t('destinations.title') }}</h1>
-        <p class="lead dest-head__lead">{{ t('destinations.lead') }}</p>
+    <PageHero
+      :eyebrow="t('destinations.eyebrow')"
+      :title="t('destinations.title')"
+      :description="t('destinations.lead')"
+      icon="compass"
+      image="/hero/hero-2.png"
+    />
 
+    <section class="dest-toolbar-band">
+      <div class="container">
         <div class="dest-toolbar">
           <div class="dest-toolbar__search">
             <Input v-model="query" size="sm" :placeholder="t('destinations.searchPlaceholder')">
@@ -63,7 +72,7 @@ function goTrip(id: string) {
       </div>
     </section>
 
-    <section class="section">
+    <section ref="resultsGrid" class="section">
       <div class="container">
         <div class="chips dest-chips">
           <Tag
@@ -121,9 +130,8 @@ function goTrip(id: string) {
 </template>
 
 <style scoped>
-.dest-head { background: var(--surface-cream); padding: clamp(40px, 6vw, 72px) 0; }
-.dest-head__lead { margin-top: 12px; }
-.dest-toolbar { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; align-items: center; }
+.dest-toolbar-band { background: var(--surface-cream); padding: 24px 0; border-bottom: 1px solid var(--border-hair); }
+.dest-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .dest-toolbar__search { flex: 1 1 260px; min-width: 220px; }
 .dest-chips { margin-bottom: 30px; }
 .dest-count { color: var(--text-muted); font-size: 14px; margin-bottom: 22px; }

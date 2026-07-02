@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -41,252 +39,169 @@ export type Database = {
           trip_date?: string | null
           trip_id?: string | null
         }
-        Update: {
-          created_at?: string
-          email?: string
-          full_name?: string
-          id?: string
-          notes?: string | null
-          phone?: string | null
-          room_type?: string | null
-          status?: string
-          travellers?: number
-          trip_date?: string | null
-          trip_id?: string | null
+        Update: Partial<Database["public"]["Tables"]["bookings"]["Insert"]>
+        Relationships: []
+      }
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          quantity: number
+          unit_price: number | null
+          user_id: string
         }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          quantity?: number
+          unit_price?: number | null
+          user_id: string
+        }
+        Update: Partial<Database["public"]["Tables"]["cart_items"]["Insert"]>
+        Relationships: []
+      }
+      categories: {
+        Row: { icon: string; id: string; name_ar: string; name_en: string; sort: number }
+        Insert: { icon: string; id: string; name_ar: string; name_en: string; sort?: number }
+        Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>
+        Relationships: []
+      }
+      contact_messages: {
+        Row: { created_at: string; email: string; id: string; message: string; name: string; phone: string | null }
+        Insert: { created_at?: string; email: string; id?: string; message: string; name: string; phone?: string | null }
+        Update: Partial<Database["public"]["Tables"]["contact_messages"]["Insert"]>
+        Relationships: []
+      }
+      faqs: {
+        Row: { answer_ar: string; answer_en: string; id: string; question_ar: string; question_en: string; sort: number }
+        Insert: { answer_ar: string; answer_en: string; id?: string; question_ar: string; question_en: string; sort?: number }
+        Update: Partial<Database["public"]["Tables"]["faqs"]["Insert"]>
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: { created_at: string; email: string; id: string; locale: string }
+        Insert: { created_at?: string; email: string; id?: string; locale?: string }
+        Update: Partial<Database["public"]["Tables"]["newsletter_subscribers"]["Insert"]>
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          id: string
+          item_id: string
+          item_type: string
+          line_total: number
+          order_id: string
+          quantity: number
+          title: string | null
+          unit_price: number
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          item_type: string
+          line_total?: number
+          order_id: string
+          quantity?: number
+          title?: string | null
+          unit_price?: number
+        }
+        Update: Partial<Database["public"]["Tables"]["order_items"]["Insert"]>
         Relationships: [
           {
-            foreignKeyName: "bookings_trip_id_fkey"
-            columns: ["trip_id"]
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
             isOneToOne: false
-            referencedRelation: "trips"
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
       }
-      categories: {
-        Row: {
-          icon: string
-          id: string
-          name_ar: string
-          name_en: string
-          sort: number
-        }
-        Insert: {
-          icon: string
-          id: string
-          name_ar: string
-          name_en: string
-          sort?: number
-        }
-        Update: {
-          icon?: string
-          id?: string
-          name_ar?: string
-          name_en?: string
-          sort?: number
-        }
-        Relationships: []
-      }
-      contact_messages: {
+      orders: {
         Row: {
           created_at: string
-          email: string
+          currency: string
           id: string
-          message: string
-          name: string
-          phone: string | null
+          payment_provider: string | null
+          payment_ref: string | null
+          status: string
+          subtotal: number
+          total: number
+          user_id: string
         }
         Insert: {
           created_at?: string
-          email: string
+          currency?: string
           id?: string
-          message: string
-          name: string
-          phone?: string | null
+          payment_provider?: string | null
+          payment_ref?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          user_id: string
         }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          message?: string
-          name?: string
-          phone?: string | null
-        }
-        Relationships: []
-      }
-      faqs: {
-        Row: {
-          answer_ar: string
-          answer_en: string
-          id: string
-          question_ar: string
-          question_en: string
-          sort: number
-        }
-        Insert: {
-          answer_ar: string
-          answer_en: string
-          id?: string
-          question_ar: string
-          question_en: string
-          sort?: number
-        }
-        Update: {
-          answer_ar?: string
-          answer_en?: string
-          id?: string
-          question_ar?: string
-          question_en?: string
-          sort?: number
-        }
-        Relationships: []
-      }
-      newsletter_subscribers: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          locale: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          locale?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          locale?: string
-        }
+        Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>
         Relationships: []
       }
       packages: {
         Row: {
-          desc_ar: string
-          desc_en: string
-          grad: string
-          icon: string
-          id: string
-          kind: string
-          price_ar: string | null
-          price_en: string | null
-          sort: number
-          title_ar: string
-          title_en: string
+          desc_ar: string; desc_en: string; grad: string; icon: string; id: string; kind: string
+          price_ar: string | null; price_en: string | null; sort: number; title_ar: string; title_en: string
         }
         Insert: {
-          desc_ar: string
-          desc_en: string
-          grad: string
-          icon: string
-          id: string
-          kind: string
-          price_ar?: string | null
-          price_en?: string | null
-          sort?: number
-          title_ar: string
-          title_en: string
+          desc_ar: string; desc_en: string; grad: string; icon: string; id: string; kind: string
+          price_ar?: string | null; price_en?: string | null; sort?: number; title_ar: string; title_en: string
         }
-        Update: {
-          desc_ar?: string
-          desc_en?: string
-          grad?: string
-          icon?: string
-          id?: string
-          kind?: string
-          price_ar?: string | null
-          price_en?: string | null
-          sort?: number
-          title_ar?: string
-          title_en?: string
-        }
+        Update: Partial<Database["public"]["Tables"]["packages"]["Insert"]>
         Relationships: []
       }
       products: {
         Row: {
-          desc_ar: string
-          desc_en: string
-          grad: string
-          icon: string
-          id: string
-          price_ar: string | null
-          price_en: string | null
-          sort: number
-          title_ar: string
-          title_en: string
+          desc_ar: string; desc_en: string; grad: string; icon: string; id: string
+          price_ar: string | null; price_en: string | null; sort: number; title_ar: string; title_en: string
         }
         Insert: {
-          desc_ar: string
-          desc_en: string
-          grad: string
-          icon: string
+          desc_ar: string; desc_en: string; grad: string; icon: string; id: string
+          price_ar?: string | null; price_en?: string | null; sort?: number; title_ar: string; title_en: string
+        }
+        Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
           id: string
-          price_ar?: string | null
-          price_en?: string | null
-          sort?: number
-          title_ar: string
-          title_en: string
+          locale: string
+          phone: string | null
+          username: string | null
         }
-        Update: {
-          desc_ar?: string
-          desc_en?: string
-          grad?: string
-          icon?: string
-          id?: string
-          price_ar?: string | null
-          price_en?: string | null
-          sort?: number
-          title_ar?: string
-          title_en?: string
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          locale?: string
+          phone?: string | null
+          username?: string | null
         }
+        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>
         Relationships: []
       }
       reviews: {
         Row: {
-          created_at: string
-          grad: string
-          icon: string
-          id: string
-          name_ar: string
-          name_en: string
-          rating: number
-          text_ar: string
-          text_en: string
-          trip_ar: string
-          trip_en: string
-          trip_id: string | null
+          created_at: string; grad: string; icon: string; id: string; name_ar: string; name_en: string
+          rating: number; text_ar: string; text_en: string; trip_ar: string; trip_en: string; trip_id: string | null
         }
         Insert: {
-          created_at?: string
-          grad: string
-          icon: string
-          id?: string
-          name_ar: string
-          name_en: string
-          rating?: number
-          text_ar: string
-          text_en: string
-          trip_ar: string
-          trip_en: string
-          trip_id?: string | null
+          created_at?: string; grad: string; icon: string; id?: string; name_ar: string; name_en: string
+          rating?: number; text_ar: string; text_en: string; trip_ar: string; trip_en: string; trip_id?: string | null
         }
-        Update: {
-          created_at?: string
-          grad?: string
-          icon?: string
-          id?: string
-          name_ar?: string
-          name_en?: string
-          rating?: number
-          text_ar?: string
-          text_en?: string
-          trip_ar?: string
-          trip_en?: string
-          trip_id?: string | null
-        }
+        Update: Partial<Database["public"]["Tables"]["reviews"]["Insert"]>
         Relationships: [
           {
             foreignKeyName: "reviews_trip_id_fkey"
@@ -298,111 +213,27 @@ export type Database = {
         ]
       }
       services: {
-        Row: {
-          desc_ar: string
-          desc_en: string
-          icon: string
-          id: string
-          sort: number
-          title_ar: string
-          title_en: string
-        }
-        Insert: {
-          desc_ar: string
-          desc_en: string
-          icon: string
-          id: string
-          sort?: number
-          title_ar: string
-          title_en: string
-        }
-        Update: {
-          desc_ar?: string
-          desc_en?: string
-          icon?: string
-          id?: string
-          sort?: number
-          title_ar?: string
-          title_en?: string
-        }
+        Row: { desc_ar: string; desc_en: string; icon: string; id: string; sort: number; title_ar: string; title_en: string }
+        Insert: { desc_ar: string; desc_en: string; icon: string; id: string; sort?: number; title_ar: string; title_en: string }
+        Update: Partial<Database["public"]["Tables"]["services"]["Insert"]>
         Relationships: []
       }
       trips: {
         Row: {
-          category_id: string | null
-          created_at: string
-          dates_ar: string
-          dates_en: string
-          duration_ar: string
-          duration_en: string
-          featured: boolean
-          grad: string
-          icon: string
-          id: string
-          kind: string
-          price_amount: number | null
-          price_ar: string
-          price_en: string
-          rating: number
-          region_ar: string
-          region_en: string
-          reviews: number
-          seats: number | null
-          tier_key: string
-          tier_variant: string
-          title_ar: string
-          title_en: string
+          category_id: string | null; created_at: string; dates_ar: string; dates_en: string
+          duration_ar: string; duration_en: string; featured: boolean; grad: string; icon: string; id: string
+          kind: string; price_amount: number | null; price_ar: string; price_en: string; rating: number
+          region_ar: string; region_en: string; reviews: number; seats: number | null; tier_key: string
+          tier_variant: string; title_ar: string; title_en: string
         }
         Insert: {
-          category_id?: string | null
-          created_at?: string
-          dates_ar: string
-          dates_en: string
-          duration_ar: string
-          duration_en: string
-          featured?: boolean
-          grad: string
-          icon: string
-          id: string
-          kind: string
-          price_amount?: number | null
-          price_ar: string
-          price_en: string
-          rating?: number
-          region_ar: string
-          region_en: string
-          reviews?: number
-          seats?: number | null
-          tier_key: string
-          tier_variant: string
-          title_ar: string
-          title_en: string
+          category_id?: string | null; created_at?: string; dates_ar: string; dates_en: string
+          duration_ar: string; duration_en: string; featured?: boolean; grad: string; icon: string; id: string
+          kind: string; price_amount?: number | null; price_ar: string; price_en: string; rating?: number
+          region_ar: string; region_en: string; reviews?: number; seats?: number | null; tier_key: string
+          tier_variant: string; title_ar: string; title_en: string
         }
-        Update: {
-          category_id?: string | null
-          created_at?: string
-          dates_ar?: string
-          dates_en?: string
-          duration_ar?: string
-          duration_en?: string
-          featured?: boolean
-          grad?: string
-          icon?: string
-          id?: string
-          kind?: string
-          price_amount?: number | null
-          price_ar?: string
-          price_en?: string
-          rating?: number
-          region_ar?: string
-          region_en?: string
-          reviews?: number
-          seats?: number | null
-          tier_key?: string
-          tier_variant?: string
-          title_ar?: string
-          title_en?: string
-        }
+        Update: Partial<Database["public"]["Tables"]["trips"]["Insert"]>
         Relationships: [
           {
             foreignKeyName: "trips_category_id_fkey"
@@ -413,18 +244,16 @@ export type Database = {
           },
         ]
       }
+      wishlists: {
+        Row: { created_at: string; id: string; item_id: string; item_type: string; user_id: string }
+        Insert: { created_at?: string; id?: string; item_id: string; item_type: string; user_id: string }
+        Update: Partial<Database["public"]["Tables"]["wishlists"]["Insert"]>
+        Relationships: []
+      }
     }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    Views: { [_ in never]: never }
+    Functions: { [_ in never]: never }
+    Enums: { [_ in never]: never }
+    CompositeTypes: { [_ in never]: never }
   }
 }

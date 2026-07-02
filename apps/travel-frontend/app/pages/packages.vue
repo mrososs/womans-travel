@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import { useScrollReveal } from '@org/shared-utils';
+import PageHero from '~/components/PageHero.vue';
 import PackageCard from '~/components/PackageCard.vue';
 
 const { t } = useI18n();
@@ -9,19 +11,21 @@ const { data: packages } = usePackages();
 useHead(() => ({ title: `${t('pages.packages.title')} · ${t('brand')}` }));
 
 const items = computed(() => packages.value ?? []);
+const grid = ref<HTMLElement | null>(null);
+useScrollReveal(grid, { selector: '.pkg', stagger: 0.08 });
 </script>
 
 <template>
   <div>
-    <section class="page-head">
-      <div class="container">
-        <div class="eyebrow">{{ t('pages.packages.eyebrow') }}</div>
-        <h1 class="h-sec">{{ t('pages.packages.title') }}</h1>
-        <p class="lead page-head__lead">{{ t('pages.packages.lead') }}</p>
-      </div>
-    </section>
+    <PageHero
+      :eyebrow="t('pages.packages.eyebrow')"
+      :title="t('pages.packages.title')"
+      :description="t('pages.packages.lead')"
+      icon="crown"
+      image="/hero/hero-1.png"
+    />
 
-    <section class="section">
+    <section ref="grid" class="section">
       <div class="container">
         <div class="grid-cards">
           <PackageCard
@@ -43,8 +47,6 @@ const items = computed(() => packages.value ?? []);
 </template>
 
 <style scoped>
-.page-head { background: var(--surface-cream); padding: clamp(40px, 6vw, 72px) 0; }
-.page-head__lead { margin-top: 12px; }
 .grid-cards { display: grid; grid-template-columns: 1fr; gap: 24px; }
 @media (min-width: 620px) { .grid-cards { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 980px) { .grid-cards { grid-template-columns: 1fr 1fr 1fr; } }

@@ -27,7 +27,9 @@ withDefaults(
       <p class="pkg__desc">{{ desc }}</p>
       <div v-if="price" class="pkg__price">
         <span class="pkg__from">{{ fromLabel }}</span>
-        <b>{{ price }}</b> <span class="pkg__cur">{{ currency }}</span>
+        <b>{{ price }}</b>
+        <Icon name="saudi-riyal" :size="18" class="pkg__riyal" />
+        <span class="sr-only">{{ currency }}</span>
       </div>
     </div>
   </Card>
@@ -45,8 +47,8 @@ withDefaults(
 .pkg__body { padding: var(--space-6); display: flex; flex-direction: column; gap: 10px; }
 .pkg__title { font-family: var(--font-display); font-weight: 800; font-size: var(--text-xl); color: var(--text-strong); }
 .pkg__desc { font-size: 14px; color: var(--text-muted); line-height: 1.8; margin: 0; }
-.pkg__price { margin-top: auto; padding-top: 8px; display: flex; align-items: baseline; gap: 6px; }
+.pkg__price { margin-top: auto; padding-top: 8px; display: flex; align-items: center; gap: 6px; }
 .pkg__from { font-size: 12px; color: var(--text-muted); }
 .pkg__price b { font-family: var(--font-display); font-weight: 800; font-size: var(--text-2xl); color: var(--text-strong); }
-.pkg__cur { font-size: 13px; font-weight: 700; color: var(--text-strong); }
+.pkg__riyal { width: 0.8em; height: 0.8em; color: var(--text-strong); flex: none; }
 </style>

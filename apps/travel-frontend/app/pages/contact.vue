@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Card, Icon } from '@org/shared-ui';
+import PageHero from '~/components/PageHero.vue';
 import ContactForm from '~/components/ContactForm.vue';
 
 const { t } = useI18n();
@@ -14,13 +15,13 @@ const info = [
 
 <template>
   <div>
-    <section class="page-head">
-      <div class="container">
-        <div class="eyebrow">{{ t('contact.eyebrow') }}</div>
-        <h1 class="h-sec">{{ t('contact.title') }}</h1>
-        <p class="lead page-head__lead">{{ t('contact.lead') }}</p>
-      </div>
-    </section>
+    <PageHero
+      :eyebrow="t('contact.eyebrow')"
+      :title="t('contact.title')"
+      :description="t('contact.lead')"
+      icon="message-circle"
+      grad="var(--grad-navy)"
+    />
 
     <section class="section">
       <div class="container">
@@ -48,8 +49,6 @@ const info = [
 </template>
 
 <style scoped>
-.page-head { background: var(--surface-cream); padding: clamp(40px, 6vw, 72px) 0; }
-.page-head__lead { margin-top: 12px; }
 .contact-grid { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: start; }
 @media (min-width: 860px) { .contact-grid { grid-template-columns: 1.4fr 1fr; } }
 .contact-info__title { font-family: var(--font-display); font-weight: 800; font-size: var(--text-xl); color: var(--text-strong); margin-bottom: 20px; }

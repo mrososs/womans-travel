@@ -52,7 +52,13 @@ on conflict do nothing;
 insert into public.packages (id, kind, icon, grad, title_ar, title_en, desc_ar, desc_en, price_ar, price_en, sort) values
   ('luxe-europe','intl','crown','linear-gradient(155deg,#24314B,#9E5863)','باقة أوروبا الفاخرة','Luxe Europe package','جولة راقية بين عواصم أوروبا بإقامة ٥ نجوم ومرافِقة مختصّة.','A refined tour across European capitals with 5-star stays and a dedicated escort.','١٨٬٩٠٠','18,900',1),
   ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','عطلة شاطئية خاصّة على ساحل البحر الأحمر السعودي.','A private beach getaway on Saudi Arabia''s Red Sea coast.','٧٬٢٠٠','7,200',2),
-  ('asia-discovery','intl','compass','linear-gradient(155deg,#9E5863,#24314B)','اكتشاف آسيا','Asia discovery','رحلة استكشافية بين ثقافات آسيا العريقة بصحبة نسائية.','An exploratory journey through Asia''s rich cultures in women''s company.','١٣٬٥٠٠','13,500',3)
+  ('asia-discovery','intl','compass','linear-gradient(155deg,#9E5863,#24314B)','اكتشاف آسيا','Asia discovery','رحلة استكشافية بين ثقافات آسيا العريقة بصحبة نسائية.','An exploratory journey through Asia''s rich cultures in women''s company.','١٣٬٥٠٠','13,500',3),
+  ('korea','intl','flower-2','linear-gradient(155deg,#9E5863,#24314B)','قروب كوريا','Korea group','١٠ أيام بين سيول وجيجو وبوسان بإقامة فاخرة ومرافِقة مختصّة.','10 days across Seoul, Jeju & Busan with luxury stays and a dedicated escort.','٢٦٬١٠٠','26,100',4),
+  ('turkey','intl','mountain','linear-gradient(155deg,#B76E79,#7C444E)','قروب تركيا','Turkey group','٨ أيام بين إسطنبول وطرابزون بطبيعة ساحرة وضيافة راقية.','8 days across Istanbul and Trabzon with stunning nature and refined hospitality.','٩٬٩٠٠','9,900',5),
+  ('georgia','intl','mountain-snow','linear-gradient(155deg,#24314B,#4E6A8A)','قروب جورجيا','Georgia group','٧ أيام بين تبليسي وباتومي والمرتفعات الخضراء.','7 days across Tbilisi, Batumi and the green highlands.','٧٬٥٠٠','7,500',6),
+  ('azerbaijan','intl','building-2','linear-gradient(155deg,#4E6A8A,#9E5863)','قروب أذربيجان','Azerbaijan group','٦ أيام في باكو الحديثة بين الحداثة والتراث.','6 days in modern Baku, blending heritage and modernity.','٨٬٢٠٠','8,200',7),
+  ('bosnia','intl','trees','linear-gradient(155deg,#4E7A5B,#24314B)','قروب البوسنة','Bosnia group','٨ أيام بين سراييفو وموستار وطبيعة البلقان.','8 days across Sarajevo, Mostar and Balkan nature.','٨٬٨٠٠','8,800',8),
+  ('thailand','intl','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','قروب تايلند','Thailand group','٩ أيام بين بوكيت وبانكوك بشواطئ خاصّة.','9 days across Phuket and Bangkok with private beaches.','١١٬٤٠٠','11,400',9)
 on conflict (id) do nothing;
 
 insert into public.services (id, icon, title_ar, title_en, desc_ar, desc_en, sort) values

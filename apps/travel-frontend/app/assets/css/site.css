@@ -118,6 +118,28 @@
   }
 }
 
+/* Auth pages */
+.auth-wrap {
+  min-height: 72vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px var(--gutter);
+  background:
+    radial-gradient(1200px 400px at 50% -10%, rgba(183, 110, 121, 0.12), transparent 60%),
+    var(--surface-page);
+}
+.auth-card { width: 100%; max-width: 440px; }
+.auth-title { font-family: var(--font-display); font-weight: 800; font-size: var(--text-3xl); color: var(--text-strong); text-align: center; margin: 0 0 6px; }
+.auth-sub { text-align: center; color: var(--text-muted); margin: 0 0 24px; }
+.auth-form { display: grid; gap: 16px; }
+.auth-divider { display: flex; align-items: center; gap: 12px; color: var(--text-subtle); font-size: 13px; margin: 20px 0; }
+.auth-divider::before, .auth-divider::after { content: ''; height: 1px; background: var(--border-soft); flex: 1; }
+.auth-alt { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-muted); }
+.auth-alt a { color: var(--text-brand); font-weight: 700; }
+.auth-error { color: var(--danger-500); font-size: 14px; text-align: center; margin: 4px 0 0; }
+.auth-note { color: var(--success-500); font-size: 14px; text-align: center; margin: 4px 0 0; }
+
 /* Trip detail two-column */
 .trip-grid { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: start; }
 @media (min-width: 940px) { .trip-grid { grid-template-columns: 1.7fr 1fr; } }

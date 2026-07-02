@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useScrollReveal } from '@org/shared-utils';
+import PageHero from '~/components/PageHero.vue';
 import ServiceCard from '~/components/ServiceCard.vue';
 import FaqSection from '~/components/FaqSection.vue';
 
@@ -17,13 +18,13 @@ useScrollReveal(grid, { selector: '.svc', stagger: 0.07 });
 
 <template>
   <div>
-    <section class="page-head">
-      <div class="container">
-        <div class="eyebrow">{{ t('pages.services.eyebrow') }}</div>
-        <h1 class="h-sec">{{ t('pages.services.title') }}</h1>
-        <p class="lead page-head__lead">{{ t('pages.services.lead') }}</p>
-      </div>
-    </section>
+    <PageHero
+      :eyebrow="t('pages.services.eyebrow')"
+      :title="t('pages.services.title')"
+      :description="t('pages.services.lead')"
+      icon="concierge-bell"
+      grad="linear-gradient(135deg,#9E5863,#7C444E)"
+    />
 
     <section ref="grid" class="section">
       <div class="container">
@@ -44,8 +45,6 @@ useScrollReveal(grid, { selector: '.svc', stagger: 0.07 });
 </template>
 
 <style scoped>
-.page-head { background: var(--surface-cream); padding: clamp(40px, 6vw, 72px) 0; }
-.page-head__lead { margin-top: 12px; }
 .grid-cards { display: grid; grid-template-columns: 1fr; gap: 20px; }
 @media (min-width: 620px) { .grid-cards { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 980px) { .grid-cards { grid-template-columns: 1fr 1fr 1fr; } }

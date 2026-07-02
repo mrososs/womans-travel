@@ -85,7 +85,7 @@ const isPlaceholder = computed(() => props.placeholder != null && model.value ==
   cursor: pointer;
   min-width: 0;
 }
-.drh-select__wrap select { direction: rtl; }
+/* Direction follows the document (RTL for ar, LTR for en) — do not force it. */
 .drh-select__wrap select:invalid { color: var(--text-subtle); }
 /* The wrapper (:focus-within) owns the focus ring — suppress the inner
    control's own :focus-visible ring so there's no double border. */

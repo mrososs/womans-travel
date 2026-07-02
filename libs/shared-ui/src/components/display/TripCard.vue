@@ -22,22 +22,29 @@ const props = withDefaults(
     reviews?: number | null;
     price?: string;
     priceNote?: string;
+    /** Screen-reader label for the currency (the Riyal symbol is shown visually). */
+    currencyLabel?: string;
     tier?: TripTier | null;
     /** Pre-localized scarcity text, e.g. "3 seats left". */
     seatsText?: string;
     favourite?: boolean;
-    /** Show the favourite (heart) toggle. */
-    favouritable?: boolean;
+    /** Reveal wishlist + view actions on hover. */
+    hoverActions?: boolean;
+    /** Accessible labels for the hover actions. */
+    wishlistLabel?: string;
+    removeLabel?: string;
+    viewLabel?: string;
     clickable?: boolean;
   }>(),
   {
     region: '', duration: '', dates: '', rating: null, reviews: null, price: '',
     priceNote: 'للشخص', tier: null, seatsText: '', favourite: false,
-    favouritable: false, clickable: true,
+    hoverActions: true, wishlistLabel: 'حفظ', removeLabel: 'إزالة من المحفوظات',
+    viewLabel: 'عرض', clickable: true,
   }
 );
 
-const emit = defineEmits<{ click: []; favourite: [] }>();
+const emit = defineEmits<{ click: []; favourite: []; view: [] }>();
 
 const heartColor = computed(() =>
   props.favourite ? 'var(--brand)' : 'var(--navy-900)'
@@ -57,14 +64,18 @@ const heartColor = computed(() =>
       <div class="drh-trip__top">
         <Badge v-if="tier" :variant="tier.variant || 'solid'">{{ tier.label }}</Badge>
         <span v-else />
+      </div>
+      <div v-if="hoverActions" class="drh-trip__actions">
         <IconButton
-          v-if="favouritable"
           variant="glass"
-          size="sm"
-          :label="favourite ? 'إزالة من المحفوظات' : 'حفظ'"
+          size="md"
+          :label="favourite ? removeLabel : wishlistLabel"
           @click.stop="emit('favourite')"
         >
-          <Icon name="heart" :size="17" :color="heartColor" />
+          <Icon name="heart" :size="19" :color="heartColor" />
+        </IconButton>
+        <IconButton variant="glass" size="md" :label="viewLabel" @click.stop="emit('view')">
+          <Icon name="eye" :size="19" color="var(--navy-900)" />
         </IconButton>
       </div>
     </div>
@@ -87,7 +98,11 @@ const heartColor = computed(() =>
 
       <div class="drh-trip__foot">
         <div class="drh-trip__price">
-          <b>{{ price }}</b>
+          <span class="drh-trip__amount">
+            <b>{{ price }}</b>
+            <Icon name="saudi-riyal" :size="20" class="drh-trip__riyal" />
+            <span v-if="currencyLabel" class="sr-only">{{ currencyLabel }}</span>
+          </span>
           <small>{{ priceNote }}</small>
         </div>
         <slot name="cta" />
@@ -129,6 +144,30 @@ const heartColor = computed(() =>
   align-items: flex-start;
   z-index: 2;
 }
+.drh-trip__actions {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-standard);
+}
+.drh-trip__actions .drh-iconbtn {
+  transform: translateY(10px);
+  transition: transform var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-standard);
+}
+.drh-trip:hover .drh-trip__actions { opacity: 1; }
+.drh-trip:hover .drh-trip__actions .drh-iconbtn { transform: none; }
+.drh-trip:hover .drh-trip__media::after { opacity: 0.72; }
+@media (hover: none) {
+  /* Touch devices: keep actions visible (no hover). */
+  .drh-trip__actions { opacity: 1; }
+  .drh-trip__actions .drh-iconbtn { transform: none; }
+}
+
 .drh-trip__body { padding: var(--space-5); display: flex; flex-direction: column; gap: 10px; }
 .drh-trip__eyebrow {
   font-family: var(--font-display);
@@ -156,11 +195,13 @@ const heartColor = computed(() =>
 .drh-trip__meta svg { width: 15px; height: 15px; color: var(--brand); }
 .drh-trip__divider { height: 1px; background: var(--border-hair); margin: 2px 0; }
 .drh-trip__foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.drh-trip__amount { display: inline-flex; align-items: center; gap: 4px; color: var(--text-strong); }
 .drh-trip__price b {
   font-family: var(--font-display);
   font-weight: 800;
   font-size: var(--text-2xl);
   color: var(--text-strong);
 }
+.drh-trip__riyal { width: 0.8em; height: 0.8em; }
 .drh-trip__price small { display: block; font-size: var(--text-xs); color: var(--text-muted); }
 </style>

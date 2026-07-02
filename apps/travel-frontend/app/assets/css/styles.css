@@ -20,7 +20,8 @@
 
   body {
     margin: 0;
-    direction: rtl; /* Arabic-first */
+    /* Direction is driven by the <html dir> attribute (set per-locale in app.vue),
+       so it flips to LTR for English. Do NOT hard-code `direction` here. */
     font-family: var(--font-body);
     font-size: var(--type-body-size);
     line-height: var(--type-body-leading);

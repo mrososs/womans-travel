@@ -8,15 +8,22 @@ const { t, locale } = useI18n();
 const route = useRoute();
 const localePath = useLocalePath();
 const switchLocalePath = useSwitchLocalePath();
+const { isLoggedIn } = useAuth();
 
 const active = computed(() => route.path);
 
-const links = computed(() =>
-  NAV.map((n) => ({
+const links = computed(() => {
+  const base = NAV.map((n) => ({
     label: t(`nav.${n.key}`),
     href: localePath(n.path) + (n.hash ?? ''),
-  }))
-);
+  }));
+  base.push(
+    isLoggedIn.value
+      ? { label: t('auth.myAccount'), href: localePath('/account') }
+      : { label: t('auth.login'), href: localePath('/auth/login') }
+  );
+  return base;
+});
 
 const cta = computed(() => ({ label: t('nav.book'), href: localePath('/destinations') }));
 
