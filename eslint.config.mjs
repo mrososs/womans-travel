@@ -13,7 +13,9 @@ export default [
       '@nx/enforce-module-boundaries': [
         'error',
         {
-          enforceBuildableLibDependency: true,
+          // Libraries are consumed as source (Nx TS-solution setup), so the
+          // app legitimately imports non-"buildable" libs.
+          enforceBuildableLibDependency: false,
           allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
           depConstraints: [
             {

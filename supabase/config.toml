@@ -1,0 +1,9 @@
+# Supabase CLI config. Link to your project with:
+#   supabase login
+#   supabase link --project-ref <your-project-ref>
+#   supabase db push          # applies migrations/
+#   supabase db reset         # (local) applies migrations + seed.sql
+project_id = "woman-travel"
+
+[db]
+major_version = 15

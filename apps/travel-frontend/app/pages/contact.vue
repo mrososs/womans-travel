@@ -1,0 +1,64 @@
+<script setup lang="ts">
+import { Card, Icon } from '@org/shared-ui';
+import ContactForm from '~/components/ContactForm.vue';
+
+const { t } = useI18n();
+useHead(() => ({ title: `${t('contact.title')} · ${t('brand')}` }));
+
+const info = [
+  { icon: 'phone', label: 'contact.phoneLabel', value: '+966 50 000 0000', dir: 'ltr' },
+  { icon: 'mail', label: 'contact.emailLabel', value: 'hello@durrah.travel', dir: 'ltr' },
+  { icon: 'clock', label: 'contact.hoursLabel', value: 'contact.hoursValue', dir: undefined },
+];
+</script>
+
+<template>
+  <div>
+    <section class="page-head">
+      <div class="container">
+        <div class="eyebrow">{{ t('contact.eyebrow') }}</div>
+        <h1 class="h-sec">{{ t('contact.title') }}</h1>
+        <p class="lead page-head__lead">{{ t('contact.lead') }}</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="contact-grid">
+          <Card variant="elevated" padding="lg">
+            <ContactForm />
+          </Card>
+
+          <div class="contact-info">
+            <h2 class="contact-info__title">{{ t('contact.infoTitle') }}</h2>
+            <div v-for="row in info" :key="row.label" class="contact-info__row">
+              <span class="contact-info__icon"><Icon :name="row.icon" :size="20" /></span>
+              <div>
+                <div class="contact-info__label">{{ t(row.label) }}</div>
+                <div class="contact-info__value" :dir="row.dir">
+                  {{ row.value.startsWith('contact.') ? t(row.value) : row.value }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</template>
+
+<style scoped>
+.page-head { background: var(--surface-cream); padding: clamp(40px, 6vw, 72px) 0; }
+.page-head__lead { margin-top: 12px; }
+.contact-grid { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: start; }
+@media (min-width: 860px) { .contact-grid { grid-template-columns: 1.4fr 1fr; } }
+.contact-info__title { font-family: var(--font-display); font-weight: 800; font-size: var(--text-xl); color: var(--text-strong); margin-bottom: 20px; }
+.contact-info__row { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+.contact-info__icon {
+  flex: none; width: 46px; height: 46px; border-radius: 14px;
+  background: var(--rose-100); color: var(--brand-strong);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.contact-info__label { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text-strong); }
+.contact-info__value { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
+</style>

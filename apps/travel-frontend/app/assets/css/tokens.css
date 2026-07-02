@@ -1,0 +1,235 @@
+/* ============================================================
+   DURRAH — Design tokens (colors · typography · spacing · effects)
+   Imported by the Ashwaq / Durrah women's luxury travel frontend.
+   Source of truth: claude.ai/design "Ashwaq — Women's Luxury Travel".
+   ============================================================ */
+
+:root {
+  /* ================= COLORS ================= */
+
+  /* Rose Gold — primary brand hue */
+  --rose-50:  #FAF2F0;
+  --rose-100: #F3E0DD;
+  --rose-200: #E8C8C3;
+  --rose-300: #D9A9A3;
+  --rose-400: #C88A82;
+  --rose-500: #B76E79;   /* anchor rose gold */
+  --rose-600: #9E5863;   /* solid fills (AA on white) */
+  --rose-700: #7C444E;   /* hover / press */
+  --rose-800: #59313A;
+
+  /* Champagne Gold — metallic accent */
+  --gold-100: #F7EFDF;
+  --gold-200: #ECDAB6;
+  --gold-300: #DDC290;
+  --gold-400: #CEAB6C;
+  --gold-500: #C6A15B;   /* anchor champagne */
+  --gold-600: #A2823F;
+
+  /* Deep Navy — text & rich dark surfaces */
+  --navy-500: #33415C;
+  --navy-600: #2A3750;
+  --navy-700: #24314B;
+  --navy-800: #1A2540;
+  --navy-900: #121B33;   /* deepest ink */
+
+  /* Warm neutrals — pearl, cream, sand */
+  --white:  #FFFFFF;
+  --pearl:  #FBF8F3;   /* page background */
+  --cream:  #F4EADB;   /* warm section background */
+  --sand:   #ECE0CE;   /* raised warm surface */
+  --n-100:  #F1E8DA;
+  --n-200:  #E4D9C8;
+  --n-300:  #D3C6B2;
+  --n-400:  #B6A992;
+  --n-500:  #938872;
+  --n-600:  #6E6656;
+
+  /* Cool slate steps for text hierarchy */
+  --slate-400: #98A0B0;
+  --slate-500: #5A6377;
+  --slate-600: #414B60;
+
+  /* Status */
+  --success-500: #4E7A5B;
+  --success-100: #E4EFE7;
+  --warning-500: #C6903F;
+  --warning-100: #F6EBD7;
+  --danger-500:  #B4544E;
+  --danger-100:  #F6E2E0;
+  --info-500:    #4E6A8A;
+  --info-100:    #E2EAF2;
+
+  /* Semantic: text */
+  --text-strong:  var(--navy-900);
+  --text-body:    var(--navy-700);
+  --text-muted:   var(--slate-500);
+  --text-subtle:  var(--slate-400);
+  --text-gold:    var(--gold-600);
+  --text-brand:   var(--rose-600);
+  --text-on-rose: #FFFFFF;
+  --text-on-navy: #F3E9DC;
+  --text-on-navy-muted: #A9B0C2;
+
+  /* Semantic: surfaces */
+  --surface-page:  var(--pearl);
+  --surface-cream: var(--cream);
+  --surface-sand:  var(--sand);
+  --surface-card:  var(--white);
+  --surface-rose:  var(--rose-50);
+  --surface-navy:  var(--navy-900);
+  --surface-veil:  rgba(18, 27, 51, 0.55);
+
+  /* Semantic: brand roles */
+  --brand:         var(--rose-500);
+  --brand-solid:   var(--rose-600);
+  --brand-strong:  var(--rose-700);
+  --brand-soft:    var(--rose-100);
+  --brand-tint:    var(--rose-50);
+  --accent-gold:   var(--gold-500);
+  --accent-gold-soft: var(--gold-100);
+
+  /* Semantic: borders & lines */
+  --border-hair:    #EFE6D8;
+  --border-soft:    #E7DCCB;
+  --border-default: #DDD0BC;
+  --border-strong:  #CBBBA2;
+  --border-gold:    var(--gold-300);
+  --border-focus:   var(--rose-500);
+
+  /* Overlays / gradients */
+  --grad-rose:   linear-gradient(135deg, #C88A82 0%, #B76E79 55%, #9E5863 100%);
+  --grad-gold:   linear-gradient(120deg, #DDC290 0%, #C6A15B 100%);
+  --grad-navy:   linear-gradient(160deg, #24314B 0%, #121B33 100%);
+  --grad-pearl:  linear-gradient(180deg, #FDFBF7 0%, #F4EADB 100%);
+  --grad-scrim:  linear-gradient(0deg, rgba(18,27,51,0.78) 0%, rgba(18,27,51,0.35) 45%, rgba(18,27,51,0) 100%);
+
+  /* ================= TYPOGRAPHY ================= */
+
+  --font-display: 'Cairo', 'Tajawal', 'Almarai', system-ui, sans-serif;
+  --font-body:    'Tajawal', 'Cairo', 'Almarai', system-ui, sans-serif;
+  --font-alt:     'Almarai', 'Tajawal', system-ui, sans-serif;
+  --font-num:     'Tajawal', system-ui, sans-serif;
+
+  --weight-light:      300;
+  --weight-regular:    400;
+  --weight-medium:     500;
+  --weight-semibold:   600;
+  --weight-bold:       700;
+  --weight-extrabold:  800;
+  --weight-black:      900;
+
+  --text-2xs:  11px;
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-lg:   18px;
+  --text-xl:   22px;
+  --text-2xl:  27px;
+  --text-3xl:  33px;
+  --text-4xl:  41px;
+  --text-5xl:  52px;
+  --text-6xl:  66px;
+  --text-7xl:  82px;
+
+  --leading-none:    1;
+  --leading-tight:   1.2;
+  --leading-snug:    1.35;
+  --leading-normal:  1.6;
+  --leading-relaxed: 1.85;
+
+  --tracking-none:  0;
+  --tracking-label: 0.14em;
+  --tracking-wide:  0.04em;
+
+  --type-heading-weight:  var(--weight-bold);
+  --type-heading-leading: var(--leading-snug);
+  --type-body-size:    var(--text-base);
+  --type-body-leading: var(--leading-relaxed);
+
+  /* ================= SPACING & LAYOUT ================= */
+
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  28px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  --gutter:        var(--space-5);
+  --gutter-lg:     var(--space-8);
+  --stack-tight:   var(--space-3);
+  --stack:         var(--space-5);
+  --stack-loose:   var(--space-8);
+  --section-y:     var(--space-16);
+  --section-y-lg:  var(--space-24);
+
+  --container-xs:  360px;
+  --container-sm:  480px;
+  --container-md:  768px;
+  --container-lg:  1024px;
+  --container-xl:  1200px;
+
+  --tap-min:       44px;
+  --tap-comfort:   52px;
+
+  --z-base:      0;
+  --z-raised:    10;
+  --z-sticky:    100;
+  --z-header:    200;
+  --z-overlay:   900;
+  --z-modal:     1000;
+  --z-tooltip:   1050;
+  --z-toast:     1100;
+
+  /* ================= EFFECTS ================= */
+
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   16px;
+  --radius-lg:   24px;
+  --radius-xl:   32px;
+  --radius-2xl:  40px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  --shadow-xs: 0 1px 2px rgba(45, 28, 25, 0.05);
+  --shadow-sm: 0 2px 10px rgba(45, 28, 25, 0.06);
+  --shadow-md: 0 10px 28px rgba(45, 28, 25, 0.08);
+  --shadow-lg: 0 20px 48px rgba(38, 24, 22, 0.12);
+  --shadow-xl: 0 32px 72px rgba(30, 20, 18, 0.16);
+  --shadow-rose: 0 14px 32px rgba(158, 88, 99, 0.28);
+  --shadow-gold: 0 12px 28px rgba(162, 130, 63, 0.24);
+  --shadow-inset: inset 0 1px 2px rgba(45, 28, 25, 0.06);
+  --ring-brand: 0 0 0 3px rgba(183, 110, 121, 0.30);
+  --ring-gold:  0 0 0 3px rgba(198, 161, 91, 0.32);
+
+  --blur-sm:  blur(6px);
+  --blur-md:  blur(14px);
+  --blur-lg:  blur(28px);
+  --glass-bg: rgba(251, 248, 243, 0.72);
+  --glass-bg-navy: rgba(18, 27, 51, 0.55);
+
+  --dur-fast:    160ms;
+  --dur-base:    260ms;
+  --dur-slow:    420ms;
+  --dur-reveal:  720ms;
+  --dur-parallax: 1200ms;
+
+  --ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-gentle:   cubic-bezier(0.33, 1, 0.68, 1);
+
+  --focus-width: 3px;
+}

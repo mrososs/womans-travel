@@ -15,17 +15,44 @@ export default defineNuxtConfig({
     port: 4200,
   },
 
-  // Saudi Women's Travel Agency — Arabic, right-to-left by default.
+  // Saudi Women's Travel Agency — Arabic-first (RTL). `dir`/`lang` are set
+  // dynamically per locale via useLocaleHead() (see app.vue); the values here
+  // are just the SSR default for the Arabic (default) locale.
   app: {
     head: {
       htmlAttrs: {
         dir: 'rtl',
         lang: 'ar',
       },
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        {
+          rel: 'preconnect',
+          href: 'https://fonts.gstatic.com',
+          crossorigin: '',
+        },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&family=Almarai:wght@300;400;700;800&display=swap',
+        },
+      ],
     },
   },
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase', '@nuxtjs/i18n'],
+
+  // Bilingual: Arabic (default, RTL) at "/", English (LTR) under "/en".
+  i18n: {
+    strategy: 'prefix_except_default',
+    defaultLocale: 'ar',
+    langDir: 'locales',
+    locales: [
+      { code: 'ar', language: 'ar-SA', name: 'العربية', dir: 'rtl', file: 'ar.json' },
+      { code: 'en', language: 'en-US', name: 'English', dir: 'ltr', file: 'en.json' },
+    ],
+    detectBrowserLanguage: false,
+    bundle: { optimizeTranslationDirective: false },
+  },
 
   // Supabase connection is read from SUPABASE_URL / SUPABASE_KEY (see .env.example).
   // `redirect: false` keeps auth-gating opt-in while we scaffold; enable per-route later.
@@ -53,7 +80,7 @@ export default defineNuxtConfig({
     autoImport: true,
   },
 
-  css: ['~/assets/css/styles.css'],
+  css: ['~/assets/css/styles.css', '~/assets/css/site.css'],
 
   // Resolve the Nx workspace libraries by their package names in both the
   // Vite (client) and Nitro (server) builds.
