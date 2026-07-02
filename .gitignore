@@ -4,6 +4,7 @@
 dist
 tmp
 out-tsc
+*.tsbuildinfo
 
 # dependencies
 node_modules
@@ -23,6 +24,11 @@ node_modules
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# env / secrets (keep .env.example tracked)
+.env
+.env.*
+!.env.example
 
 # misc
 /.sass-cache
@@ -48,3 +54,10 @@ Thumbs.db
 .nx/polygraph
 .nx/self-healing
 .nx/migrate-runs
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+vitest.config.*.timestamp*
