@@ -18,6 +18,16 @@ withDefaults(
     cta?: { label: string; href: string } | null;
     /** Label for the language toggle (e.g. "EN" or "ع"). */
     langLabel?: string;
+    /** Cart item count; when defined, a cart button is shown. */
+    cartCount?: number;
+    cartLabel?: string;
+    /** Show a wishlist (heart) button with optional count. */
+    showWishlist?: boolean;
+    wishlistCount?: number;
+    wishlistLabel?: string;
+    /** Show a profile (user) button. */
+    showProfile?: boolean;
+    profileLabel?: string;
   }>(),
   {
     brand: 'دُرّة',
@@ -25,12 +35,22 @@ withDefaults(
     active: '',
     cta: () => ({ label: 'احجزي رحلتكِ', href: '#' }),
     langLabel: 'ع',
+    cartCount: undefined,
+    cartLabel: 'السلة',
+    showWishlist: false,
+    wishlistCount: 0,
+    wishlistLabel: 'المفضّلة',
+    showProfile: false,
+    profileLabel: 'حسابي',
   }
 );
 
 const emit = defineEmits<{
   navigate: [href: string, event: MouseEvent];
   'toggle-lang': [];
+  cart: [];
+  wishlist: [];
+  profile: [];
 }>();
 
 const open = ref(false);
@@ -64,6 +84,35 @@ function go(href: string, event: MouseEvent) {
       </nav>
 
       <div class="drh-nav__right">
+        <button
+          v-if="showWishlist"
+          type="button"
+          class="drh-nav__cart"
+          :aria-label="wishlistLabel"
+          @click="emit('wishlist')"
+        >
+          <Icon name="heart" :size="20" />
+          <span v-if="wishlistCount > 0" class="drh-nav__cartbadge">{{ wishlistCount }}</span>
+        </button>
+        <button
+          v-if="cartCount !== undefined"
+          type="button"
+          class="drh-nav__cart"
+          :aria-label="cartLabel"
+          @click="emit('cart')"
+        >
+          <Icon name="shopping-bag" :size="20" />
+          <span v-if="cartCount > 0" class="drh-nav__cartbadge">{{ cartCount }}</span>
+        </button>
+        <button
+          v-if="showProfile"
+          type="button"
+          class="drh-nav__cart"
+          :aria-label="profileLabel"
+          @click="emit('profile')"
+        >
+          <Icon name="user" :size="20" />
+        </button>
         <button type="button" class="drh-nav__globe" @click="emit('toggle-lang')">
           <Icon name="globe" :size="17" />{{ langLabel }}
         </button>
@@ -178,6 +227,40 @@ function go(href: string, event: MouseEvent) {
 .drh-nav__globe:hover { color: var(--brand-strong); }
 .drh-nav__globe:focus-visible { outline: none; box-shadow: var(--ring-brand); border-radius: var(--radius-xs); }
 .drh-nav__drawer .drh-nav__globe { padding: 14px 0; border-bottom: 1px solid var(--border-hair); }
+.drh-nav__cart {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--navy-900);
+  cursor: pointer;
+  transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
+}
+.drh-nav__cart:hover { background: var(--rose-50); color: var(--brand-strong); }
+.drh-nav__cart:focus-visible { outline: none; box-shadow: var(--ring-brand); }
+.drh-nav__cartbadge {
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-solid);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .drh-nav__burger {
   display: none;
   width: 44px;

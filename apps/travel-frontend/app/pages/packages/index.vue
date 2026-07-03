@@ -7,6 +7,11 @@ import PackageCard from '~/components/PackageCard.vue';
 const { t } = useI18n();
 const { pick } = useDbPick();
 const { data: packages } = usePackages();
+const localePath = useLocalePath();
+
+function goPackage(id: string) {
+  navigateTo(localePath(`/packages/${id}`));
+}
 
 useHead(() => ({ title: `${t('pages.packages.title')} · ${t('brand')}` }));
 
@@ -39,6 +44,8 @@ useScrollReveal(grid, { selector: '.pkg', stagger: 0.08 });
             :currency="t('common.currency')"
             :from-label="t('common.startingFrom')"
             :kind-label="t(`destinations.kinds.${p.kind}`)"
+            :view-label="t('actions.view')"
+            @open="goPackage(p.id)"
           />
         </div>
       </div>

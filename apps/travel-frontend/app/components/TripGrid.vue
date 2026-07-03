@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
 import { Button, TripCard } from '@org/shared-ui';
 import TripPhoto from './TripPhoto.vue';
 import type { Trip } from '~/data/site';
@@ -7,19 +6,32 @@ import type { Trip } from '~/data/site';
 /**
  * TripGrid — responsive grid of TripCards (1 → 2 → 3 columns). Emits `open`
  * with the trip id when a card / its CTA / the view action is activated.
- * Wishlist toggle is client-side for now; it will persist via Supabase once
- * auth lands (see docs/plan.md, Phase 3).
+ * The heart toggles the Supabase-backed wishlist (sign-in required).
  */
 defineProps<{ trips: Trip[] }>();
 const emit = defineEmits<{ open: [id: string] }>();
 
 const { t } = useI18n();
 const { lc } = useLocalize();
+const { has, toggle } = useWishlist();
+const { isLoggedIn } = useAuth();
+const notify = useNotify();
 
-const favourites = reactive(new Set<string>());
-function toggleFavourite(id: string) {
-  if (favourites.has(id)) favourites.delete(id);
-  else favourites.add(id);
+async function onFavourite(trip: Trip) {
+  if (!isLoggedIn.value) {
+    notify.error(t('wishlist.loginRequired'));
+    return;
+  }
+  const result = await toggle({
+    item_type: 'trip',
+    item_id: trip.id,
+    title: lc(trip.title),
+    icon: trip.icon,
+    grad: trip.grad,
+    price: lc(trip.price),
+  });
+  if (result === 'added') notify.success(t('wishlist.added'));
+  else if (result === 'removed') notify.info(t('wishlist.removed'));
 }
 </script>
 
@@ -39,13 +51,13 @@ function toggleFavourite(id: string) {
       :price-note="t('common.perPerson')"
       :tier="{ label: t(`tiers.${trip.tierKey}`), variant: trip.tierVariant }"
       :seats-text="trip.seats != null ? t('common.seatsLeft', { count: trip.seats }) : ''"
-      :favourite="favourites.has(trip.id)"
+      :favourite="has('trip', trip.id)"
       :wishlist-label="t('actions.wishlist')"
       :remove-label="t('actions.wishlistRemove')"
       :view-label="t('actions.view')"
       @click="emit('open', trip.id)"
       @view="emit('open', trip.id)"
-      @favourite="toggleFavourite(trip.id)"
+      @favourite="onFavourite(trip)"
     >
       <template #media>
         <TripPhoto :grad="trip.grad" :icon="trip.icon" />

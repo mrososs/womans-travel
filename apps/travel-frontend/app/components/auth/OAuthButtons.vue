@@ -4,6 +4,7 @@ import { Button } from '@org/shared-ui';
 
 const { t } = useI18n();
 const { signInWithOAuth } = useAuth();
+const notify = useNotify();
 
 const loading = ref<'' | 'google' | 'facebook'>('');
 
@@ -12,6 +13,8 @@ async function go(provider: 'google' | 'facebook') {
   try {
     await signInWithOAuth(provider);
   } catch {
+    // e.g. provider not enabled in Supabase → friendly toast.
+    notify.error(t('auth.oauthError'));
     loading.value = '';
   }
 }

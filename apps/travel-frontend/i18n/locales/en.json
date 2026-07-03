@@ -2,6 +2,36 @@
   "brand": "Durrah",
   "lang": { "switch": "العربية", "current": "EN" },
   "actions": { "wishlist": "Add to wishlist", "wishlistRemove": "Remove from wishlist", "view": "View" },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty",
+    "emptyCta": "Browse trips",
+    "subtotal": "Estimated total",
+    "checkout": "Checkout",
+    "loginToCheckout": "Sign in to checkout",
+    "quantity": "Quantity",
+    "added": "Added to cart",
+    "addToCart": "Add to cart",
+    "continue": "Continue shopping",
+    "viewCart": "View cart"
+  },
+  "wishlist": {
+    "title": "Wishlist",
+    "empty": "Your wishlist is empty",
+    "loginRequired": "You must sign in first",
+    "added": "Added to wishlist",
+    "removed": "Removed from wishlist",
+    "viewAll": "View all favourites"
+  },
+  "detail": {
+    "overview": "Overview",
+    "includes": "The package includes",
+    "itinerary": "Itinerary",
+    "availability": "Available",
+    "travellers": "Travellers",
+    "notFound": "This package was not found.",
+    "backToPackages": "Back to packages"
+  },
   "auth": {
     "login": "Sign in",
     "register": "Create account",
@@ -23,7 +53,15 @@
     "loginError": "Couldn't sign in — check your details.",
     "signupError": "Couldn't create the account, please try again.",
     "signingIn": "Signing in…",
-    "completing": "Completing sign-in…"
+    "completing": "Completing sign-in…",
+    "linkExpired": "This link is invalid or has expired. Please sign in again or request a new link.",
+    "backToLogin": "Back to sign in",
+    "oauthError": "This method isn't enabled yet. Use email & password, or try again later.",
+    "emailPh": "Enter your email",
+    "passwordPh": "Your password",
+    "namePh": "Your full name",
+    "welcome": "Welcome back",
+    "created": "Your account was created"
   },
   "account": {
     "title": "Profile",
@@ -34,6 +72,7 @@
     "email": "Email",
     "save": "Save changes",
     "saved": "Saved",
+    "saveError": "Couldn't save your changes, please try again.",
     "wishlist": "Wishlist",
     "orders": "My orders",
     "signOut": "Sign out",

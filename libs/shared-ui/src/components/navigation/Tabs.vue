@@ -50,6 +50,7 @@ const classes = computed(() => ['drh-tabs', `drh-tabs--${props.variant}`]);
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  white-space: nowrap;
   transition: color var(--dur-base) var(--ease-standard),
     background var(--dur-base) var(--ease-standard);
 }
@@ -72,8 +73,8 @@ const classes = computed(() => ['drh-tabs', `drh-tabs--${props.variant}`]);
 .drh-tabs--underline .drh-tabs__tab[aria-selected='true'] { color: var(--text-strong); }
 .drh-tabs--underline .drh-tabs__tab[aria-selected='true']::after { transform: scaleX(1); }
 
-.drh-tabs--segmented .drh-tabs__list { background: var(--sand); padding: 5px; border-radius: var(--radius-pill); gap: 0; }
-.drh-tabs--segmented .drh-tabs__tab { flex: 1; justify-content: center; padding: 10px 16px; border-radius: var(--radius-pill); }
+.drh-tabs--segmented .drh-tabs__list { background: var(--sand); padding: 4px; border-radius: var(--radius-pill); gap: 0; }
+.drh-tabs--segmented .drh-tabs__tab { flex: 0 0 auto; justify-content: center; padding: 9px 14px; border-radius: var(--radius-pill); font-size: var(--text-xs); }
 .drh-tabs--segmented .drh-tabs__tab[aria-selected='true'] {
   background: var(--surface-card);
   color: var(--brand-strong);
