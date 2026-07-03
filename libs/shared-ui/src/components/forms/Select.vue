@@ -181,6 +181,7 @@ onBeforeUnmount(unbindGlobal);
         class="drh-select__control"
         :class="{ 'drh-select__control--placeholder': isPlaceholder }"
         role="combobox"
+        :aria-label="label || placeholder || undefined"
         aria-haspopup="listbox"
         :aria-expanded="open"
         :aria-controls="`${rid}-list`"
@@ -267,7 +268,8 @@ onBeforeUnmount(unbindGlobal);
   text-align: start;
 }
 .drh-select__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.drh-select__control--placeholder { color: var(--text-subtle); }
+/* --text-muted (not --text-subtle) so the placeholder meets WCAG AA contrast. */
+.drh-select__control--placeholder { color: var(--text-muted); }
 
 .drh-select__chev {
   position: absolute;
