@@ -30,7 +30,7 @@ withDefaults(
     profileLabel?: string;
   }>(),
   {
-    brand: 'دُرّة',
+    brand: 'test',
     links: () => [],
     active: '',
     cta: () => ({ label: 'احجزي رحلتكِ', href: '#' }),

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm install",
+  "buildCommand": "cd apps/travel-frontend && npx nuxt build && cd ../.. && rm -rf .vercel/output && mkdir -p .vercel && mv apps/travel-frontend/.vercel/output .vercel/output",
+  "build": {
+    "env": {
+      "NITRO_PRESET": "vercel"
+    }
+  }
+}
