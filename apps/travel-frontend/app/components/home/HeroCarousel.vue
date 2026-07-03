@@ -9,6 +9,10 @@ import { HERO_SLIDES } from '~/data/site';
  */
 const current = ref(0);
 const count = HERO_SLIDES.length;
+// The first (active) slide must paint at full opacity immediately — the
+// opacity cross-fade is only enabled *after* mount so it never delays the LCP
+// element on the initial load (the fade was adding ~700ms of LCP render delay).
+const ready = ref(false);
 let timer: ReturnType<typeof setInterval> | null = null;
 
 function go(delta: number) {
@@ -16,6 +20,7 @@ function go(delta: number) {
 }
 
 onMounted(() => {
+  requestAnimationFrame(() => (ready.value = true));
   const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   if (!reduce) timer = setInterval(() => go(1), 5200);
 });
@@ -26,7 +31,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="hero__slides">
+  <div class="hero__slides" :class="{ 'is-ready': ready }">
     <div
       v-for="(s, idx) in HERO_SLIDES"
       :key="idx"
@@ -67,8 +72,11 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .hero__slides { position: absolute; inset: 0; overflow: hidden; }
-.hero__slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.1s var(--ease-out); }
+.hero__slide { position: absolute; inset: 0; opacity: 0; }
 .hero__slide.on { opacity: 1; }
+/* Enable the cross-fade only after mount so the initial slide paints instantly
+   (an entrance fade on the active slide delays the LCP element). */
+.hero__slides.is-ready .hero__slide { transition: opacity 1.1s var(--ease-out); }
 .hero__kb { position: absolute; inset: 0; transform: scale(1.04); transform-origin: center; }
 .hero__kb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hero__ic { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.2; color: #fff; }
