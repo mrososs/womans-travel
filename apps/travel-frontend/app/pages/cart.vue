@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Card, Button, Icon } from '@org/shared-ui';
 
 const { t } = useI18n();
@@ -10,15 +9,13 @@ const { isLoggedIn } = useAuth();
 useHead(() => ({ title: `${t('cart.title')} · ${t('brand')}` }));
 
 const nf = new Intl.NumberFormat('en-US');
-const checkoutNote = ref(false);
 
 function checkout() {
   if (!isLoggedIn.value) {
     navigateTo(localePath('/auth/login'));
     return;
   }
-  // Payment (Moyasar) integration is the next phase — see docs/plan.md.
-  checkoutNote.value = true;
+  navigateTo(localePath('/checkout'));
 }
 </script>
 
@@ -79,7 +76,6 @@ function checkout() {
             <template #iconStart><Icon name="shield-check" :size="19" /></template>
             {{ isLoggedIn ? t('cart.checkout') : t('cart.loginToCheckout') }}
           </Button>
-          <p v-if="checkoutNote" class="cart__note">{{ t('account.soon') }}</p>
           <NuxtLink class="cart__continue" :to="localePath('/packages')">{{ t('cart.continue') }}</NuxtLink>
         </Card>
       </div>
