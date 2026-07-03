@@ -1,6 +1,5 @@
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { defineNuxtConfig } from 'nuxt/config';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
@@ -83,14 +82,13 @@ export default defineNuxtConfig({
   css: ['~/assets/css/styles.css', '~/assets/css/site.css'],
 
   // Resolve the Nx workspace libraries by their package names in both the
-  // Vite (client) and Nitro (server) builds.
+  // Vite (client) and Nitro (server) builds. These explicit aliases replace the
+  // (now-removed) @nx/vite `nxViteTsPaths` plugin, which triggered Nx project-
+  // graph / Nx Cloud computation and hung the Vercel build. They mirror the
+  // `paths` in tsconfig.base.json, so path resolution is unchanged.
   alias: {
     '@org/shared-ui': resolve(libsDir, 'shared-ui/src/index.ts'),
     '@org/shared-utils': resolve(libsDir, 'shared-utils/src/index.ts'),
     '@org/supabase-client': resolve(libsDir, 'supabase-client/src/index.ts'),
-  },
-
-  vite: {
-    plugins: [nxViteTsPaths()],
   },
 });
