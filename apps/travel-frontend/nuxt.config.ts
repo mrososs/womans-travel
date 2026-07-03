@@ -32,11 +32,12 @@ export default defineNuxtConfig({
         },
         // Preload the LCP hero image so the browser discovers it from the
         // initial HTML (removes the ~570ms LCP "load delay" measured on the
-        // first slide of HeroCarousel — /hero/hero-1.png).
+        // first slide of HeroCarousel — /hero/hero-1.webp).
         {
           rel: 'preload',
           as: 'image',
-          href: '/hero/hero-1.png',
+          href: '/hero/hero-1.webp',
+          type: 'image/webp',
           fetchpriority: 'high',
         },
         {

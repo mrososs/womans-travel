@@ -27,7 +27,7 @@ useScrollReveal(grid, { selector: '.pkg', stagger: 0.08 });
       :title="t('pages.packages.title')"
       :description="t('pages.packages.lead')"
       icon="crown"
-      image="/hero/hero-1.png"
+      image="/hero/hero-1.webp"
     />
 
     <section ref="grid" class="section">

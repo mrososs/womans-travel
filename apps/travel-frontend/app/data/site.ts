@@ -81,9 +81,9 @@ export const NAV: { key: string; path: string; hash?: string }[] = [
 ];
 
 export const HERO_SLIDES: HeroSlide[] = [
-  { img: '/hero/hero-1.png', icon: 'mountain-snow', grad: 'linear-gradient(120deg,#24314B,#9E5863)' },
-  { img: '/hero/hero-2.png', icon: 'sun', grad: 'linear-gradient(120deg,#C6A15B,#B76E79)' },
-  { img: '/hero/hero-3.png', icon: 'building-2', grad: 'linear-gradient(120deg,#4E6A8A,#9E5863)' },
+  { img: '/hero/hero-1.webp', icon: 'mountain-snow', grad: 'linear-gradient(120deg,#24314B,#9E5863)' },
+  { img: '/hero/hero-2.webp', icon: 'sun', grad: 'linear-gradient(120deg,#C6A15B,#B76E79)' },
+  { img: '/hero/hero-3.webp', icon: 'building-2', grad: 'linear-gradient(120deg,#4E6A8A,#9E5863)' },
 ];
 
 export const CATEGORIES: Category[] = [

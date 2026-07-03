@@ -52,7 +52,7 @@ function goTrip(id: string) {
       :title="t('destinations.title')"
       :description="t('destinations.lead')"
       icon="compass"
-      image="/hero/hero-2.png"
+      image="/hero/hero-2.webp"
     />
 
     <section class="dest-toolbar-band">
