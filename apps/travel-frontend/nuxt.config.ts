@@ -9,29 +9,37 @@ const libsDir = resolve(currentDir, '../../libs');
 // connect-src / img-src. Wildcards kept as a fallback for storage subdomains.
 const SUPABASE_ORIGIN = 'https://snqujifbaottvysziysj.supabase.co';
 
+// Storyblok visual-editor preview mode: enables the Storyblok bridge and
+// relaxes frame-ancestors so app.storyblok.com can iframe the site. Only ever
+// set on a dedicated preview deployment — production keeps strict headers.
+const IS_SB_PREVIEW = process.env.STORYBLOK_PREVIEW === 'true';
+
 // Content-Security-Policy. 'unsafe-inline' is required for scripts because Nuxt
 // injects the inline hydration payload, and for styles because of scoped/inline
 // styles; 'unsafe-eval' is intentionally NOT allowed. Fonts come from Google
-// Fonts; images may come from Supabase Storage and other https hosts.
+// Fonts; images may come from Supabase Storage, Storyblok assets
+// (a.storyblok.com) and other https hosts.
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
-  "frame-ancestors 'self'",
+  IS_SB_PREVIEW ? "frame-ancestors 'self' https://app.storyblok.com" : "frame-ancestors 'self'",
   "form-action 'self'",
-  "img-src 'self' data: blob: https:",
+  "img-src 'self' data: blob: https://a.storyblok.com https:",
   "font-src 'self' https://fonts.gstatic.com data:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "script-src 'self' 'unsafe-inline'",
-  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co`,
+  IS_SB_PREVIEW ? "script-src 'self' 'unsafe-inline' https://app.storyblok.com" : "script-src 'self' 'unsafe-inline'",
+  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co https://api.storyblok.com${IS_SB_PREVIEW ? ' https://app.storyblok.com' : ''}`,
   'upgrade-insecure-requests',
 ].join('; ');
 
 // Security response headers applied to every route (see routeRules below).
+// x-frame-options is omitted in Storyblok preview mode — it would block the
+// visual editor's iframe (frame-ancestors above covers the same protection).
 const SECURITY_HEADERS = {
   'content-security-policy': CSP,
   'strict-transport-security': 'max-age=63072000; includeSubDomains; preload',
-  'x-frame-options': 'SAMEORIGIN',
+  ...(IS_SB_PREVIEW ? {} : { 'x-frame-options': 'SAMEORIGIN' }),
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
   'permissions-policy': 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
@@ -95,7 +103,25 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase', '@nuxtjs/i18n'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase', '@nuxtjs/i18n', '@storyblok/nuxt'],
+
+  // Storyblok CDA. The space's default language is Arabic; English lives as a
+  // field-level translation (see docs/storyblok-integration-plan.md). The
+  // bridge is only loaded on preview deployments (STORYBLOK_PREVIEW=true).
+  storyblok: {
+    accessToken: process.env.STORYBLOK_ACCESS_TOKEN ?? '',
+    bridge: IS_SB_PREVIEW,
+    apiOptions: {
+      region: 'eu',
+    },
+  },
+
+  runtimeConfig: {
+    public: {
+      // 'published' in production; 'draft' locally / on the preview deployment.
+      storyblokVersion: process.env.STORYBLOK_VERSION || 'published',
+    },
+  },
 
   // Bilingual: Arabic (default, RTL) at "/", English (LTR) under "/en".
   i18n: {

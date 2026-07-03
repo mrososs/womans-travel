@@ -1,0 +1,511 @@
+{
+  "folders": [
+    { "name": "Trips", "slug": "trips" },
+    { "name": "Packages", "slug": "packages" },
+    { "name": "Services", "slug": "services" },
+    { "name": "Products", "slug": "products" },
+    { "name": "FAQs", "slug": "faqs" }
+  ],
+  "stories": [
+    {
+      "name": "The Austrian Alps",
+      "slug": "alps",
+      "folder": "trips",
+      "position": 10,
+      "content": {
+        "component": "trip",
+        "title": "جبال الألب النمساوية", "title__i18n__en": "The Austrian Alps",
+        "region": "النمسا", "region__i18n__en": "Austria",
+        "category": "mountain", "kind": "intl",
+        "icon": "mountain-snow", "grad": "linear-gradient(155deg,#24314B,#9E5863)",
+        "rating": 4.8, "reviews_count": 124, "seats": 3,
+        "tier_key": "luxury", "tier_variant": "solid",
+        "duration": "٧ أيام", "duration__i18n__en": "7 days",
+        "dates": "١٢–١٨ سبتمبر", "dates__i18n__en": "12–18 Sep",
+        "price_display": "٨٬٥٠٠", "price_display__i18n__en": "8,500",
+        "price_amount": 8500, "featured": true,
+        "highlights": "@default_highlights", "itinerary": "@default_itinerary", "includes": []
+      }
+    },
+    {
+      "name": "A private island resort",
+      "slug": "maldives",
+      "folder": "trips",
+      "position": 20,
+      "content": {
+        "component": "trip",
+        "title": "منتجع خاص على الجزيرة", "title__i18n__en": "A private island resort",
+        "region": "المالديف", "region__i18n__en": "Maldives",
+        "category": "beach", "kind": "intl",
+        "icon": "palmtree", "grad": "linear-gradient(155deg,#C6A15B,#B76E79)",
+        "rating": 4.9, "reviews_count": 86, "seats": null,
+        "tier_key": "exclusive", "tier_variant": "navy",
+        "duration": "٥ أيام", "duration__i18n__en": "5 days",
+        "dates": "٣–٧ أكتوبر", "dates__i18n__en": "3–7 Oct",
+        "price_display": "١٤٬٢٠٠", "price_display__i18n__en": "14,200",
+        "price_amount": 14200, "featured": true,
+        "highlights": "@default_highlights", "itinerary": "@default_itinerary", "includes": []
+      }
+    },
+    {
+      "name": "Enchanting AlUla",
+      "slug": "alula",
+      "folder": "trips",
+      "position": 30,
+      "content": {
+        "component": "trip",
+        "title": "العُلا الساحرة", "title__i18n__en": "Enchanting AlUla",
+        "region": "السعودية · العُلا", "region__i18n__en": "Saudi Arabia · AlUla",
+        "category": "mountain", "kind": "local",
+        "icon": "mountain", "grad": "linear-gradient(155deg,#B76E79,#7C444E)",
+        "rating": 4.7, "reviews_count": 152, "seats": 6,
+        "tier_key": "domestic", "tier_variant": "brand",
+        "duration": "٤ أيام", "duration__i18n__en": "4 days",
+        "dates": "٢٠–٢٣ نوفمبر", "dates__i18n__en": "20–23 Nov",
+        "price_display": "٥٬٩٠٠", "price_display__i18n__en": "5,900",
+        "price_amount": 5900, "featured": true,
+        "highlights": "@default_highlights", "itinerary": "@default_itinerary", "includes": []
+      }
+    },
+    {
+      "name": "Classic Kyoto",
+      "slug": "kyoto",
+      "folder": "trips",
+      "position": 40,
+      "content": {
+        "component": "trip",
+        "title": "كيوتو الكلاسيكية", "title__i18n__en": "Classic Kyoto",
+        "region": "اليابان", "region__i18n__en": "Japan",
+        "category": "city", "kind": "intl",
+        "icon": "flower-2", "grad": "linear-gradient(155deg,#9E5863,#24314B)",
+        "rating": 4.9, "reviews_count": 64, "seats": 4,
+        "tier_key": "luxury", "tier_variant": "solid",
+        "duration": "٨ أيام", "duration__i18n__en": "8 days",
+        "dates": "١–٨ أبريل", "dates__i18n__en": "1–8 Apr",
+        "price_display": "١١٬٣٠٠", "price_display__i18n__en": "11,300",
+        "price_amount": 11300, "featured": true,
+        "highlights": "@default_highlights", "itinerary": "@default_itinerary", "includes": []
+      }
+    },
+    {
+      "name": "White Santorini",
+      "slug": "santorini",
+      "folder": "trips",
+      "position": 50,
+      "content": {
+        "component": "trip",
+        "title": "سانتوريني البيضاء", "title__i18n__en": "White Santorini",
+        "region": "اليونان", "region__i18n__en": "Greece",
+        "category": "beach", "kind": "intl",
+        "icon": "sailboat", "grad": "linear-gradient(155deg,#4E6A8A,#B76E79)",
+        "rating": 4.8, "reviews_count": 98, "seats": 2,
+        "tier_key": "popular", "tier_variant": "gold",
+        "duration": "٦ أيام", "duration__i18n__en": "6 days",
+        "dates": "١٥–٢٠ يونيو", "dates__i18n__en": "15–20 Jun",
+        "price_display": "٩٬٧٠٠", "price_display__i18n__en": "9,700",
+        "price_amount": 9700, "featured": true,
+        "highlights": "@default_highlights", "itinerary": "@default_itinerary", "includes": []
+      }
+    },
+    {
+      "name": "Taif & the roses",
+      "slug": "taif",
+      "folder": "trips",
+      "position": 60,
+      "content": {
+        "component": "trip",
+        "title": "الطائف والورد", "title__i18n__en": "Taif & the roses",
+        "region": "السعودية · الطائف", "region__i18n__en": "Saudi Arabia · Taif",
+        "category": "city", "kind": "local",
+        "icon": "flower", "grad": "linear-gradient(155deg,#C88A82,#9E5863)",
+        "rating": 4.6, "reviews_count": 71, "seats": 8,
+        "tier_key": "domestic", "tier_variant": "brand",
+        "duration": "٣ أيام", "duration__i18n__en": "3 days",
+        "dates": "٥–٧ مايو", "dates__i18n__en": "5–7 May",
+        "price_display": "٣٬٤٠٠", "price_display__i18n__en": "3,400",
+        "price_amount": 3400, "featured": false,
+        "highlights": "@default_highlights", "itinerary": "@default_itinerary", "includes": []
+      }
+    },
+    {
+      "name": "Luxe Europe package",
+      "slug": "luxe-europe",
+      "folder": "packages",
+      "position": 10,
+      "content": {
+        "component": "package",
+        "title": "باقة أوروبا الفاخرة", "title__i18n__en": "Luxe Europe package",
+        "kind": "intl", "icon": "crown", "grad": "linear-gradient(155deg,#24314B,#9E5863)",
+        "description": "جولة راقية بين عواصم أوروبا بإقامة ٥ نجوم ومرافِقة مختصّة.",
+        "description__i18n__en": "A refined tour across European capitals with 5-star stays and a dedicated escort.",
+        "price_display": "١٨٬٩٠٠", "price_display__i18n__en": "18,900",
+        "price_amount": 18900, "includes": []
+      }
+    },
+    {
+      "name": "Red Sea package",
+      "slug": "red-sea",
+      "folder": "packages",
+      "position": 20,
+      "content": {
+        "component": "package",
+        "title": "باقة البحر الأحمر", "title__i18n__en": "Red Sea package",
+        "kind": "local", "icon": "palmtree", "grad": "linear-gradient(155deg,#C6A15B,#B76E79)",
+        "description": "عطلة شاطئية خاصّة على ساحل البحر الأحمر السعودي.",
+        "description__i18n__en": "A private beach getaway on Saudi Arabia's Red Sea coast.",
+        "price_display": "٧٬٢٠٠", "price_display__i18n__en": "7,200",
+        "price_amount": 7200, "includes": []
+      }
+    },
+    {
+      "name": "Asia discovery",
+      "slug": "asia-discovery",
+      "folder": "packages",
+      "position": 30,
+      "content": {
+        "component": "package",
+        "title": "اكتشاف آسيا", "title__i18n__en": "Asia discovery",
+        "kind": "intl", "icon": "compass", "grad": "linear-gradient(155deg,#9E5863,#24314B)",
+        "description": "رحلة استكشافية بين ثقافات آسيا العريقة بصحبة نسائية.",
+        "description__i18n__en": "An exploratory journey through Asia's rich cultures in women's company.",
+        "price_display": "١٣٬٥٠٠", "price_display__i18n__en": "13,500",
+        "price_amount": 13500, "includes": []
+      }
+    },
+    {
+      "name": "Korea group",
+      "slug": "korea",
+      "folder": "packages",
+      "position": 40,
+      "content": {
+        "component": "package",
+        "title": "قروب كوريا", "title__i18n__en": "Korea group",
+        "kind": "intl", "icon": "flower-2", "grad": "linear-gradient(155deg,#9E5863,#24314B)",
+        "description": "١٠ أيام بين سيول وجيجو وبوسان بإقامة فاخرة ومرافِقة مختصّة.",
+        "description__i18n__en": "10 days across Seoul, Jeju & Busan with luxury stays and a dedicated escort.",
+        "price_display": "٢٦٬١٠٠", "price_display__i18n__en": "26,100",
+        "price_amount": 26100, "includes": []
+      }
+    },
+    {
+      "name": "Turkey group",
+      "slug": "turkey",
+      "folder": "packages",
+      "position": 50,
+      "content": {
+        "component": "package",
+        "title": "قروب تركيا", "title__i18n__en": "Turkey group",
+        "kind": "intl", "icon": "mountain", "grad": "linear-gradient(155deg,#B76E79,#7C444E)",
+        "description": "٨ أيام بين إسطنبول وطرابزون بطبيعة ساحرة وضيافة راقية.",
+        "description__i18n__en": "8 days across Istanbul and Trabzon with stunning nature and refined hospitality.",
+        "price_display": "٩٬٩٠٠", "price_display__i18n__en": "9,900",
+        "price_amount": 9900, "includes": []
+      }
+    },
+    {
+      "name": "Georgia group",
+      "slug": "georgia",
+      "folder": "packages",
+      "position": 60,
+      "content": {
+        "component": "package",
+        "title": "قروب جورجيا", "title__i18n__en": "Georgia group",
+        "kind": "intl", "icon": "mountain-snow", "grad": "linear-gradient(155deg,#24314B,#4E6A8A)",
+        "description": "٧ أيام بين تبليسي وباتومي والمرتفعات الخضراء.",
+        "description__i18n__en": "7 days across Tbilisi, Batumi and the green highlands.",
+        "price_display": "٧٬٥٠٠", "price_display__i18n__en": "7,500",
+        "price_amount": 7500, "includes": []
+      }
+    },
+    {
+      "name": "Azerbaijan group",
+      "slug": "azerbaijan",
+      "folder": "packages",
+      "position": 70,
+      "content": {
+        "component": "package",
+        "title": "قروب أذربيجان", "title__i18n__en": "Azerbaijan group",
+        "kind": "intl", "icon": "building-2", "grad": "linear-gradient(155deg,#4E6A8A,#9E5863)",
+        "description": "٦ أيام في باكو الحديثة بين الحداثة والتراث.",
+        "description__i18n__en": "6 days in modern Baku, blending heritage and modernity.",
+        "price_display": "٨٬٢٠٠", "price_display__i18n__en": "8,200",
+        "price_amount": 8200, "includes": []
+      }
+    },
+    {
+      "name": "Bosnia group",
+      "slug": "bosnia",
+      "folder": "packages",
+      "position": 80,
+      "content": {
+        "component": "package",
+        "title": "قروب البوسنة", "title__i18n__en": "Bosnia group",
+        "kind": "intl", "icon": "trees", "grad": "linear-gradient(155deg,#4E7A5B,#24314B)",
+        "description": "٨ أيام بين سراييفو وموستار وطبيعة البلقان.",
+        "description__i18n__en": "8 days across Sarajevo, Mostar and Balkan nature.",
+        "price_display": "٨٬٨٠٠", "price_display__i18n__en": "8,800",
+        "price_amount": 8800, "includes": []
+      }
+    },
+    {
+      "name": "Thailand group",
+      "slug": "thailand",
+      "folder": "packages",
+      "position": 90,
+      "content": {
+        "component": "package",
+        "title": "قروب تايلند", "title__i18n__en": "Thailand group",
+        "kind": "intl", "icon": "palmtree", "grad": "linear-gradient(155deg,#C6A15B,#B76E79)",
+        "description": "٩ أيام بين بوكيت وبانكوك بشواطئ خاصّة.",
+        "description__i18n__en": "9 days across Phuket and Bangkok with private beaches.",
+        "price_display": "١١٬٤٠٠", "price_display__i18n__en": "11,400",
+        "price_amount": 11400, "includes": []
+      }
+    },
+    {
+      "name": "Visa assistance",
+      "slug": "visa",
+      "folder": "services",
+      "position": 10,
+      "content": {
+        "component": "service",
+        "title": "استخراج التأشيرات", "title__i18n__en": "Visa assistance",
+        "icon": "stamp",
+        "description": "مساعدة كاملة في تجهيز وتقديم طلبات التأشيرة.",
+        "description__i18n__en": "Full assistance preparing and submitting visa applications."
+      }
+    },
+    {
+      "name": "Hotel bookings",
+      "slug": "hotels",
+      "folder": "services",
+      "position": 20,
+      "content": {
+        "component": "service",
+        "title": "حجوزات الفنادق", "title__i18n__en": "Hotel bookings",
+        "icon": "bed-double",
+        "description": "أفضل الفنادق المختارة بأسعار خاصّة.",
+        "description__i18n__en": "Hand-picked top hotels at special rates."
+      }
+    },
+    {
+      "name": "Flight tickets",
+      "slug": "flights",
+      "folder": "services",
+      "position": 30,
+      "content": {
+        "component": "service",
+        "title": "تذاكر الطيران", "title__i18n__en": "Flight tickets",
+        "icon": "plane",
+        "description": "حجز رحلات الطيران بأنسب المواعيد والأسعار.",
+        "description__i18n__en": "Flight booking at the best times and prices."
+      }
+    },
+    {
+      "name": "Private transport",
+      "slug": "transport",
+      "folder": "services",
+      "position": 40,
+      "content": {
+        "component": "service",
+        "title": "النقل الخاص", "title__i18n__en": "Private transport",
+        "icon": "car-front",
+        "description": "تنقلات خاصّة مريحة وآمنة طوال الرحلة.",
+        "description__i18n__en": "Comfortable, safe private transfers throughout."
+      }
+    },
+    {
+      "name": "Concierge",
+      "slug": "concierge",
+      "folder": "services",
+      "position": 50,
+      "content": {
+        "component": "service",
+        "title": "خدمة الكونسيرج", "title__i18n__en": "Concierge",
+        "icon": "concierge-bell",
+        "description": "ترتيبات خاصّة وطلبات مخصّصة على مدار الرحلة.",
+        "description__i18n__en": "Bespoke arrangements and custom requests throughout."
+      }
+    },
+    {
+      "name": "Travel insurance",
+      "slug": "insurance",
+      "folder": "services",
+      "position": 60,
+      "content": {
+        "component": "service",
+        "title": "تأمين السفر", "title__i18n__en": "Travel insurance",
+        "icon": "shield-check",
+        "description": "تغطية تأمينية شاملة لراحة بالكِ.",
+        "description__i18n__en": "Comprehensive insurance coverage for your peace of mind."
+      }
+    },
+    {
+      "name": "Luxury cabin luggage",
+      "slug": "cabin-luggage",
+      "folder": "products",
+      "position": 10,
+      "content": {
+        "component": "product",
+        "title": "حقيبة سفر فاخرة", "title__i18n__en": "Luxury cabin luggage",
+        "icon": "luggage", "grad": "linear-gradient(135deg,#B76E79,#7C444E)",
+        "description": "حقيبة أنيقة خفيفة الوزن بتصميم عصري.",
+        "description__i18n__en": "An elegant, lightweight bag with a modern design.",
+        "price_display": "٦٥٠", "price_display__i18n__en": "650",
+        "price_amount": 650
+      }
+    },
+    {
+      "name": "Travel care kit",
+      "slug": "travel-kit",
+      "folder": "products",
+      "position": 20,
+      "content": {
+        "component": "product",
+        "title": "طقم العناية للسفر", "title__i18n__en": "Travel care kit",
+        "icon": "sparkles", "grad": "linear-gradient(135deg,#C6A15B,#B76E79)",
+        "description": "مستلزمات العناية الأساسية بتغليف راقٍ.",
+        "description__i18n__en": "Essential care items in refined packaging.",
+        "price_display": "٢٢٠", "price_display__i18n__en": "220",
+        "price_amount": 220
+      }
+    },
+    {
+      "name": "Travel neck pillow",
+      "slug": "neck-pillow",
+      "folder": "products",
+      "position": 30,
+      "content": {
+        "component": "product",
+        "title": "وسادة الرقبة", "title__i18n__en": "Travel neck pillow",
+        "icon": "moon", "grad": "linear-gradient(135deg,#4E6A8A,#9E5863)",
+        "description": "وسادة مريحة لرحلات طيران هادئة.",
+        "description__i18n__en": "A comfy pillow for restful flights.",
+        "price_display": "١٤٠", "price_display__i18n__en": "140",
+        "price_amount": 140
+      }
+    },
+    {
+      "name": "Durrah scarf",
+      "slug": "scarf",
+      "folder": "products",
+      "position": 40,
+      "content": {
+        "component": "product",
+        "title": "وشاح دُرّة", "title__i18n__en": "Durrah scarf",
+        "icon": "wind", "grad": "linear-gradient(135deg,#C88A82,#9E5863)",
+        "description": "وشاح حريري بألوان العلامة.",
+        "description__i18n__en": "A silk scarf in the brand colours.",
+        "price_display": "٣١٠", "price_display__i18n__en": "310",
+        "price_amount": 310
+      }
+    },
+    {
+      "name": "Are the trips fully women-only?",
+      "slug": "women-only",
+      "folder": "faqs",
+      "position": 10,
+      "content": {
+        "component": "faq",
+        "question": "هل الرحلات نسائية بالكامل؟", "question__i18n__en": "Are the trips fully women-only?",
+        "answer": "نعم، جميع رحلاتنا نسائية بالكامل بمرافِقات وطاقم من السيدات لضمان الخصوصية التامّة.",
+        "answer__i18n__en": "Yes, all our trips are fully women-only with female escorts and staff to ensure complete privacy."
+      }
+    },
+    {
+      "name": "What does the package include?",
+      "slug": "package-includes",
+      "folder": "faqs",
+      "position": 20,
+      "content": {
+        "component": "faq",
+        "question": "ما الذي تشمله الباقة؟", "question__i18n__en": "What does the package include?",
+        "answer": "تشمل الباقة الطيران والإقامة الفاخرة والوجبات الرئيسية والمرافِقة والتنقلات والأنشطة المذكورة.",
+        "answer__i18n__en": "The package includes flights, luxury accommodation, main meals, the escort, transfers, and the listed activities."
+      }
+    },
+    {
+      "name": "What is the cancellation policy?",
+      "slug": "cancellation",
+      "folder": "faqs",
+      "position": 30,
+      "content": {
+        "component": "faq",
+        "question": "ما سياسة الإلغاء؟", "question__i18n__en": "What is the cancellation policy?",
+        "answer": "الإلغاء مجاني حتى ٧ أيام قبل موعد الرحلة.",
+        "answer__i18n__en": "Cancellation is free up to 7 days before the trip date."
+      }
+    },
+    {
+      "name": "How do I book?",
+      "slug": "how-to-book",
+      "folder": "faqs",
+      "position": 40,
+      "content": {
+        "component": "faq",
+        "question": "كيف أحجز؟", "question__i18n__en": "How do I book?",
+        "answer": "اختاري الرحلة، حدّدي التاريخ وعدد المسافرات ونوع الغرفة، ثم اضغطي «احجزي الآن» وسيتواصل معكِ فريقنا.",
+        "answer__i18n__en": "Choose a trip, set the date, number of travellers and room type, then tap \"Book now\" and our team will contact you."
+      }
+    },
+    {
+      "name": "Site settings",
+      "slug": "site-settings",
+      "folder": null,
+      "position": 10,
+      "content": {
+        "component": "site_settings",
+        "hero_slides": [
+          { "component": "hero_slide", "image": "/hero/hero-1.webp", "icon": "mountain-snow", "grad": "linear-gradient(120deg,#24314B,#9E5863)" },
+          { "component": "hero_slide", "image": "/hero/hero-2.webp", "icon": "sun", "grad": "linear-gradient(120deg,#C6A15B,#B76E79)" },
+          { "component": "hero_slide", "image": "/hero/hero-3.webp", "icon": "building-2", "grad": "linear-gradient(120deg,#4E6A8A,#9E5863)" }
+        ],
+        "why_items": [
+          { "component": "why_item", "icon": "shield-check", "title": "خصوصية تامّة", "title__i18n__en": "Complete privacy", "desc": "رحلات نسائية بالكامل، بمرافِقات وطاقم من السيدات.", "desc__i18n__en": "Fully women-only trips, with female escorts and staff." },
+          { "component": "why_item", "icon": "crown", "title": "ضيافة راقية", "title__i18n__en": "Refined hospitality", "desc": "إقامة فاخرة وبرامج مصمّمة بعناية لكل التفاصيل.", "desc__i18n__en": "Luxury stays and programmes crafted down to every detail." },
+          { "component": "why_item", "icon": "users", "title": "صحبة مختارة", "title__i18n__en": "Curated company", "desc": "مجموعات صغيرة تجمعكِ بسيدات يشاركنكِ الشغف.", "desc__i18n__en": "Small groups that connect you with like-minded women." },
+          { "component": "why_item", "icon": "headphones", "title": "دعم متواصل", "title__i18n__en": "Continuous support", "desc": "فريق يرافقكِ قبل الرحلة وأثناءها وبعد عودتكِ.", "desc__i18n__en": "A team with you before, during, and after your trip." }
+        ],
+        "stats": [
+          { "component": "stat_item", "value": "+٤٠", "value__i18n__en": "40+", "label": "وجهة حول العالم", "label__i18n__en": "destinations worldwide" },
+          { "component": "stat_item", "value": "+٢٬٥٠٠", "value__i18n__en": "2,500+", "label": "مسافرة سعيدة", "label__i18n__en": "happy travellers" },
+          { "component": "stat_item", "value": "٤٫٩", "value__i18n__en": "4.9", "label": "متوسط التقييم", "label__i18n__en": "average rating" },
+          { "component": "stat_item", "value": "١٠٠٪", "value__i18n__en": "100%", "label": "رحلات نسائية", "label__i18n__en": "women-only trips" }
+        ],
+        "reviews": [
+          { "component": "review", "icon": "mountain-snow", "grad": "linear-gradient(135deg,#24314B,#9E5863)", "name": "نورة السالم", "name__i18n__en": "Noura Al-Salem", "trip": "رحلة النمسا", "trip__i18n__en": "Austria trip", "text": "تجربة تفوق الوصف — تنظيم راقٍ وخصوصية جعلتني أستمتع بكل لحظة بأمان تام.", "text__i18n__en": "An experience beyond words — refined organisation and privacy that let me enjoy every moment in complete safety." },
+          { "component": "review", "icon": "palmtree", "grad": "linear-gradient(135deg,#C6A15B,#B76E79)", "name": "ريم القحطاني", "name__i18n__en": "Reem Al-Qahtani", "trip": "رحلة المالديف", "trip__i18n__en": "Maldives trip", "text": "كل التفاصيل مدروسة بعناية، والمرافِقة كانت لطيفة ومحترفة. سأكرّر التجربة حتمًا.", "text__i18n__en": "Every detail was thoughtfully considered, and the escort was kind and professional. I will absolutely do it again." },
+          { "component": "review", "icon": "mountain", "grad": "linear-gradient(135deg,#B76E79,#7C444E)", "name": "الجوهرة العتيبي", "name__i18n__en": "Al-Jawhara Al-Otaibi", "trip": "رحلة العُلا", "trip__i18n__en": "AlUla trip", "text": "أجمل ما في التجربة هو الإحساس بالطمأنينة والصحبة الجميلة. فخامة بمعناها الحقيقي.", "text__i18n__en": "The best part was the sense of reassurance and the lovely company. Luxury in its truest sense." }
+        ],
+        "categories": [
+          { "component": "category_item", "cat_id": "beach", "icon": "palmtree", "label": "شواطئ", "label__i18n__en": "Beaches" },
+          { "component": "category_item", "cat_id": "mountain", "icon": "mountain", "label": "جبال", "label__i18n__en": "Mountains" },
+          { "component": "category_item", "cat_id": "city", "icon": "building-2", "label": "مدن", "label__i18n__en": "Cities" },
+          { "component": "category_item", "cat_id": "desert", "icon": "sun", "label": "صحراء", "label__i18n__en": "Desert" }
+        ],
+        "default_includes": [
+          { "component": "include_item", "label": "تذاكر الطيران ذهابًا وإيابًا", "label__i18n__en": "Round-trip flights" },
+          { "component": "include_item", "label": "الإقامة الفاخرة", "label__i18n__en": "Luxury accommodation" },
+          { "component": "include_item", "label": "الوجبات الرئيسية", "label__i18n__en": "Main meals" },
+          { "component": "include_item", "label": "مرافِقة مختصّة طوال الرحلة", "label__i18n__en": "A dedicated escort throughout" },
+          { "component": "include_item", "label": "جميع التنقلات الداخلية", "label__i18n__en": "All internal transfers" },
+          { "component": "include_item", "label": "الأنشطة والجولات المذكورة", "label__i18n__en": "Listed activities & tours" }
+        ]
+      }
+    }
+  ],
+  "fragments": {
+    "default_highlights": [
+      { "component": "highlight", "icon": "bed-double", "label": "إقامة ٥ نجوم", "label__i18n__en": "5-star stay" },
+      { "component": "highlight", "icon": "plane", "label": "رحلات مباشرة", "label__i18n__en": "Direct flights" },
+      { "component": "highlight", "icon": "utensils", "label": "وجبات فاخرة", "label__i18n__en": "Fine dining" },
+      { "component": "highlight", "icon": "shield-check", "label": "نسائي بالكامل", "label__i18n__en": "Fully women-only" }
+    ],
+    "default_itinerary": [
+      { "component": "itinerary_day", "day": "اليوم ١", "day__i18n__en": "Day 1", "title": "الوصول والاستقبال", "title__i18n__en": "Arrival & welcome", "desc": "استقبال خاص في المطار ونقل إلى الفندق مع جلسة ترحيب.", "desc__i18n__en": "Private airport welcome and transfer to the hotel with a welcome session." },
+      { "component": "itinerary_day", "day": "اليوم ٢", "day__i18n__en": "Day 2", "title": "جولة المدينة القديمة", "title__i18n__en": "Old-town tour", "desc": "زيارة أبرز المعالم برفقة مرشدة سياحية مختصّة.", "desc__i18n__en": "Visit the top landmarks with a specialised female guide." },
+      { "component": "itinerary_day", "day": "اليوم ٣", "day__i18n__en": "Day 3", "title": "يوم الطبيعة", "title__i18n__en": "Nature day", "desc": "رحلة إلى المرتفعات وجلسة شاي بانورامية.", "desc__i18n__en": "A trip to the highlands and a panoramic tea session." },
+      { "component": "itinerary_day", "day": "اليوم ٤", "day__i18n__en": "Day 4", "title": "تسوّق وأناقة", "title__i18n__en": "Shopping & style", "desc": "وقت حر للتسوّق في أرقى الأسواق المحلية.", "desc__i18n__en": "Free time to shop in the finest local markets." }
+    ]
+  }
+}

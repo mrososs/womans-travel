@@ -2,7 +2,9 @@
   "name": "@org/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "seed:storyblok": "node tools/storyblok/seed.mjs"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -55,6 +57,7 @@
   "dependencies": {
     "@nuxtjs/i18n": "^10.4.0",
     "@nuxtjs/supabase": "^2.0.9",
+    "@storyblok/nuxt": "^9.0.2",
     "@supabase/supabase-js": "^2.110.0",
     "gsap": "^3.15.0",
     "lucide-vue-next": "^1.0.0",

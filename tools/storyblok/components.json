@@ -1,0 +1,233 @@
+{
+  "components": [
+    {
+      "name": "highlight",
+      "display_name": "Highlight",
+      "is_root": false,
+      "is_nestable": true,
+      "schema": {
+        "icon": { "type": "text", "pos": 0, "description": "lucide icon name" },
+        "label": { "type": "text", "translatable": true, "pos": 1 }
+      }
+    },
+    {
+      "name": "itinerary_day",
+      "display_name": "Itinerary day",
+      "is_root": false,
+      "is_nestable": true,
+      "schema": {
+        "day": { "type": "text", "translatable": true, "pos": 0 },
+        "title": { "type": "text", "translatable": true, "pos": 1 },
+        "desc": { "type": "textarea", "translatable": true, "pos": 2 }
+      }
+    },
+    {
+      "name": "include_item",
+      "display_name": "Included item",
+      "is_root": false,
+      "is_nestable": true,
+      "schema": {
+        "label": { "type": "text", "translatable": true, "pos": 0 }
+      }
+    },
+    {
+      "name": "hero_slide",
+      "display_name": "Hero slide",
+      "is_root": false,
+      "is_nestable": true,
+      "schema": {
+        "image": { "type": "text", "pos": 0, "description": "Public image path (e.g. /hero/hero-1.webp) — kept as a path to preserve the LCP preload" },
+        "icon": { "type": "text", "pos": 1, "description": "lucide icon name (fallback when no image)" },
+        "grad": { "type": "text", "pos": 2, "description": "CSS gradient fallback/overlay" }
+      }
+    },
+    {
+      "name": "why_item",
+      "display_name": "Why us item",
+      "is_root": false,
+      "is_nestable": true,
+      "schema": {
+        "icon": { "type": "text", "pos": 0 },
+        "title": { "type": "text", "translatable": true, "pos": 1 },
+        "desc": { "type": "textarea", "translatable": true, "pos": 2 }
+      }
+    },
+    {
+      "name": "stat_item",
+      "display_name": "Stat",
+      "is_root": false,
+      "is_nestable": true,
+      "schema": {
+        "value": { "type": "text", "translatable": true, "pos": 0 },
+        "label": { "type": "text", "translatable": true, "pos": 1 }
+      }
+    },
+    {
+      "name": "review",
+      "display_name": "Review",
+      "is_root": false,
+      "is_nestable": true,
+      "schema": {
+        "icon": { "type": "text", "pos": 0 },
+        "grad": { "type": "text", "pos": 1 },
+        "name": { "type": "text", "translatable": true, "pos": 2 },
+        "trip": { "type": "text", "translatable": true, "pos": 3 },
+        "text": { "type": "textarea", "translatable": true, "pos": 4 }
+      }
+    },
+    {
+      "name": "category_item",
+      "display_name": "Category",
+      "is_root": false,
+      "is_nestable": true,
+      "schema": {
+        "cat_id": {
+          "type": "option",
+          "pos": 0,
+          "options": [
+            { "name": "Beach", "value": "beach" },
+            { "name": "Mountain", "value": "mountain" },
+            { "name": "City", "value": "city" },
+            { "name": "Desert", "value": "desert" }
+          ]
+        },
+        "icon": { "type": "text", "pos": 1 },
+        "label": { "type": "text", "translatable": true, "pos": 2 }
+      }
+    },
+    {
+      "name": "trip",
+      "display_name": "Trip",
+      "is_root": true,
+      "is_nestable": false,
+      "schema": {
+        "title": { "type": "text", "translatable": true, "pos": 0 },
+        "region": { "type": "text", "translatable": true, "pos": 1 },
+        "category": {
+          "type": "option",
+          "pos": 2,
+          "options": [
+            { "name": "Beach", "value": "beach" },
+            { "name": "Mountain", "value": "mountain" },
+            { "name": "City", "value": "city" },
+            { "name": "Desert", "value": "desert" }
+          ]
+        },
+        "kind": {
+          "type": "option",
+          "pos": 3,
+          "options": [
+            { "name": "International", "value": "intl" },
+            { "name": "Local", "value": "local" }
+          ]
+        },
+        "icon": { "type": "text", "pos": 4 },
+        "grad": { "type": "text", "pos": 5 },
+        "image": { "type": "asset", "filetypes": ["images"], "pos": 6 },
+        "rating": { "type": "number", "pos": 7 },
+        "reviews_count": { "type": "number", "pos": 8 },
+        "seats": { "type": "number", "pos": 9, "description": "Remaining seats; empty = open" },
+        "tier_key": {
+          "type": "option",
+          "pos": 10,
+          "options": [
+            { "name": "Luxury", "value": "luxury" },
+            { "name": "Exclusive", "value": "exclusive" },
+            { "name": "Domestic", "value": "domestic" },
+            { "name": "Popular", "value": "popular" }
+          ]
+        },
+        "tier_variant": {
+          "type": "option",
+          "pos": 11,
+          "options": [
+            { "name": "Solid", "value": "solid" },
+            { "name": "Navy", "value": "navy" },
+            { "name": "Brand", "value": "brand" },
+            { "name": "Gold", "value": "gold" }
+          ]
+        },
+        "duration": { "type": "text", "translatable": true, "pos": 12 },
+        "dates": { "type": "text", "translatable": true, "pos": 13 },
+        "price_display": { "type": "text", "translatable": true, "pos": 14 },
+        "price_amount": { "type": "number", "pos": 15, "description": "Numeric price in SAR (source of truth for commerce)" },
+        "featured": { "type": "boolean", "pos": 16 },
+        "highlights": { "type": "bloks", "restrict_components": true, "component_whitelist": ["highlight"], "pos": 17 },
+        "itinerary": { "type": "bloks", "restrict_components": true, "component_whitelist": ["itinerary_day"], "pos": 18 },
+        "includes": { "type": "bloks", "restrict_components": true, "component_whitelist": ["include_item"], "pos": 19, "description": "Empty = use site-settings default_includes" }
+      }
+    },
+    {
+      "name": "package",
+      "display_name": "Package",
+      "is_root": true,
+      "is_nestable": false,
+      "schema": {
+        "title": { "type": "text", "translatable": true, "pos": 0 },
+        "kind": {
+          "type": "option",
+          "pos": 1,
+          "options": [
+            { "name": "International", "value": "intl" },
+            { "name": "Local", "value": "local" }
+          ]
+        },
+        "icon": { "type": "text", "pos": 2 },
+        "grad": { "type": "text", "pos": 3 },
+        "description": { "type": "textarea", "translatable": true, "pos": 4 },
+        "price_display": { "type": "text", "translatable": true, "pos": 5 },
+        "price_amount": { "type": "number", "pos": 6, "description": "Numeric price in SAR (source of truth for commerce)" },
+        "includes": { "type": "bloks", "restrict_components": true, "component_whitelist": ["include_item"], "pos": 7, "description": "Empty = use site-settings default_includes" }
+      }
+    },
+    {
+      "name": "service",
+      "display_name": "Service",
+      "is_root": true,
+      "is_nestable": false,
+      "schema": {
+        "title": { "type": "text", "translatable": true, "pos": 0 },
+        "icon": { "type": "text", "pos": 1 },
+        "description": { "type": "textarea", "translatable": true, "pos": 2 }
+      }
+    },
+    {
+      "name": "product",
+      "display_name": "Product",
+      "is_root": true,
+      "is_nestable": false,
+      "schema": {
+        "title": { "type": "text", "translatable": true, "pos": 0 },
+        "icon": { "type": "text", "pos": 1 },
+        "grad": { "type": "text", "pos": 2 },
+        "description": { "type": "textarea", "translatable": true, "pos": 3 },
+        "price_display": { "type": "text", "translatable": true, "pos": 4 },
+        "price_amount": { "type": "number", "pos": 5, "description": "Numeric price in SAR (source of truth for commerce)" }
+      }
+    },
+    {
+      "name": "faq",
+      "display_name": "FAQ",
+      "is_root": true,
+      "is_nestable": false,
+      "schema": {
+        "question": { "type": "text", "translatable": true, "pos": 0 },
+        "answer": { "type": "textarea", "translatable": true, "pos": 1 }
+      }
+    },
+    {
+      "name": "site_settings",
+      "display_name": "Site settings",
+      "is_root": true,
+      "is_nestable": false,
+      "schema": {
+        "hero_slides": { "type": "bloks", "restrict_components": true, "component_whitelist": ["hero_slide"], "pos": 0 },
+        "why_items": { "type": "bloks", "restrict_components": true, "component_whitelist": ["why_item"], "pos": 1 },
+        "stats": { "type": "bloks", "restrict_components": true, "component_whitelist": ["stat_item"], "pos": 2 },
+        "reviews": { "type": "bloks", "restrict_components": true, "component_whitelist": ["review"], "pos": 3 },
+        "categories": { "type": "bloks", "restrict_components": true, "component_whitelist": ["category_item"], "pos": 4 },
+        "default_includes": { "type": "bloks", "restrict_components": true, "component_whitelist": ["include_item"], "pos": 5 }
+      }
+    }
+  ]
+}
