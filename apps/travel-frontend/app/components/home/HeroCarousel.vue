@@ -34,7 +34,14 @@ onBeforeUnmount(() => {
       :class="{ on: idx === current }"
     >
       <div class="hero__kb" :style="{ background: s.grad }">
-        <img v-if="s.img" :src="s.img" alt="" loading="lazy" >
+        <img
+          v-if="s.img"
+          :src="s.img"
+          alt=""
+          :loading="idx === 0 ? 'eager' : 'lazy'"
+          :fetchpriority="idx === 0 ? 'high' : 'low'"
+          :decoding="idx === 0 ? 'sync' : 'async'"
+        >
         <span v-else class="hero__ic"><Icon :name="s.icon" :size="150" :stroke-width="1" color="#fff" /></span>
       </div>
     </div>

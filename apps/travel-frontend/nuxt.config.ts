@@ -30,11 +30,29 @@ export default defineNuxtConfig({
           href: 'https://fonts.gstatic.com',
           crossorigin: '',
         },
+        // Preload the LCP hero image so the browser discovers it from the
+        // initial HTML (removes the ~570ms LCP "load delay" measured on the
+        // first slide of HeroCarousel — /hero/hero-1.png).
+        {
+          rel: 'preload',
+          as: 'image',
+          href: '/hero/hero-1.png',
+          fetchpriority: 'high',
+        },
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&family=Almarai:wght@300;400;700;800&display=swap',
         },
       ],
+    },
+  },
+
+  // Long-lived caching for static hero/marketing images (served with
+  // `max-age=0, must-revalidate` by default, forcing a revalidation on every
+  // repeat visit). These files are content-stable, so cache them for a week.
+  routeRules: {
+    '/hero/**': {
+      headers: { 'cache-control': 'public, max-age=604800, stale-while-revalidate=86400' },
     },
   },
 
