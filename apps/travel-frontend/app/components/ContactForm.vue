@@ -3,19 +3,22 @@ import { reactive, ref } from 'vue';
 import { Button, Input, Icon } from '@org/shared-ui';
 
 const { t } = useI18n();
+const notify = useNotify();
 
 const form = reactive({ name: '', email: '', phone: '', message: '' });
-const state = ref<'idle' | 'loading' | 'success' | 'error'>('idle');
+const loading = ref(false);
 
 async function submit() {
   if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return;
-  state.value = 'loading';
+  loading.value = true;
   try {
     await $fetch('/api/contact', { method: 'POST', body: { ...form } });
-    state.value = 'success';
+    notify.success(t('contact.success'));
     form.name = form.email = form.phone = form.message = '';
   } catch {
-    state.value = 'error';
+    notify.error(t('contact.error'));
+  } finally {
+    loading.value = false;
   }
 }
 </script>
@@ -31,12 +34,10 @@ async function submit() {
       <label class="cform__label" for="cform-msg">{{ t('contact.message') }}</label>
       <textarea id="cform-msg" v-model="form.message" class="cform__textarea" rows="5" required />
     </div>
-    <Button type="submit" size="lg" :disabled="state === 'loading'">
+    <Button type="submit" size="lg" :disabled="loading">
       <template #iconStart><Icon name="send" :size="18" /></template>
-      {{ state === 'loading' ? t('common.sending') : t('contact.submit') }}
+      {{ loading ? t('common.sending') : t('contact.submit') }}
     </Button>
-    <p v-if="state === 'success'" class="cform__msg cform__msg--ok">{{ t('contact.success') }}</p>
-    <p v-else-if="state === 'error'" class="cform__msg cform__msg--err">{{ t('contact.error') }}</p>
   </form>
 </template>
 

@@ -8,6 +8,7 @@ const { t } = useI18n();
 const localePath = useLocalePath();
 const { user, signOut } = useAuth();
 const { profile, update } = useProfile();
+const notify = useNotify();
 
 useHead(() => ({ title: `${t('account.title')} · ${t('brand')}` }));
 
@@ -31,8 +32,15 @@ async function save() {
   saving.value = true;
   saved.value = false;
   try {
-    await update({ full_name: form.full_name, username: form.username, phone: form.phone });
-    saved.value = true;
+    const ok = await update({ full_name: form.full_name, username: form.username, phone: form.phone });
+    if (ok) {
+      saved.value = true;
+      notify.success(t('account.saved'));
+    } else {
+      notify.error(t('account.saveError'));
+    }
+  } catch {
+    notify.error(t('account.saveError'));
   } finally {
     saving.value = false;
   }

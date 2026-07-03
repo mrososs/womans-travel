@@ -3,22 +3,25 @@ import { ref } from 'vue';
 import { Button, Input, Icon } from '@org/shared-ui';
 
 const { t, locale } = useI18n();
+const notify = useNotify();
 
 const email = ref('');
-const state = ref<'idle' | 'loading' | 'success' | 'error'>('idle');
+const loading = ref(false);
 
 async function submit() {
   if (!email.value.trim()) return;
-  state.value = 'loading';
+  loading.value = true;
   try {
     await $fetch('/api/newsletter', {
       method: 'POST',
       body: { email: email.value.trim(), locale: locale.value },
     });
-    state.value = 'success';
+    notify.success(t('newsletter.success'));
     email.value = '';
   } catch {
-    state.value = 'error';
+    notify.error(t('newsletter.error'));
+  } finally {
+    loading.value = false;
   }
 }
 </script>
@@ -42,12 +45,10 @@ async function submit() {
               <template #iconStart><Icon name="mail" :size="18" /></template>
             </Input>
           </div>
-          <Button type="submit" variant="gold" :disabled="state === 'loading'">
-            {{ state === 'loading' ? t('common.sending') : t('newsletter.submit') }}
+          <Button type="submit" variant="gold" :disabled="loading">
+            {{ loading ? t('common.sending') : t('newsletter.submit') }}
           </Button>
         </form>
-        <p v-if="state === 'success'" class="news__msg news__msg--ok">{{ t('newsletter.success') }}</p>
-        <p v-else-if="state === 'error'" class="news__msg news__msg--err">{{ t('newsletter.error') }}</p>
       </div>
     </div>
   </section>

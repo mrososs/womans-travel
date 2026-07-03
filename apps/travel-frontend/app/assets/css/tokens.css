@@ -119,18 +119,19 @@
   --weight-extrabold:  800;
   --weight-black:      900;
 
+  /* Slightly reduced scale (base 16→15) for a more refined, less "large" feel. */
   --text-2xs:  11px;
   --text-xs:   12px;
-  --text-sm:   14px;
-  --text-base: 16px;
-  --text-lg:   18px;
-  --text-xl:   22px;
-  --text-2xl:  27px;
-  --text-3xl:  33px;
-  --text-4xl:  41px;
-  --text-5xl:  52px;
-  --text-6xl:  66px;
-  --text-7xl:  82px;
+  --text-sm:   13px;
+  --text-base: 15px;
+  --text-lg:   17px;
+  --text-xl:   20px;
+  --text-2xl:  25px;
+  --text-3xl:  30px;
+  --text-4xl:  37px;
+  --text-5xl:  47px;
+  --text-6xl:  60px;
+  --text-7xl:  74px;
 
   --leading-none:    1;
   --leading-tight:   1.2;
@@ -145,7 +146,7 @@
   --type-heading-weight:  var(--weight-bold);
   --type-heading-leading: var(--leading-snug);
   --type-body-size:    var(--text-base);
-  --type-body-leading: var(--leading-relaxed);
+  --type-body-leading: 1.7;
 
   /* ================= SPACING & LAYOUT ================= */
 

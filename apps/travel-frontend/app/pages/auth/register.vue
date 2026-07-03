@@ -6,6 +6,7 @@ import OAuthButtons from '~/components/auth/OAuthButtons.vue';
 const { t } = useI18n();
 const localePath = useLocalePath();
 const { user, signUp } = useAuth();
+const notify = useNotify();
 
 useHead(() => ({ title: `${t('auth.register')} · ${t('brand')}` }));
 
@@ -13,7 +14,6 @@ const fullName = ref('');
 const email = ref('');
 const password = ref('');
 const loading = ref(false);
-const error = ref('');
 const done = ref(false);
 
 watchEffect(() => {
@@ -23,13 +23,17 @@ watchEffect(() => {
 async function submit() {
   if (!email.value || !password.value) return;
   loading.value = true;
-  error.value = '';
   try {
     await signUp(email.value.trim(), password.value, fullName.value.trim() || undefined);
-    // If email confirmation is on, there is no session yet — show a notice.
-    if (!user.value) done.value = true;
+    if (user.value) {
+      notify.success(t('auth.created'));
+    } else {
+      // Email confirmation is on — no session yet.
+      done.value = true;
+      notify.info(t('auth.checkEmail'));
+    }
   } catch {
-    error.value = t('auth.signupError');
+    notify.error(t('auth.signupError'));
   } finally {
     loading.value = false;
   }
@@ -43,13 +47,12 @@ async function submit() {
       <p class="auth-sub">{{ t('brand') }}</p>
 
       <form class="auth-form" @submit.prevent="submit">
-        <Input v-model="fullName" :label="t('auth.fullName')" />
-        <Input v-model="email" type="email" :label="t('auth.email')" required />
-        <Input v-model="password" type="password" :label="t('auth.password')" required />
+        <Input v-model="fullName" :label="t('auth.fullName')" :placeholder="t('auth.namePh')" />
+        <Input v-model="email" type="email" :label="t('auth.email')" :placeholder="t('auth.emailPh')" required />
+        <Input v-model="password" type="password" :label="t('auth.password')" :placeholder="t('auth.passwordPh')" required />
         <Button type="submit" size="lg" block :disabled="loading">
           {{ loading ? t('auth.signingIn') : t('auth.signUp') }}
         </Button>
-        <p v-if="error" class="auth-error">{{ error }}</p>
         <p v-if="done" class="auth-note">{{ t('auth.checkEmail') }}</p>
       </form>
 

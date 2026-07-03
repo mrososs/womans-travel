@@ -6,13 +6,13 @@ import OAuthButtons from '~/components/auth/OAuthButtons.vue';
 const { t } = useI18n();
 const localePath = useLocalePath();
 const { user, signInWithPassword } = useAuth();
+const notify = useNotify();
 
 useHead(() => ({ title: `${t('auth.login')} · ${t('brand')}` }));
 
 const email = ref('');
 const password = ref('');
 const loading = ref(false);
-const error = ref('');
 
 watchEffect(() => {
   if (user.value) navigateTo(localePath('/account'));
@@ -21,12 +21,12 @@ watchEffect(() => {
 async function submit() {
   if (!email.value || !password.value) return;
   loading.value = true;
-  error.value = '';
   try {
     await signInWithPassword(email.value.trim(), password.value);
+    notify.success(t('auth.welcome'));
     await navigateTo(localePath('/account'));
   } catch {
-    error.value = t('auth.loginError');
+    notify.error(t('auth.loginError'));
   } finally {
     loading.value = false;
   }
@@ -40,12 +40,11 @@ async function submit() {
       <p class="auth-sub">{{ t('brand') }}</p>
 
       <form class="auth-form" @submit.prevent="submit">
-        <Input v-model="email" type="email" :label="t('auth.email')" required />
-        <Input v-model="password" type="password" :label="t('auth.password')" required />
+        <Input v-model="email" type="email" :label="t('auth.email')" :placeholder="t('auth.emailPh')" required />
+        <Input v-model="password" type="password" :label="t('auth.password')" :placeholder="t('auth.passwordPh')" required />
         <Button type="submit" size="lg" block :disabled="loading">
           {{ loading ? t('auth.signingIn') : t('auth.signIn') }}
         </Button>
-        <p v-if="error" class="auth-error">{{ error }}</p>
       </form>
 
       <div class="auth-divider">{{ t('auth.orContinue') }}</div>

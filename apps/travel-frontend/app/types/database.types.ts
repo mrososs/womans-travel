@@ -51,6 +51,9 @@ export type Database = {
           quantity: number
           unit_price: number | null
           user_id: string
+          title: string | null
+          icon: string | null
+          grad: string | null
         }
         Insert: {
           created_at?: string
@@ -60,6 +63,9 @@ export type Database = {
           quantity?: number
           unit_price?: number | null
           user_id: string
+          title?: string | null
+          icon?: string | null
+          grad?: string | null
         }
         Update: Partial<Database["public"]["Tables"]["cart_items"]["Insert"]>
         Relationships: []
@@ -245,8 +251,14 @@ export type Database = {
         ]
       }
       wishlists: {
-        Row: { created_at: string; id: string; item_id: string; item_type: string; user_id: string }
-        Insert: { created_at?: string; id?: string; item_id: string; item_type: string; user_id: string }
+        Row: {
+          created_at: string; id: string; item_id: string; item_type: string; user_id: string
+          title: string | null; icon: string | null; grad: string | null; price: string | null
+        }
+        Insert: {
+          created_at?: string; id?: string; item_id: string; item_type: string; user_id: string
+          title?: string | null; icon?: string | null; grad?: string | null; price?: string | null
+        }
         Update: Partial<Database["public"]["Tables"]["wishlists"]["Insert"]>
         Relationships: []
       }

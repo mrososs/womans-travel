@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Navbar, Footer } from '@org/shared-ui';
 import WhatsappFab from '~/components/WhatsappFab.vue';
+import CartDrawer from '~/components/cart/CartDrawer.vue';
+import WishlistDrawer from '~/components/wishlist/WishlistDrawer.vue';
 import { NAV } from '~/data/site';
 
 const { t, locale } = useI18n();
@@ -9,25 +11,20 @@ const route = useRoute();
 const localePath = useLocalePath();
 const switchLocalePath = useSwitchLocalePath();
 const { isLoggedIn } = useAuth();
+const { count: cartCount } = useCart();
+const { count: wishlistCount } = useWishlist();
+const notify = useNotify();
 
 const active = computed(() => route.path);
 
-const links = computed(() => {
-  const base = NAV.map((n) => ({
+const links = computed(() =>
+  NAV.map((n) => ({
     label: t(`nav.${n.key}`),
     href: localePath(n.path) + (n.hash ?? ''),
-  }));
-  base.push(
-    isLoggedIn.value
-      ? { label: t('auth.myAccount'), href: localePath('/account') }
-      : { label: t('auth.login'), href: localePath('/auth/login') }
-  );
-  return base;
-});
+  }))
+);
 
 const cta = computed(() => ({ label: t('nav.book'), href: localePath('/destinations') }));
-
-// Show the language you'll switch TO.
 const langLabel = computed(() => (locale.value === 'ar' ? 'EN' : 'ع'));
 
 const footerColumns = computed(() => [
@@ -60,15 +57,27 @@ const footerColumns = computed(() => [
   },
 ]);
 
+const cartOpen = ref(false);
+const wishlistOpen = ref(false);
+
 function onNavigate(href: string, event: MouseEvent) {
   if (href.startsWith('/')) {
     event.preventDefault();
     navigateTo(href);
   }
 }
-
 function toggleLang() {
   navigateTo(switchLocalePath(locale.value === 'ar' ? 'en' : 'ar'));
+}
+function onProfile() {
+  navigateTo(localePath(isLoggedIn.value ? '/account' : '/auth/login'));
+}
+function onWishlist() {
+  if (!isLoggedIn.value) {
+    notify.error(t('wishlist.loginRequired'));
+    return;
+  }
+  wishlistOpen.value = true;
 }
 </script>
 
@@ -80,8 +89,18 @@ function toggleLang() {
       :active="active"
       :cta="cta"
       :lang-label="langLabel"
+      :cart-count="cartCount"
+      :cart-label="t('cart.title')"
+      show-wishlist
+      :wishlist-count="wishlistCount"
+      :wishlist-label="t('wishlist.title')"
+      show-profile
+      :profile-label="isLoggedIn ? t('auth.myAccount') : t('auth.login')"
       @navigate="onNavigate"
       @toggle-lang="toggleLang"
+      @cart="cartOpen = true"
+      @wishlist="onWishlist"
+      @profile="onProfile"
     />
     <main>
       <slot />
@@ -95,5 +114,7 @@ function toggleLang() {
       @navigate="onNavigate"
     />
     <WhatsappFab />
+    <CartDrawer v-model:open="cartOpen" />
+    <WishlistDrawer v-model:open="wishlistOpen" />
   </div>
 </template>
