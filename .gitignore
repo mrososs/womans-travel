@@ -60,4 +60,7 @@ Thumbs.db
 .nuxt
 .nitro
 .cache
+
+# Vercel build output (Build Output API) & local link
+.vercel
 vitest.config.*.timestamp*

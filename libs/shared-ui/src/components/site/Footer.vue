@@ -16,7 +16,7 @@ withDefaults(
     seal?: string;
   }>(),
   {
-    brand: 'دُرّة',
+    brand: 'test',
     blurb: '',
     columns: () => [],
     socials: () => ['instagram', 'twitter', 'facebook'],
