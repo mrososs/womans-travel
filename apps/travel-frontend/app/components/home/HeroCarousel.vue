@@ -80,12 +80,19 @@ onBeforeUnmount(() => {
 .hero__kb { position: absolute; inset: 0; transform: scale(1.04); transform-origin: center; }
 .hero__kb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hero__ic { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.2; color: #fff; }
-.hero__dots { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; gap: 8px; }
+.hero__dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; gap: 2px; }
+/* 24x24 hit area (WCAG 2.5.8 target size) with a small visual dot rendered
+   via ::before, so the touch target is accessible without enlarging the dot. */
 .hero__dot {
-  width: 8px; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.5);
-  border: none; cursor: pointer; padding: 0; transition: width 0.3s, background 0.3s;
+  width: 24px; height: 24px; padding: 0; border: none; background: transparent;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 }
-.hero__dot.on { width: 26px; background: #fff; }
+.hero__dot::before {
+  content: ""; width: 8px; height: 8px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5); transition: width 0.3s, background 0.3s;
+}
+.hero__dot.on::before { width: 26px; background: #fff; }
 .hero__arrow {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 4;
   width: 50px; height: 50px; border-radius: 50%;

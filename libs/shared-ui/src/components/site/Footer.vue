@@ -47,7 +47,7 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
           </div>
         </div>
         <div v-for="col in columns" :key="col.title" class="drh-footer__col">
-          <h4>{{ col.title }}</h4>
+          <h2>{{ col.title }}</h2>
           <ul>
             <li v-for="l in col.links" :key="l.label">
               <a
@@ -97,7 +97,7 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
   transition: background var(--dur-base) var(--ease-standard), border-color var(--dur-base);
 }
 .drh-footer__soc:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--gold-400); color: var(--gold-300); }
-.drh-footer__col h4 { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: #fff; margin: 0 0 16px; }
+.drh-footer__col h2 { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: #fff; margin: 0 0 16px; }
 .drh-footer__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
 .drh-footer__col a { color: var(--text-on-navy-muted); font-size: 14px; text-decoration: none; transition: color var(--dur-base) var(--ease-standard); }
 .drh-footer__col a:hover { color: var(--gold-300); }
