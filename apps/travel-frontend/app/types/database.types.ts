@@ -7,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -39,59 +41,165 @@ export type Database = {
           trip_date?: string | null
           trip_id?: string | null
         }
-        Update: Partial<Database["public"]["Tables"]["bookings"]["Insert"]>
-        Relationships: []
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          room_type?: string | null
+          status?: string
+          travellers?: number
+          trip_date?: string | null
+          trip_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cart_items: {
         Row: {
           created_at: string
+          grad: string | null
+          icon: string | null
           id: string
           item_id: string
           item_type: string
           quantity: number
+          title: string | null
           unit_price: number | null
           user_id: string
-          title: string | null
-          icon: string | null
-          grad: string | null
         }
         Insert: {
           created_at?: string
+          grad?: string | null
+          icon?: string | null
           id?: string
           item_id: string
           item_type: string
           quantity?: number
+          title?: string | null
           unit_price?: number | null
           user_id: string
-          title?: string | null
-          icon?: string | null
-          grad?: string | null
         }
-        Update: Partial<Database["public"]["Tables"]["cart_items"]["Insert"]>
+        Update: {
+          created_at?: string
+          grad?: string | null
+          icon?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          quantity?: number
+          title?: string | null
+          unit_price?: number | null
+          user_id?: string
+        }
         Relationships: []
       }
       categories: {
-        Row: { icon: string; id: string; name_ar: string; name_en: string; sort: number }
-        Insert: { icon: string; id: string; name_ar: string; name_en: string; sort?: number }
-        Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>
+        Row: {
+          icon: string
+          id: string
+          name_ar: string
+          name_en: string
+          sort: number
+        }
+        Insert: {
+          icon: string
+          id: string
+          name_ar: string
+          name_en: string
+          sort?: number
+        }
+        Update: {
+          icon?: string
+          id?: string
+          name_ar?: string
+          name_en?: string
+          sort?: number
+        }
         Relationships: []
       }
       contact_messages: {
-        Row: { created_at: string; email: string; id: string; message: string; name: string; phone: string | null }
-        Insert: { created_at?: string; email: string; id?: string; message: string; name: string; phone?: string | null }
-        Update: Partial<Database["public"]["Tables"]["contact_messages"]["Insert"]>
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          phone?: string | null
+        }
         Relationships: []
       }
       faqs: {
-        Row: { answer_ar: string; answer_en: string; id: string; question_ar: string; question_en: string; sort: number }
-        Insert: { answer_ar: string; answer_en: string; id?: string; question_ar: string; question_en: string; sort?: number }
-        Update: Partial<Database["public"]["Tables"]["faqs"]["Insert"]>
+        Row: {
+          answer_ar: string
+          answer_en: string
+          id: string
+          question_ar: string
+          question_en: string
+          sort: number
+        }
+        Insert: {
+          answer_ar: string
+          answer_en: string
+          id?: string
+          question_ar: string
+          question_en: string
+          sort?: number
+        }
+        Update: {
+          answer_ar?: string
+          answer_en?: string
+          id?: string
+          question_ar?: string
+          question_en?: string
+          sort?: number
+        }
         Relationships: []
       }
       newsletter_subscribers: {
-        Row: { created_at: string; email: string; id: string; locale: string }
-        Insert: { created_at?: string; email: string; id?: string; locale?: string }
-        Update: Partial<Database["public"]["Tables"]["newsletter_subscribers"]["Insert"]>
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          locale: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          locale?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          locale?: string
+        }
         Relationships: []
       }
       order_items: {
@@ -115,7 +223,16 @@ export type Database = {
           title?: string | null
           unit_price?: number
         }
-        Update: Partial<Database["public"]["Tables"]["order_items"]["Insert"]>
+        Update: {
+          id?: string
+          item_id?: string
+          item_type?: string
+          line_total?: number
+          order_id?: string
+          quantity?: number
+          title?: string | null
+          unit_price?: number
+        }
         Relationships: [
           {
             foreignKeyName: "order_items_order_id_fkey"
@@ -149,31 +266,104 @@ export type Database = {
           total?: number
           user_id: string
         }
-        Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_provider?: string | null
+          payment_ref?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          user_id?: string
+        }
         Relationships: []
       }
       packages: {
         Row: {
-          desc_ar: string; desc_en: string; grad: string; icon: string; id: string; kind: string
-          price_ar: string | null; price_en: string | null; sort: number; title_ar: string; title_en: string
+          cost_amount: number | null
+          desc_ar: string
+          desc_en: string
+          grad: string
+          icon: string
+          id: string
+          kind: string
+          price_amount: number | null
+          price_ar: string | null
+          price_en: string | null
+          sort: number
+          title_ar: string
+          title_en: string
         }
         Insert: {
-          desc_ar: string; desc_en: string; grad: string; icon: string; id: string; kind: string
-          price_ar?: string | null; price_en?: string | null; sort?: number; title_ar: string; title_en: string
+          cost_amount?: number | null
+          desc_ar: string
+          desc_en: string
+          grad: string
+          icon: string
+          id: string
+          kind: string
+          price_amount?: number | null
+          price_ar?: string | null
+          price_en?: string | null
+          sort?: number
+          title_ar: string
+          title_en: string
         }
-        Update: Partial<Database["public"]["Tables"]["packages"]["Insert"]>
+        Update: {
+          cost_amount?: number | null
+          desc_ar?: string
+          desc_en?: string
+          grad?: string
+          icon?: string
+          id?: string
+          kind?: string
+          price_amount?: number | null
+          price_ar?: string | null
+          price_en?: string | null
+          sort?: number
+          title_ar?: string
+          title_en?: string
+        }
         Relationships: []
       }
       products: {
         Row: {
-          desc_ar: string; desc_en: string; grad: string; icon: string; id: string
-          price_ar: string | null; price_en: string | null; sort: number; title_ar: string; title_en: string
+          desc_ar: string
+          desc_en: string
+          grad: string
+          icon: string
+          id: string
+          price_ar: string | null
+          price_en: string | null
+          sort: number
+          title_ar: string
+          title_en: string
         }
         Insert: {
-          desc_ar: string; desc_en: string; grad: string; icon: string; id: string
-          price_ar?: string | null; price_en?: string | null; sort?: number; title_ar: string; title_en: string
+          desc_ar: string
+          desc_en: string
+          grad: string
+          icon: string
+          id: string
+          price_ar?: string | null
+          price_en?: string | null
+          sort?: number
+          title_ar: string
+          title_en: string
         }
-        Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>
+        Update: {
+          desc_ar?: string
+          desc_en?: string
+          grad?: string
+          icon?: string
+          id?: string
+          price_ar?: string | null
+          price_en?: string | null
+          sort?: number
+          title_ar?: string
+          title_en?: string
+        }
         Relationships: []
       }
       profiles: {
@@ -184,6 +374,7 @@ export type Database = {
           id: string
           locale: string
           phone: string | null
+          role: string
           username: string | null
         }
         Insert: {
@@ -193,21 +384,64 @@ export type Database = {
           id: string
           locale?: string
           phone?: string | null
+          role?: string
           username?: string | null
         }
-        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          locale?: string
+          phone?: string | null
+          role?: string
+          username?: string | null
+        }
         Relationships: []
       }
       reviews: {
         Row: {
-          created_at: string; grad: string; icon: string; id: string; name_ar: string; name_en: string
-          rating: number; text_ar: string; text_en: string; trip_ar: string; trip_en: string; trip_id: string | null
+          created_at: string
+          grad: string
+          icon: string
+          id: string
+          name_ar: string
+          name_en: string
+          rating: number
+          text_ar: string
+          text_en: string
+          trip_ar: string
+          trip_en: string
+          trip_id: string | null
         }
         Insert: {
-          created_at?: string; grad: string; icon: string; id?: string; name_ar: string; name_en: string
-          rating?: number; text_ar: string; text_en: string; trip_ar: string; trip_en: string; trip_id?: string | null
+          created_at?: string
+          grad: string
+          icon: string
+          id?: string
+          name_ar: string
+          name_en: string
+          rating?: number
+          text_ar: string
+          text_en: string
+          trip_ar: string
+          trip_en: string
+          trip_id?: string | null
         }
-        Update: Partial<Database["public"]["Tables"]["reviews"]["Insert"]>
+        Update: {
+          created_at?: string
+          grad?: string
+          icon?: string
+          id?: string
+          name_ar?: string
+          name_en?: string
+          rating?: number
+          text_ar?: string
+          text_en?: string
+          trip_ar?: string
+          trip_en?: string
+          trip_id?: string | null
+        }
         Relationships: [
           {
             foreignKeyName: "reviews_trip_id_fkey"
@@ -219,27 +453,111 @@ export type Database = {
         ]
       }
       services: {
-        Row: { desc_ar: string; desc_en: string; icon: string; id: string; sort: number; title_ar: string; title_en: string }
-        Insert: { desc_ar: string; desc_en: string; icon: string; id: string; sort?: number; title_ar: string; title_en: string }
-        Update: Partial<Database["public"]["Tables"]["services"]["Insert"]>
+        Row: {
+          desc_ar: string
+          desc_en: string
+          icon: string
+          id: string
+          sort: number
+          title_ar: string
+          title_en: string
+        }
+        Insert: {
+          desc_ar: string
+          desc_en: string
+          icon: string
+          id: string
+          sort?: number
+          title_ar: string
+          title_en: string
+        }
+        Update: {
+          desc_ar?: string
+          desc_en?: string
+          icon?: string
+          id?: string
+          sort?: number
+          title_ar?: string
+          title_en?: string
+        }
         Relationships: []
       }
       trips: {
         Row: {
-          category_id: string | null; created_at: string; dates_ar: string; dates_en: string
-          duration_ar: string; duration_en: string; featured: boolean; grad: string; icon: string; id: string
-          kind: string; price_amount: number | null; price_ar: string; price_en: string; rating: number
-          region_ar: string; region_en: string; reviews: number; seats: number | null; tier_key: string
-          tier_variant: string; title_ar: string; title_en: string
+          category_id: string | null
+          created_at: string
+          dates_ar: string
+          dates_en: string
+          duration_ar: string
+          duration_en: string
+          featured: boolean
+          grad: string
+          icon: string
+          id: string
+          kind: string
+          price_amount: number | null
+          price_ar: string
+          price_en: string
+          rating: number
+          region_ar: string
+          region_en: string
+          reviews: number
+          seats: number | null
+          tier_key: string
+          tier_variant: string
+          title_ar: string
+          title_en: string
         }
         Insert: {
-          category_id?: string | null; created_at?: string; dates_ar: string; dates_en: string
-          duration_ar: string; duration_en: string; featured?: boolean; grad: string; icon: string; id: string
-          kind: string; price_amount?: number | null; price_ar: string; price_en: string; rating?: number
-          region_ar: string; region_en: string; reviews?: number; seats?: number | null; tier_key: string
-          tier_variant: string; title_ar: string; title_en: string
+          category_id?: string | null
+          created_at?: string
+          dates_ar: string
+          dates_en: string
+          duration_ar: string
+          duration_en: string
+          featured?: boolean
+          grad: string
+          icon: string
+          id: string
+          kind: string
+          price_amount?: number | null
+          price_ar: string
+          price_en: string
+          rating?: number
+          region_ar: string
+          region_en: string
+          reviews?: number
+          seats?: number | null
+          tier_key: string
+          tier_variant: string
+          title_ar: string
+          title_en: string
         }
-        Update: Partial<Database["public"]["Tables"]["trips"]["Insert"]>
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          dates_ar?: string
+          dates_en?: string
+          duration_ar?: string
+          duration_en?: string
+          featured?: boolean
+          grad?: string
+          icon?: string
+          id?: string
+          kind?: string
+          price_amount?: number | null
+          price_ar?: string
+          price_en?: string
+          rating?: number
+          region_ar?: string
+          region_en?: string
+          reviews?: number
+          seats?: number | null
+          tier_key?: string
+          tier_variant?: string
+          title_ar?: string
+          title_en?: string
+        }
         Relationships: [
           {
             foreignKeyName: "trips_category_id_fkey"
@@ -252,20 +570,200 @@ export type Database = {
       }
       wishlists: {
         Row: {
-          created_at: string; id: string; item_id: string; item_type: string; user_id: string
-          title: string | null; icon: string | null; grad: string | null; price: string | null
+          created_at: string
+          grad: string | null
+          icon: string | null
+          id: string
+          item_id: string
+          item_type: string
+          price: string | null
+          title: string | null
+          user_id: string
         }
         Insert: {
-          created_at?: string; id?: string; item_id: string; item_type: string; user_id: string
-          title?: string | null; icon?: string | null; grad?: string | null; price?: string | null
+          created_at?: string
+          grad?: string | null
+          icon?: string | null
+          id?: string
+          item_id: string
+          item_type: string
+          price?: string | null
+          title?: string | null
+          user_id: string
         }
-        Update: Partial<Database["public"]["Tables"]["wishlists"]["Insert"]>
+        Update: {
+          created_at?: string
+          grad?: string | null
+          icon?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          price?: string | null
+          title?: string | null
+          user_id?: string
+        }
         Relationships: []
       }
     }
-    Views: { [_ in never]: never }
-    Functions: { [_ in never]: never }
-    Enums: { [_ in never]: never }
-    CompositeTypes: { [_ in never]: never }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      admin_monthly_report: {
+        Args: { months?: number }
+        Returns: {
+          buyers: number
+          cost: number
+          month: string
+          orders_count: number
+          package_units: number
+          profit: number
+          profit_pct: number
+          revenue: number
+        }[]
+      }
+      admin_overview: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          cost: number
+          profit: number
+          profit_pct: number
+          revenue: number
+          total_buyers: number
+          total_orders: number
+          total_units: number
+        }[]
+      }
+      is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
