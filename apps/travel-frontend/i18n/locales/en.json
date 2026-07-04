@@ -87,7 +87,8 @@
     "why": "Why us",
     "reviews": "Reviews",
     "contact": "Contact",
-    "book": "Book your trip"
+    "book": "Book your trip",
+    "dashboard": "Dashboard"
   },
   "common": {
     "currency": "SAR",
@@ -98,7 +99,57 @@
     "sar": "SAR",
     "startingFrom": "from",
     "learnMore": "Learn more",
-    "sending": "Sending…"
+    "sending": "Sending…",
+    "loading": "Loading…"
+  },
+  "dashboard": {
+    "title": "Reports & statistics",
+    "adminArea": "Admin area",
+    "backToSite": "Back to site",
+    "nav": { "overview": "Overview", "orders": "Orders" },
+    "kpi": {
+      "buyers": "Package buyers",
+      "buyersSub": "Distinct paying customers",
+      "revenue": "Total revenue",
+      "revenueSub": "Paid package orders",
+      "profitPct": "Profit margin",
+      "orders": "Orders",
+      "ordersSub": "{units} packages sold"
+    },
+    "buyers": "Buyers",
+    "revenue": "Revenue",
+    "profit": "Profit",
+    "charts": {
+      "buyers": "Package buyers per month",
+      "revenueProfit": "Revenue vs profit",
+      "profitTrend": "Profit margin trend"
+    },
+    "reportTitle": "Monthly report",
+    "recentOrders": "Recent orders",
+    "empty": "No sales data yet.",
+    "table": {
+      "month": "Month",
+      "buyers": "Buyers",
+      "units": "Packages",
+      "revenue": "Revenue",
+      "cost": "Cost",
+      "profit": "Profit",
+      "profitPct": "Margin %"
+    },
+    "ordersTable": {
+      "date": "Date",
+      "buyer": "Buyer",
+      "items": "Items",
+      "status": "Status",
+      "total": "Total"
+    },
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded"
+    }
   },
   "pages": {
     "packages": { "eyebrow": "Our packages", "title": "Thoughtfully crafted packages", "lead": "Complete travel packages — international and domestic — fully arranged with total privacy." },

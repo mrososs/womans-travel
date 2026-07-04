@@ -28,6 +28,9 @@ withDefaults(
     /** Show a profile (user) button. */
     showProfile?: boolean;
     profileLabel?: string;
+    /** Show a "go to dashboard" button (admins only). */
+    showDashboard?: boolean;
+    dashboardLabel?: string;
   }>(),
   {
     brand: 'test',
@@ -42,6 +45,8 @@ withDefaults(
     wishlistLabel: 'المفضّلة',
     showProfile: false,
     profileLabel: 'حسابي',
+    showDashboard: false,
+    dashboardLabel: 'لوحة التحكم',
   }
 );
 
@@ -51,6 +56,7 @@ const emit = defineEmits<{
   cart: [];
   wishlist: [];
   profile: [];
+  dashboard: [];
 }>();
 
 const open = ref(false);
@@ -84,6 +90,16 @@ function go(href: string, event: MouseEvent) {
       </nav>
 
       <div class="drh-nav__right">
+        <button
+          v-if="showDashboard"
+          type="button"
+          class="drh-nav__cart drh-nav__dashboard"
+          :aria-label="dashboardLabel"
+          :title="dashboardLabel"
+          @click="emit('dashboard')"
+        >
+          <Icon name="layout-dashboard" :size="20" />
+        </button>
         <button
           v-if="showWishlist"
           type="button"
@@ -243,6 +259,8 @@ function go(href: string, event: MouseEvent) {
 }
 .drh-nav__cart:hover { background: var(--rose-50); color: var(--brand-strong); }
 .drh-nav__cart:focus-visible { outline: none; box-shadow: var(--ring-brand); }
+.drh-nav__dashboard { color: var(--brand-strong); background: var(--rose-50); }
+.drh-nav__dashboard:hover { background: var(--grad-gold, var(--rose-50)); color: var(--navy-900); }
 .drh-nav__cartbadge {
   position: absolute;
   top: 2px;

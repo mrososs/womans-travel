@@ -11,6 +11,7 @@ const route = useRoute();
 const localePath = useLocalePath();
 const switchLocalePath = useSwitchLocalePath();
 const { isLoggedIn } = useAuth();
+const { isAdmin } = useIsAdmin();
 const { count: cartCount } = useCart();
 const { count: wishlistCount } = useWishlist();
 const notify = useNotify();
@@ -96,11 +97,14 @@ function onWishlist() {
       :wishlist-label="t('wishlist.title')"
       show-profile
       :profile-label="isLoggedIn ? t('auth.myAccount') : t('auth.login')"
+      :show-dashboard="isAdmin"
+      :dashboard-label="t('nav.dashboard')"
       @navigate="onNavigate"
       @toggle-lang="toggleLang"
       @cart="cartOpen = true"
       @wishlist="onWishlist"
       @profile="onProfile"
+      @dashboard="navigateTo(localePath('/dashboard'))"
     />
     <main>
       <slot />
