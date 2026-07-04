@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, type Ref } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, watch, type Ref, type WatchSource } from 'vue';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -13,6 +13,13 @@ export interface ScrollRevealOptions {
   stagger?: number;
   /** ScrollTrigger start position. */
   start?: string;
+  /**
+   * Optional reactive source watched for the reveal targets appearing later
+   * (e.g. after a loading skeleton is swapped for real cards). When it changes,
+   * the reveal is (re)attempted on the next DOM tick. The reveal still only
+   * runs once, whichever trigger wins — `onMounted` or this watcher.
+   */
+  watch?: WatchSource;
 }
 
 /**
@@ -32,20 +39,25 @@ export function useScrollReveal(
     duration = 0.72,
     stagger = 0.1,
     start = 'top 82%',
+    watch: watchSource,
   } = options;
 
   let triggers: ScrollTrigger[] = [];
+  let done = false;
 
-  onMounted(() => {
+  function reveal(): void {
+    if (done) return;
     const el = root.value;
     if (!el) return;
+
+    const targets = Array.from(el.querySelectorAll<HTMLElement>(selector));
+    if (!targets.length) return;
+
+    done = true;
 
     const prefersReduced =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-    const targets = Array.from(el.querySelectorAll<HTMLElement>(selector));
-    if (!targets.length) return;
 
     if (prefersReduced) {
       gsap.set(targets, { opacity: 1, y: 0 });
@@ -64,7 +76,13 @@ export function useScrollReveal(
     });
 
     if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
-  });
+  }
+
+  onMounted(reveal);
+
+  if (watchSource) {
+    watch(watchSource, () => nextTick(reveal), { flush: 'post' });
+  }
 
   onBeforeUnmount(() => {
     triggers.forEach((t) => t.kill());

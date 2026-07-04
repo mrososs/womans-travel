@@ -3,16 +3,18 @@ import { computed, ref } from 'vue';
 import { useScrollReveal } from '@org/shared-utils';
 import PageHero from '~/components/PageHero.vue';
 import ProductCard from '~/components/ProductCard.vue';
+import ProductCardSkeleton from '~/components/ProductCardSkeleton.vue';
 
 const { t } = useI18n();
 const { pick } = useDbPick();
-const { data: products } = useProducts();
+const { data: products, pending } = useProducts();
+const { ready } = useDelayedReady(pending);
 
 useHead(() => ({ title: `${t('pages.products.title')} · ${t('brand')}` }));
 
 const items = computed(() => products.value ?? []);
 const grid = ref<HTMLElement | null>(null);
-useScrollReveal(grid, { selector: '.prod', stagger: 0.07 });
+useScrollReveal(grid, { selector: '.prod', stagger: 0.07, watch: ready });
 </script>
 
 <template>
@@ -28,16 +30,21 @@ useScrollReveal(grid, { selector: '.prod', stagger: 0.07 });
     <section ref="grid" class="section">
       <div class="container">
         <div class="grid-cards">
-          <ProductCard
-            v-for="p in items"
-            :key="p.id"
-            :title="pick(p, 'title')"
-            :desc="pick(p, 'desc')"
-            :icon="p.icon"
-            :grad="p.grad"
-            :price="pick(p, 'price')"
-            :currency="t('common.currency')"
-          />
+          <template v-if="ready">
+            <ProductCard
+              v-for="p in items"
+              :key="p.id"
+              :title="pick(p, 'title')"
+              :desc="pick(p, 'desc')"
+              :icon="p.icon"
+              :grad="p.grad"
+              :price="pick(p, 'price')"
+              :currency="t('common.currency')"
+            />
+          </template>
+          <template v-else>
+            <ProductCardSkeleton v-for="n in 8" :key="`sk-${n}`" />
+          </template>
         </div>
       </div>
     </section>

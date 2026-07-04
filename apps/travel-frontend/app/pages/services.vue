@@ -3,17 +3,19 @@ import { computed, ref } from 'vue';
 import { useScrollReveal } from '@org/shared-utils';
 import PageHero from '~/components/PageHero.vue';
 import ServiceCard from '~/components/ServiceCard.vue';
+import ServiceCardSkeleton from '~/components/ServiceCardSkeleton.vue';
 import FaqSection from '~/components/FaqSection.vue';
 
 const { t } = useI18n();
 const { pick } = useDbPick();
-const { data: services } = useServices();
+const { data: services, pending } = useServices();
+const { ready } = useDelayedReady(pending);
 
 useHead(() => ({ title: `${t('pages.services.title')} · ${t('brand')}` }));
 
 const items = computed(() => services.value ?? []);
 const grid = ref<HTMLElement | null>(null);
-useScrollReveal(grid, { selector: '.svc', stagger: 0.07 });
+useScrollReveal(grid, { selector: '.svc', stagger: 0.07, watch: ready });
 </script>
 
 <template>
@@ -29,13 +31,18 @@ useScrollReveal(grid, { selector: '.svc', stagger: 0.07 });
     <section ref="grid" class="section">
       <div class="container">
         <div class="grid-cards">
-          <ServiceCard
-            v-for="s in items"
-            :key="s.id"
-            :icon="s.icon"
-            :title="pick(s, 'title')"
-            :desc="pick(s, 'desc')"
-          />
+          <template v-if="ready">
+            <ServiceCard
+              v-for="s in items"
+              :key="s.id"
+              :icon="s.icon"
+              :title="pick(s, 'title')"
+              :desc="pick(s, 'desc')"
+            />
+          </template>
+          <template v-else>
+            <ServiceCardSkeleton v-for="n in 6" :key="`sk-${n}`" />
+          </template>
         </div>
       </div>
     </section>

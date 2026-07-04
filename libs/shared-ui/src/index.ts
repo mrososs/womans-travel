@@ -35,6 +35,7 @@ export { default as Switch } from './components/forms/Switch.vue';
 export { default as Dialog } from './components/feedback/Dialog.vue';
 export { default as Toast } from './components/feedback/Toast.vue';
 export { default as Tooltip } from './components/feedback/Tooltip.vue';
+export { default as Skeleton } from './components/feedback/Skeleton.vue';
 
 // navigation
 export { default as Tabs } from './components/navigation/Tabs.vue';
