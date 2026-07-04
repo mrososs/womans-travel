@@ -65,7 +65,10 @@
   --text-body:    var(--navy-700);
   --text-muted:   var(--slate-500);
   --text-subtle:  var(--slate-400);
-  --text-gold:    var(--gold-600);
+  /* Darker than --gold-600 (#A2823F, only 3.0-3.6:1) so eyebrow/label text
+     meets WCAG AA (>=4.5:1) on white, sand and pearl backgrounds. On the dark
+     hero the eyebrow is overridden to --gold-300 (see site.css). */
+  --text-gold:    #806526;
   --text-brand:   var(--rose-600);
   --text-on-rose: #FFFFFF;
   --text-on-navy: #F3E9DC;

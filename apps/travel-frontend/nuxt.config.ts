@@ -5,6 +5,39 @@ import { defineNuxtConfig } from 'nuxt/config';
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const libsDir = resolve(currentDir, '../../libs');
 
+// Supabase project origin (REST + Realtime + Storage) — whitelisted in the CSP
+// connect-src / img-src. Wildcards kept as a fallback for storage subdomains.
+const SUPABASE_ORIGIN = 'https://snqujifbaottvysziysj.supabase.co';
+
+// Content-Security-Policy. 'unsafe-inline' is required for scripts because Nuxt
+// injects the inline hydration payload, and for styles because of scoped/inline
+// styles; 'unsafe-eval' is intentionally NOT allowed. Fonts come from Google
+// Fonts; images may come from Supabase Storage and other https hosts.
+const CSP = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "script-src 'self' 'unsafe-inline'",
+  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co`,
+  'upgrade-insecure-requests',
+].join('; ');
+
+// Security response headers applied to every route (see routeRules below).
+const SECURITY_HEADERS = {
+  'content-security-policy': CSP,
+  'strict-transport-security': 'max-age=63072000; includeSubDomains; preload',
+  'x-frame-options': 'SAMEORIGIN',
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'permissions-policy': 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+  'x-dns-prefetch-control': 'off',
+};
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   workspaceDir: '../../',
@@ -30,11 +63,35 @@ export default defineNuxtConfig({
           href: 'https://fonts.gstatic.com',
           crossorigin: '',
         },
+        // Preload the LCP hero image so the browser discovers it from the
+        // initial HTML (removes the ~570ms LCP "load delay" measured on the
+        // first slide of HeroCarousel — /hero/hero-1.webp).
+        {
+          rel: 'preload',
+          as: 'image',
+          href: '/hero/hero-1.webp',
+          type: 'image/webp',
+          fetchpriority: 'high',
+        },
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&family=Almarai:wght@300;400;700;800&display=swap',
         },
       ],
+    },
+  },
+
+  // Long-lived caching for static hero/marketing images (served with
+  // `max-age=0, must-revalidate` by default, forcing a revalidation on every
+  // repeat visit). These files are content-stable, so cache them for a week.
+  routeRules: {
+    // Security headers on every response.
+    '/**': { headers: { ...SECURITY_HEADERS } },
+    '/hero/**': {
+      headers: {
+        ...SECURITY_HEADERS,
+        'cache-control': 'public, max-age=604800, stale-while-revalidate=86400',
+      },
     },
   },
 
