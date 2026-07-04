@@ -126,6 +126,8 @@
     },
     "reportTitle": "Monthly report",
     "recentOrders": "Recent orders",
+    "downloadPdf": "Download PDF",
+    "printedOn": "Generated on {date}",
     "empty": "No sales data yet.",
     "table": {
       "month": "Month",

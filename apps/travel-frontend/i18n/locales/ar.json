@@ -126,6 +126,8 @@
     },
     "reportTitle": "التقرير الشهري",
     "recentOrders": "أحدث الطلبات",
+    "downloadPdf": "تحميل PDF",
+    "printedOn": "صدر بتاريخ {date}",
     "empty": "لا توجد بيانات مبيعات بعد.",
     "table": {
       "month": "الشهر",

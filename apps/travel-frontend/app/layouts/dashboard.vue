@@ -142,3 +142,33 @@ function isActive(to: string) {
   .dash__brand { margin-inline-end: auto; }
 }
 </style>
+
+<!-- Global print rules: strip the app chrome so the report prints cleanly to PDF -->
+<style>
+.print-only { display: none; }
+
+@media print {
+  .dash__side,
+  .dash__topbar,
+  .no-print { display: none !important; }
+
+  .dash,
+  .dash__main,
+  .dash__content {
+    display: block !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .print-only { display: flex !important; }
+
+  /* Preserve brand colours (charts, cards, badges) in the printed PDF */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* Keep cards from splitting awkwardly across pages */
+  .drh-card { box-shadow: none !important; border: 1px solid var(--border-soft) !important; break-inside: avoid; }
+
+  @page { margin: 14mm; }
+}
+</style>

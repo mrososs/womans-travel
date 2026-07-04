@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Card } from '@org/shared-ui';
+import { computed, nextTick, onMounted, ref } from 'vue';
+import { Card, Button, Icon } from '@org/shared-ui';
 import StatCard from '~/components/dashboard/StatCard.vue';
 import BarChart from '~/components/dashboard/BarChart.vue';
 import LineChart from '~/components/dashboard/LineChart.vue';
@@ -47,6 +47,20 @@ function monthLabel(iso: string) {
 
 const hasData = computed(() => months.value.length > 0);
 
+// PDF export via the browser's print-to-PDF — renders Arabic/RTL and the design
+// faithfully (client-side PDF libs cannot shape Arabic). The print stylesheet in
+// the dashboard layout hides the app chrome and shows a report header.
+const printedDate = ref('');
+function stampDate() {
+  printedDate.value = new Intl.DateTimeFormat(bcp47.value, { dateStyle: 'long' }).format(new Date());
+}
+onMounted(stampDate);
+async function downloadPdf() {
+  stampDate();
+  await nextTick();
+  window.print();
+}
+
 const buyersChart = computed(() =>
   months.value.map((m) => ({ label: monthLabel(m.month), values: [Number(m.buyers)] }))
 );
@@ -83,6 +97,23 @@ const tableColumns = computed(() => [
     <div v-if="pending" class="dashpage__loading">{{ t('common.loading') }}</div>
 
     <template v-else>
+      <!-- Print-only report header (hidden on screen) -->
+      <div class="dashpage__printhead print-only">
+        <div class="dashpage__brand">{{ t('brand') }}</div>
+        <div class="dashpage__printmeta">
+          <div class="dashpage__printtitle">{{ t('dashboard.title') }}</div>
+          <div class="dashpage__printdate">{{ t('dashboard.printedOn', { date: printedDate }) }}</div>
+        </div>
+      </div>
+
+      <!-- Actions (hidden in print) -->
+      <div class="dashpage__actions no-print">
+        <Button variant="gold" size="sm" @click="downloadPdf">
+          <template #iconStart><Icon name="download" :size="16" /></template>
+          {{ t('dashboard.downloadPdf') }}
+        </Button>
+      </div>
+
       <!-- KPI stat cards -->
       <div class="dashpage__kpis">
         <StatCard
@@ -162,4 +193,17 @@ const tableColumns = computed(() => [
   color: var(--text-strong); margin: 0 0 20px;
 }
 .dashpage__empty { margin-top: 8px; }
+
+.dashpage__actions { display: flex; justify-content: flex-end; }
+
+/* Print report header — hidden on screen, shown when printing (see layout) */
+.dashpage__printhead {
+  display: none;
+  align-items: center; justify-content: space-between;
+  padding-bottom: 12px; border-bottom: 2px solid var(--brand);
+}
+.dashpage__brand { font-family: var(--font-display); font-weight: 800; font-size: 24px; color: var(--navy-900); }
+.dashpage__printmeta { text-align: end; }
+.dashpage__printtitle { font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--text-strong); }
+.dashpage__printdate { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 </style>
