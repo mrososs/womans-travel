@@ -3,10 +3,12 @@ import { computed, ref } from 'vue';
 import { useScrollReveal } from '@org/shared-utils';
 import PageHero from '~/components/PageHero.vue';
 import PackageCard from '~/components/PackageCard.vue';
+import PackageCardSkeleton from '~/components/PackageCardSkeleton.vue';
 
 const { t } = useI18n();
 const { pick } = useDbPick();
-const { data: packages } = usePackages();
+const { data: packages, pending } = usePackages();
+const { ready } = useDelayedReady(pending);
 const localePath = useLocalePath();
 
 function goPackage(id: string) {
@@ -17,7 +19,7 @@ useHead(() => ({ title: `${t('pages.packages.title')} · ${t('brand')}` }));
 
 const items = computed(() => packages.value ?? []);
 const grid = ref<HTMLElement | null>(null);
-useScrollReveal(grid, { selector: '.pkg', stagger: 0.08 });
+useScrollReveal(grid, { selector: '.pkg', stagger: 0.08, watch: ready });
 </script>
 
 <template>
@@ -33,20 +35,25 @@ useScrollReveal(grid, { selector: '.pkg', stagger: 0.08 });
     <section ref="grid" class="section">
       <div class="container">
         <div class="grid-cards">
-          <PackageCard
-            v-for="p in items"
-            :key="p.id"
-            :title="pick(p, 'title')"
-            :desc="pick(p, 'desc')"
-            :icon="p.icon"
-            :grad="p.grad"
-            :price="pick(p, 'price')"
-            :currency="t('common.currency')"
-            :from-label="t('common.startingFrom')"
-            :kind-label="t(`destinations.kinds.${p.kind}`)"
-            :view-label="t('actions.view')"
-            @open="goPackage(p.id)"
-          />
+          <template v-if="ready">
+            <PackageCard
+              v-for="p in items"
+              :key="p.id"
+              :title="pick(p, 'title')"
+              :desc="pick(p, 'desc')"
+              :icon="p.icon"
+              :grad="p.grad"
+              :price="pick(p, 'price')"
+              :currency="t('common.currency')"
+              :from-label="t('common.startingFrom')"
+              :kind-label="t(`destinations.kinds.${p.kind}`)"
+              :view-label="t('actions.view')"
+              @open="goPackage(p.id)"
+            />
+          </template>
+          <template v-else>
+            <PackageCardSkeleton v-for="n in 6" :key="`sk-${n}`" />
+          </template>
         </div>
       </div>
     </section>
