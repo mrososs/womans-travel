@@ -208,8 +208,7 @@
     "all": "All",
     "beach": "Beaches",
     "mountain": "Mountains",
-    "city": "Cities",
-    "desert": "Desert"
+    "city": "Cities"
   },
   "tiers": {
     "luxury": "Luxury",

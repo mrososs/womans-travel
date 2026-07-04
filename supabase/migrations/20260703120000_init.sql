@@ -8,7 +8,7 @@ create extension if not exists "pgcrypto";
 
 -- ---------- Content: categories ----------
 create table if not exists public.categories (
-  id         text primary key,            -- 'beach' | 'mountain' | 'city' | 'desert'
+  id         text primary key,            -- 'beach' | 'mountain' | 'city'
   icon       text not null,
   name_ar    text not null,
   name_en    text not null,

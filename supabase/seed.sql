@@ -6,8 +6,7 @@
 insert into public.categories (id, icon, name_ar, name_en, sort) values
   ('beach',    'palmtree',   'شواطئ', 'Beaches',   1),
   ('mountain', 'mountain',   'جبال',  'Mountains', 2),
-  ('city',     'building-2', 'مدن',   'Cities',    3),
-  ('desert',   'sun',        'صحراء', 'Desert',    4)
+  ('city',     'building-2', 'مدن',   'Cities',    3)
 on conflict (id) do nothing;
 
 insert into public.trips
@@ -15,26 +14,24 @@ insert into public.trips
    region_ar, region_en, title_ar, title_en, duration_ar, duration_en, dates_ar, dates_en,
    price_ar, price_en, price_amount, featured)
 values
-  ('alps','mountain','intl','mountain-snow','linear-gradient(155deg,#24314B,#9E5863)',4.8,124,3,'luxury','solid',
-   'النمسا','Austria','جبال الألب النمساوية','The Austrian Alps','٧ أيام','7 days','١٢–١٨ سبتمبر','12–18 Sep','٨٬٥٠٠','8,500',8500,true),
-  ('maldives','beach','intl','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)',4.9,86,null,'exclusive','navy',
-   'المالديف','Maldives','منتجع خاص على الجزيرة','A private island resort','٥ أيام','5 days','٣–٧ أكتوبر','3–7 Oct','١٤٬٢٠٠','14,200',14200,true),
-  ('alula','mountain','local','mountain','linear-gradient(155deg,#B76E79,#7C444E)',4.7,152,6,'domestic','brand',
-   'السعودية · العُلا','Saudi Arabia · AlUla','العُلا الساحرة','Enchanting AlUla','٤ أيام','4 days','٢٠–٢٣ نوفمبر','20–23 Nov','٥٬٩٠٠','5,900',5900,true),
-  ('kyoto','city','intl','flower-2','linear-gradient(155deg,#9E5863,#24314B)',4.9,64,4,'luxury','solid',
-   'اليابان','Japan','كيوتو الكلاسيكية','Classic Kyoto','٨ أيام','8 days','١–٨ أبريل','1–8 Apr','١١٬٣٠٠','11,300',11300,true),
-  ('santorini','beach','intl','sailboat','linear-gradient(155deg,#4E6A8A,#B76E79)',4.8,98,2,'popular','gold',
-   'اليونان','Greece','سانتوريني البيضاء','White Santorini','٦ أيام','6 days','١٥–٢٠ يونيو','15–20 Jun','٩٬٧٠٠','9,700',9700,true),
-  ('taif','city','local','flower','linear-gradient(155deg,#C88A82,#9E5863)',4.6,71,8,'domestic','brand',
-   'السعودية · الطائف','Saudi Arabia · Taif','الطائف والورد','Taif & the roses','٣ أيام','3 days','٥–٧ مايو','5–7 May','٣٬٤٠٠','3,400',3400,false)
+  ('moscow','city','intl','landmark','linear-gradient(155deg,#24314B,#9E5863)',4.8,112,4,'luxury','solid',
+   'روسيا','Russia','موسكو الساحرة','Enchanting Moscow','٦ أيام','6 days','١٠–١٥ سبتمبر','10–15 Sep','١٠٬٩٠٠','10,900',10900,true),
+  ('istanbul','city','intl','building-2','linear-gradient(155deg,#B76E79,#7C444E)',4.7,138,6,'popular','gold',
+   'تركيا','Turkey','إسطنبول بين القارتين','Istanbul across two continents','٥ أيام','5 days','٣–٧ أكتوبر','3–7 Oct','٦٬٨٠٠','6,800',6800,true),
+  ('london','city','intl','ferris-wheel','linear-gradient(155deg,#4E6A8A,#9E5863)',4.9,92,3,'exclusive','navy',
+   'بريطانيا','Britain','لندن العريقة','Timeless London','٧ أيام','7 days','١٢–١٨ نوفمبر','12–18 Nov','١٣٬٥٠٠','13,500',13500,true),
+  ('baha','mountain','local','mountain','linear-gradient(155deg,#4E7A5B,#24314B)',4.6,74,8,'domestic','brand',
+   'السعودية · الباحة','Saudi Arabia · Al-Baha','الباحة والمرتفعات الخضراء','Al-Baha & the green highlands','٣ أيام','3 days','٥–٧ مايو','5–7 May','٣٬٢٠٠','3,200',3200,true),
+  ('red-sea','beach','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)',4.8,105,5,'domestic','brand',
+   'السعودية · البحر الأحمر','Saudi Arabia · Red Sea','منتجعات البحر الأحمر','Red Sea resorts','٤ أيام','4 days','٢٠–٢٣ يونيو','20–23 Jun','٧٬٢٠٠','7,200',7200,false)
 on conflict (id) do nothing;
 
 insert into public.reviews (trip_id, icon, grad, rating, name_ar, name_en, trip_ar, trip_en, text_ar, text_en) values
-  ('alps','mountain-snow','linear-gradient(135deg,#24314B,#9E5863)',5,'نورة السالم','Noura Al-Salem','رحلة النمسا','Austria trip',
+  ('moscow','landmark','linear-gradient(135deg,#24314B,#9E5863)',5,'نورة السالم','Noura Al-Salem','رحلة موسكو','Moscow trip',
    'تجربة تفوق الوصف — تنظيم راقٍ وخصوصية جعلتني أستمتع بكل لحظة بأمان تام.','An experience beyond words — refined organisation and privacy that let me enjoy every moment in complete safety.'),
-  ('maldives','palmtree','linear-gradient(135deg,#C6A15B,#B76E79)',5,'ريم القحطاني','Reem Al-Qahtani','رحلة المالديف','Maldives trip',
+  ('istanbul','building-2','linear-gradient(135deg,#B76E79,#7C444E)',5,'ريم القحطاني','Reem Al-Qahtani','رحلة إسطنبول','Istanbul trip',
    'كل التفاصيل مدروسة بعناية، والمرافِقة كانت لطيفة ومحترفة. سأكرّر التجربة حتمًا.','Every detail was thoughtfully considered, and the escort was kind and professional. I will absolutely do it again.'),
-  ('alula','mountain','linear-gradient(135deg,#B76E79,#7C444E)',5,'الجوهرة العتيبي','Al-Jawhara Al-Otaibi','رحلة العُلا','AlUla trip',
+  ('baha','mountain','linear-gradient(135deg,#4E7A5B,#24314B)',5,'الجوهرة العتيبي','Al-Jawhara Al-Otaibi','رحلة الباحة','Al-Baha trip',
    'أجمل ما في التجربة هو الإحساس بالطمأنينة والصحبة الجميلة. فخامة بمعناها الحقيقي.','The best part was the sense of reassurance and the lovely company. Luxury in its truest sense.')
 on conflict do nothing;
 
@@ -50,15 +47,11 @@ insert into public.faqs (question_ar, question_en, answer_ar, answer_en, sort) v
 on conflict do nothing;
 
 insert into public.packages (id, kind, icon, grad, title_ar, title_en, desc_ar, desc_en, price_ar, price_en, sort) values
-  ('luxe-europe','intl','crown','linear-gradient(155deg,#24314B,#9E5863)','باقة أوروبا الفاخرة','Luxe Europe package','جولة راقية بين عواصم أوروبا بإقامة ٥ نجوم ومرافِقة مختصّة.','A refined tour across European capitals with 5-star stays and a dedicated escort.','١٨٬٩٠٠','18,900',1),
-  ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','عطلة شاطئية خاصّة على ساحل البحر الأحمر السعودي.','A private beach getaway on Saudi Arabia''s Red Sea coast.','٧٬٢٠٠','7,200',2),
-  ('asia-discovery','intl','compass','linear-gradient(155deg,#9E5863,#24314B)','اكتشاف آسيا','Asia discovery','رحلة استكشافية بين ثقافات آسيا العريقة بصحبة نسائية.','An exploratory journey through Asia''s rich cultures in women''s company.','١٣٬٥٠٠','13,500',3),
-  ('korea','intl','flower-2','linear-gradient(155deg,#9E5863,#24314B)','قروب كوريا','Korea group','١٠ أيام بين سيول وجيجو وبوسان بإقامة فاخرة ومرافِقة مختصّة.','10 days across Seoul, Jeju & Busan with luxury stays and a dedicated escort.','٢٦٬١٠٠','26,100',4),
-  ('turkey','intl','mountain','linear-gradient(155deg,#B76E79,#7C444E)','قروب تركيا','Turkey group','٨ أيام بين إسطنبول وطرابزون بطبيعة ساحرة وضيافة راقية.','8 days across Istanbul and Trabzon with stunning nature and refined hospitality.','٩٬٩٠٠','9,900',5),
-  ('georgia','intl','mountain-snow','linear-gradient(155deg,#24314B,#4E6A8A)','قروب جورجيا','Georgia group','٧ أيام بين تبليسي وباتومي والمرتفعات الخضراء.','7 days across Tbilisi, Batumi and the green highlands.','٧٬٥٠٠','7,500',6),
-  ('azerbaijan','intl','building-2','linear-gradient(155deg,#4E6A8A,#9E5863)','قروب أذربيجان','Azerbaijan group','٦ أيام في باكو الحديثة بين الحداثة والتراث.','6 days in modern Baku, blending heritage and modernity.','٨٬٢٠٠','8,200',7),
-  ('bosnia','intl','trees','linear-gradient(155deg,#4E7A5B,#24314B)','قروب البوسنة','Bosnia group','٨ أيام بين سراييفو وموستار وطبيعة البلقان.','8 days across Sarajevo, Mostar and Balkan nature.','٨٬٨٠٠','8,800',8),
-  ('thailand','intl','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','قروب تايلند','Thailand group','٩ أيام بين بوكيت وبانكوك بشواطئ خاصّة.','9 days across Phuket and Bangkok with private beaches.','١١٬٤٠٠','11,400',9)
+  ('moscow-group','intl','landmark','linear-gradient(155deg,#24314B,#9E5863)','قروب موسكو','Moscow group','٦ أيام في موسكو بين الميادين الحمراء والقصور التاريخية بإقامة فاخرة ومرافِقة مختصّة.','6 days in Moscow across Red Square and historic palaces with luxury stays and a dedicated escort.','١٢٬٩٠٠','12,900',1),
+  ('istanbul-group','intl','building-2','linear-gradient(155deg,#B76E79,#7C444E)','قروب إسطنبول','Istanbul group','٥ أيام بين إسطنبول والبوسفور بضيافة راقية وتسوّق فاخر.','5 days across Istanbul and the Bosphorus with refined hospitality and fine shopping.','٨٬٤٠٠','8,400',2),
+  ('london-group','intl','ferris-wheel','linear-gradient(155deg,#4E6A8A,#9E5863)','قروب لندن','London group','٧ أيام في لندن بين المعالم العريقة وأرقى المتاجر.','7 days in London across timeless landmarks and the finest stores.','١٦٬٥٠٠','16,500',3),
+  ('baha-group','local','mountain','linear-gradient(155deg,#4E7A5B,#24314B)','قروب الباحة','Al-Baha group','٣ أيام بين مرتفعات الباحة الخضراء وقراها التراثية.','3 days across Al-Baha''s green highlands and heritage villages.','٣٬٩٠٠','3,900',4),
+  ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','عطلة شاطئية خاصّة على منتجعات ساحل البحر الأحمر السعودي.','A private beach getaway at Saudi Arabia''s Red Sea coast resorts.','٧٬٢٠٠','7,200',5)
 on conflict (id) do nothing;
 
 insert into public.services (id, icon, title_ar, title_en, desc_ar, desc_en, sort) values
