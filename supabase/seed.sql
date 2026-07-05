@@ -12,18 +12,18 @@ on conflict (id) do nothing;
 insert into public.trips
   (id, category_id, kind, icon, grad, rating, reviews, seats, tier_key, tier_variant,
    region_ar, region_en, title_ar, title_en, duration_ar, duration_en, dates_ar, dates_en,
-   price_ar, price_en, price_amount, featured)
+   price_ar, price_en, price_amount, featured, image_url)
 values
   ('moscow','city','intl','landmark','linear-gradient(155deg,#24314B,#9E5863)',4.8,112,4,'luxury','solid',
-   'روسيا','Russia','موسكو الساحرة','Enchanting Moscow','٦ أيام','6 days','١٠–١٥ سبتمبر','10–15 Sep','١٠٬٩٠٠','10,900',10900,true),
+   'روسيا','Russia','موسكو الساحرة','Enchanting Moscow','٦ أيام','6 days','١٠–١٥ سبتمبر','10–15 Sep','١٠٬٩٠٠','10,900',10900,true,'/trips/moscow.webp'),
   ('istanbul','city','intl','building-2','linear-gradient(155deg,#B76E79,#7C444E)',4.7,138,6,'popular','gold',
-   'تركيا','Turkey','إسطنبول بين القارتين','Istanbul across two continents','٥ أيام','5 days','٣–٧ أكتوبر','3–7 Oct','٦٬٨٠٠','6,800',6800,true),
+   'تركيا','Turkey','إسطنبول بين القارتين','Istanbul across two continents','٥ أيام','5 days','٣–٧ أكتوبر','3–7 Oct','٦٬٨٠٠','6,800',6800,true,'/trips/istanbul.webp'),
   ('london','city','intl','ferris-wheel','linear-gradient(155deg,#4E6A8A,#9E5863)',4.9,92,3,'exclusive','navy',
-   'بريطانيا','Britain','لندن العريقة','Timeless London','٧ أيام','7 days','١٢–١٨ نوفمبر','12–18 Nov','١٣٬٥٠٠','13,500',13500,true),
+   'بريطانيا','Britain','لندن العريقة','Timeless London','٧ أيام','7 days','١٢–١٨ نوفمبر','12–18 Nov','١٣٬٥٠٠','13,500',13500,true,'/trips/london.webp'),
   ('baha','mountain','local','mountain','linear-gradient(155deg,#4E7A5B,#24314B)',4.6,74,8,'domestic','brand',
-   'السعودية · الباحة','Saudi Arabia · Al-Baha','الباحة والمرتفعات الخضراء','Al-Baha & the green highlands','٣ أيام','3 days','٥–٧ مايو','5–7 May','٣٬٢٠٠','3,200',3200,true),
+   'السعودية · الباحة','Saudi Arabia · Al-Baha','الباحة والمرتفعات الخضراء','Al-Baha & the green highlands','٣ أيام','3 days','٥–٧ مايو','5–7 May','٣٬٢٠٠','3,200',3200,true,'/trips/baha.webp'),
   ('red-sea','beach','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)',4.8,105,5,'domestic','brand',
-   'السعودية · البحر الأحمر','Saudi Arabia · Red Sea','منتجعات البحر الأحمر','Red Sea resorts','٤ أيام','4 days','٢٠–٢٣ يونيو','20–23 Jun','٧٬٢٠٠','7,200',7200,false)
+   'السعودية · البحر الأحمر','Saudi Arabia · Red Sea','منتجعات البحر الأحمر','Red Sea resorts','٤ أيام','4 days','٢٠–٢٣ يونيو','20–23 Jun','٧٬٢٠٠','7,200',7200,false,'/trips/red-sea.webp')
 on conflict (id) do nothing;
 
 insert into public.reviews (trip_id, icon, grad, rating, name_ar, name_en, trip_ar, trip_en, text_ar, text_en) values
@@ -46,12 +46,12 @@ insert into public.faqs (question_ar, question_en, answer_ar, answer_en, sort) v
    'اختاري الرحلة، حدّدي التاريخ وعدد المسافرات ونوع الغرفة، ثم اضغطي «احجزي الآن» وسيتواصل معكِ فريقنا.','Choose a trip, set the date, number of travellers and room type, then tap "Book now" and our team will contact you.',4)
 on conflict do nothing;
 
-insert into public.packages (id, kind, icon, grad, title_ar, title_en, desc_ar, desc_en, price_ar, price_en, sort) values
-  ('moscow-group','intl','landmark','linear-gradient(155deg,#24314B,#9E5863)','قروب موسكو','Moscow group','٦ أيام في موسكو بين الميادين الحمراء والقصور التاريخية بإقامة فاخرة ومرافِقة مختصّة.','6 days in Moscow across Red Square and historic palaces with luxury stays and a dedicated escort.','١٢٬٩٠٠','12,900',1),
-  ('istanbul-group','intl','building-2','linear-gradient(155deg,#B76E79,#7C444E)','قروب إسطنبول','Istanbul group','٥ أيام بين إسطنبول والبوسفور بضيافة راقية وتسوّق فاخر.','5 days across Istanbul and the Bosphorus with refined hospitality and fine shopping.','٨٬٤٠٠','8,400',2),
-  ('london-group','intl','ferris-wheel','linear-gradient(155deg,#4E6A8A,#9E5863)','قروب لندن','London group','٧ أيام في لندن بين المعالم العريقة وأرقى المتاجر.','7 days in London across timeless landmarks and the finest stores.','١٦٬٥٠٠','16,500',3),
-  ('baha-group','local','mountain','linear-gradient(155deg,#4E7A5B,#24314B)','قروب الباحة','Al-Baha group','٣ أيام بين مرتفعات الباحة الخضراء وقراها التراثية.','3 days across Al-Baha''s green highlands and heritage villages.','٣٬٩٠٠','3,900',4),
-  ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','عطلة شاطئية خاصّة على منتجعات ساحل البحر الأحمر السعودي.','A private beach getaway at Saudi Arabia''s Red Sea coast resorts.','٧٬٢٠٠','7,200',5)
+insert into public.packages (id, kind, icon, grad, title_ar, title_en, desc_ar, desc_en, price_ar, price_en, sort, image_url) values
+  ('moscow-group','intl','landmark','linear-gradient(155deg,#24314B,#9E5863)','قروب موسكو','Moscow group','٦ أيام في موسكو بين الميادين الحمراء والقصور التاريخية بإقامة فاخرة ومرافِقة مختصّة.','6 days in Moscow across Red Square and historic palaces with luxury stays and a dedicated escort.','١٢٬٩٠٠','12,900',1,'/trips/moscow.webp'),
+  ('istanbul-group','intl','building-2','linear-gradient(155deg,#B76E79,#7C444E)','قروب إسطنبول','Istanbul group','٥ أيام بين إسطنبول والبوسفور بضيافة راقية وتسوّق فاخر.','5 days across Istanbul and the Bosphorus with refined hospitality and fine shopping.','٨٬٤٠٠','8,400',2,'/trips/istanbul.webp'),
+  ('london-group','intl','ferris-wheel','linear-gradient(155deg,#4E6A8A,#9E5863)','قروب لندن','London group','٧ أيام في لندن بين المعالم العريقة وأرقى المتاجر.','7 days in London across timeless landmarks and the finest stores.','١٦٬٥٠٠','16,500',3,'/trips/london.webp'),
+  ('baha-group','local','mountain','linear-gradient(155deg,#4E7A5B,#24314B)','قروب الباحة','Al-Baha group','٣ أيام بين مرتفعات الباحة الخضراء وقراها التراثية.','3 days across Al-Baha''s green highlands and heritage villages.','٣٬٩٠٠','3,900',4,'/trips/baha.webp'),
+  ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','عطلة شاطئية خاصّة على منتجعات ساحل البحر الأحمر السعودي.','A private beach getaway at Saudi Arabia''s Red Sea coast resorts.','٧٬٢٠٠','7,200',5,'/trips/red-sea.webp')
 on conflict (id) do nothing;
 
 insert into public.services (id, icon, title_ar, title_en, desc_ar, desc_en, sort) values

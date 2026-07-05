@@ -17,6 +17,8 @@ export interface Trip {
   kind: 'intl' | 'local';
   icon: string;
   grad: string;
+  /** Editorial card photo (served from /public/trips). Falls back to grad+icon. */
+  img?: string;
   rating: number;
   reviews: number;
   seats: number | null;
@@ -79,6 +81,13 @@ export const CONTACT = {
   whatsappHref: 'https://wa.me/966569202654',
 };
 
+/** Official business registration details, shown in the credentials band above
+ *  the footer. `commercialRegister` is the Unified National Number issued on the
+ *  Ministry of Commerce سجل تجاري certificate for مؤسسة رحلات المستقبل الذهبي. */
+export const BUSINESS = {
+  commercialRegister: '7054723015',
+};
+
 /** Structural nav entries; labels come from i18n (`nav.<key>`). */
 export const NAV: { key: string; path: string; hash?: string }[] = [
   { key: 'home', path: '/' },
@@ -104,7 +113,7 @@ export const CATEGORIES: Category[] = [
 
 export const TRIPS: Trip[] = [
   {
-    id: 'moscow', cat: 'city', kind: 'intl', icon: 'landmark', grad: 'linear-gradient(155deg,#24314B,#9E5863)',
+    id: 'moscow', cat: 'city', kind: 'intl', icon: 'landmark', grad: 'linear-gradient(155deg,#24314B,#9E5863)', img: '/trips/moscow.webp',
     rating: 4.8, reviews: 112, seats: 4, tierKey: 'luxury', tierVariant: 'solid',
     region: { ar: 'روسيا', en: 'Russia' },
     title: { ar: 'موسكو الساحرة', en: 'Enchanting Moscow' },
@@ -113,7 +122,7 @@ export const TRIPS: Trip[] = [
     price: { ar: '١٠٬٩٠٠', en: '10,900' },
   },
   {
-    id: 'istanbul', cat: 'city', kind: 'intl', icon: 'building-2', grad: 'linear-gradient(155deg,#B76E79,#7C444E)',
+    id: 'istanbul', cat: 'city', kind: 'intl', icon: 'building-2', grad: 'linear-gradient(155deg,#B76E79,#7C444E)', img: '/trips/istanbul.webp',
     rating: 4.7, reviews: 138, seats: 6, tierKey: 'popular', tierVariant: 'gold',
     region: { ar: 'تركيا', en: 'Turkey' },
     title: { ar: 'إسطنبول بين القارتين', en: 'Istanbul across two continents' },
@@ -122,7 +131,7 @@ export const TRIPS: Trip[] = [
     price: { ar: '٦٬٨٠٠', en: '6,800' },
   },
   {
-    id: 'london', cat: 'city', kind: 'intl', icon: 'ferris-wheel', grad: 'linear-gradient(155deg,#4E6A8A,#9E5863)',
+    id: 'london', cat: 'city', kind: 'intl', icon: 'ferris-wheel', grad: 'linear-gradient(155deg,#4E6A8A,#9E5863)', img: '/trips/london.webp',
     rating: 4.9, reviews: 92, seats: 3, tierKey: 'exclusive', tierVariant: 'navy',
     region: { ar: 'بريطانيا', en: 'Britain' },
     title: { ar: 'لندن العريقة', en: 'Timeless London' },
@@ -131,7 +140,7 @@ export const TRIPS: Trip[] = [
     price: { ar: '١٣٬٥٠٠', en: '13,500' },
   },
   {
-    id: 'baha', cat: 'mountain', kind: 'local', icon: 'mountain', grad: 'linear-gradient(155deg,#4E7A5B,#24314B)',
+    id: 'baha', cat: 'mountain', kind: 'local', icon: 'mountain', grad: 'linear-gradient(155deg,#4E7A5B,#24314B)', img: '/trips/baha.webp',
     rating: 4.6, reviews: 74, seats: 8, tierKey: 'domestic', tierVariant: 'brand',
     region: { ar: 'السعودية · الباحة', en: 'Saudi Arabia · Al-Baha' },
     title: { ar: 'الباحة والمرتفعات الخضراء', en: 'Al-Baha & the green highlands' },
@@ -140,7 +149,7 @@ export const TRIPS: Trip[] = [
     price: { ar: '٣٬٢٠٠', en: '3,200' },
   },
   {
-    id: 'red-sea', cat: 'beach', kind: 'local', icon: 'palmtree', grad: 'linear-gradient(155deg,#C6A15B,#B76E79)',
+    id: 'red-sea', cat: 'beach', kind: 'local', icon: 'palmtree', grad: 'linear-gradient(155deg,#C6A15B,#B76E79)', img: '/trips/red-sea.webp',
     rating: 4.8, reviews: 105, seats: 5, tierKey: 'domestic', tierVariant: 'brand',
     region: { ar: 'السعودية · البحر الأحمر', en: 'Saudi Arabia · Red Sea' },
     title: { ar: 'منتجعات البحر الأحمر', en: 'Red Sea resorts' },

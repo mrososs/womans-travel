@@ -43,6 +43,7 @@ useScrollReveal(grid, { selector: '.pkg', stagger: 0.08, watch: ready });
               :desc="pick(p, 'desc')"
               :icon="p.icon"
               :grad="p.grad"
+              :img="p.image_url"
               :price="pick(p, 'price')"
               :currency="t('common.currency')"
               :from-label="t('common.startingFrom')"

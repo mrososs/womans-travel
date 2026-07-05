@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Navbar, Footer } from '@org/shared-ui';
+import CredentialsBand from '~/components/CredentialsBand.vue';
+import BackToTop from '~/components/BackToTop.vue';
 import WhatsappFab from '~/components/WhatsappFab.vue';
 import CartDrawer from '~/components/cart/CartDrawer.vue';
 import WishlistDrawer from '~/components/wishlist/WishlistDrawer.vue';
@@ -86,6 +88,7 @@ function onWishlist() {
   <div class="app-shell">
     <Navbar
       :brand="t('brand')"
+      logo="/brand/logo-mark.png"
       :links="links"
       :active="active"
       :cta="cta"
@@ -109,8 +112,10 @@ function onWishlist() {
     <main>
       <slot />
     </main>
+    <CredentialsBand />
     <Footer
       :brand="t('brand')"
+      logo="/brand/logo-lockup.png"
       :blurb="t('footer.blurb')"
       :columns="footerColumns"
       :legal="t('footer.legal')"
@@ -121,6 +126,7 @@ function onWishlist() {
       @navigate="onNavigate"
     />
     <WhatsappFab />
+    <BackToTop />
     <CartDrawer v-model:open="cartOpen" />
     <WishlistDrawer v-model:open="wishlistOpen" />
   </div>

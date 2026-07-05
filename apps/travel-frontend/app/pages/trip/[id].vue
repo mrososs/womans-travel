@@ -40,7 +40,7 @@ function goTrip(id: string) {
 
     <section class="container trip-hero-wrap">
       <div class="trip-hero">
-        <TripPhoto :grad="current.grad" :icon="current.icon" :icon-size="180" />
+        <TripPhoto :grad="current.grad" :icon="current.icon" :img="current.img" :alt="lc(current.title)" :icon-size="180" />
         <div class="trip-hero__scrim" />
         <div class="trip-hero__content">
           <div class="trip-hero__badges">

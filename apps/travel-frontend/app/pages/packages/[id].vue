@@ -98,7 +98,8 @@ function goPackage(pid: string) {
 
     <section class="container">
       <div class="pd-hero" :style="{ background: pkg.grad }">
-        <span class="pd-hero__glyph"><Icon :name="pkg.icon" :size="220" :stroke-width="0.8" color="#fff" /></span>
+        <img v-if="pkg.image_url" class="pd-hero__img" :src="pkg.image_url" :alt="pick(pkg, 'title')" fetchpriority="high">
+        <span v-else class="pd-hero__glyph"><Icon :name="pkg.icon" :size="220" :stroke-width="0.8" color="#fff" /></span>
         <div class="pd-hero__scrim" />
         <div class="pd-hero__content">
           <div class="pd-hero__badges">
@@ -176,6 +177,7 @@ function goPackage(pid: string) {
             :desc="pick(p, 'desc')"
             :icon="p.icon"
             :grad="p.grad"
+            :img="p.image_url"
             :price="pick(p, 'price')"
             :currency="t('common.currency')"
             :from-label="t('common.startingFrom')"
@@ -214,6 +216,7 @@ function goPackage(pid: string) {
   align-items: flex-end;
   box-shadow: var(--shadow-lg);
 }
+.pd-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .pd-hero__glyph { position: absolute; inset-inline-end: 4%; top: 50%; transform: translateY(-50%); opacity: 0.16; color: #fff; pointer-events: none; }
 .pd-hero__scrim { position: absolute; inset: 0; background: var(--grad-scrim); opacity: 0.62; }
 .pd-hero__content { position: relative; z-index: 2; padding: clamp(22px, 4vw, 44px); width: 100%; }

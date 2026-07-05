@@ -60,7 +60,7 @@ async function onFavourite(trip: Trip) {
       @favourite="onFavourite(trip)"
     >
       <template #media>
-        <TripPhoto :grad="trip.grad" :icon="trip.icon" />
+        <TripPhoto :grad="trip.grad" :icon="trip.icon" :img="trip.img" :alt="lc(trip.title)" />
       </template>
       <template #cta>
         <Button size="sm" @click.stop="emit('open', trip.id)">{{ t('common.details') }}</Button>

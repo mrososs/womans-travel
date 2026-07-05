@@ -7,13 +7,15 @@ withDefaults(
     desc: string;
     icon: string;
     grad: string;
+    /** Editorial card photo; falls back to the gradient + icon when empty. */
+    img?: string;
     price?: string;
     kindLabel?: string;
     fromLabel?: string;
     currency?: string;
     viewLabel?: string;
   }>(),
-  { price: '', kindLabel: '', fromLabel: '', currency: '', viewLabel: 'عرض' }
+  { img: '', price: '', kindLabel: '', fromLabel: '', currency: '', viewLabel: 'عرض' }
 );
 
 const emit = defineEmits<{ open: [] }>();
@@ -22,7 +24,8 @@ const emit = defineEmits<{ open: [] }>();
 <template>
   <Card variant="elevated" padding="none" interactive class="pkg" @click="emit('open')">
     <div class="pkg__media" :style="{ background: grad }">
-      <Icon :name="icon" :size="64" :stroke-width="1.2" color="#fff" />
+      <img v-if="img" class="pkg__img" :src="img" :alt="title" loading="lazy" decoding="async">
+      <Icon v-else :name="icon" :size="64" :stroke-width="1.2" color="#fff" />
       <Badge v-if="kindLabel" variant="solid" class="pkg__badge">{{ kindLabel }}</Badge>
       <div class="pkg__actions">
         <span class="pkg__view"><Icon name="eye" :size="18" />{{ viewLabel }}</span>
@@ -49,6 +52,7 @@ const emit = defineEmits<{ open: [] }>();
   color: #fff; overflow: hidden;
 }
 .pkg__media > :deep(svg) { opacity: 0.85; }
+.pkg__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .pkg__media::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(0deg, rgba(18, 27, 51, 0.55), rgba(18, 27, 51, 0) 60%);
