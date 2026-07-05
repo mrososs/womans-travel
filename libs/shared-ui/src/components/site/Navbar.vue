@@ -15,6 +15,8 @@ withDefaults(
     brand?: string;
     /** Optional brand mark image (shown before the brand text). */
     logo?: string;
+    /** When the logo already contains the wordmark, hide the text brand. */
+    logoOnly?: boolean;
     links?: NavLink[];
     active?: string;
     cta?: { label: string; href: string } | null;
@@ -37,6 +39,7 @@ withDefaults(
   {
     brand: 'رحلات المستقبل الذهبي',
     logo: '',
+    logoOnly: false,
     links: () => [],
     active: '',
     cta: () => ({ label: 'احجزي رحلتكِ', href: '#' }),
@@ -78,8 +81,13 @@ function go(href: string, event: MouseEvent) {
         :href="links[0] ? links[0].href : '#'"
         @click="go(links[0] ? links[0].href : '#', $event)"
       >
-        <img v-if="logo" :src="logo" class="drh-nav__logo" :alt="brand">
-        <b>{{ brand }}</b>
+        <img
+          v-if="logo"
+          :src="logo"
+          :class="['drh-nav__logo', { 'drh-nav__logo--full': logoOnly }]"
+          :alt="brand"
+        >
+        <b v-if="!logoOnly">{{ brand }}</b>
         <span v-if="!logo" class="drh-nav__diamond" />
       </a>
 
@@ -186,7 +194,7 @@ function go(href: string, event: MouseEvent) {
   max-width: var(--container-xl);
   margin: 0 auto;
   padding: 0 var(--gutter);
-  height: 68px;
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -198,6 +206,12 @@ function go(href: string, event: MouseEvent) {
   width: auto;
   flex-shrink: 0;
   transition: transform var(--dur-base) var(--ease-out);
+}
+/* Full lockup (plane + camel + wordmark). Taller than the mark-only variant so
+   the baked-in wordmark stays legible; the bar grows to fit it. */
+.drh-nav__logo--full {
+  height: 70px;
+  object-fit: contain;
 }
 .drh-nav__brand:hover .drh-nav__logo { transform: translateY(-1px) scale(1.04); }
 .drh-nav__brand b {
@@ -338,7 +352,7 @@ function go(href: string, event: MouseEvent) {
    shrink the name and tighten spacing. It stays flexible (min-width:0 +
    ellipsis) so it can never push the row into horizontal overflow. */
 @media (max-width: 560px) {
-  .drh-nav__bar { gap: 8px; padding: 0 14px; }
+  .drh-nav__bar { gap: 8px; padding: 0 14px; height: 74px; }
   .drh-nav__brand { flex-shrink: 1; gap: 6px; }
   .drh-nav__brand b {
     font-size: 13px;
@@ -348,6 +362,7 @@ function go(href: string, event: MouseEvent) {
   }
   .drh-nav__diamond { width: 9px; height: 9px; }
   .drh-nav__logo { height: 30px; }
+  .drh-nav__logo--full { height: 54px; }
   .drh-nav__right { gap: 8px; }
 }
 </style>

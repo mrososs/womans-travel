@@ -88,7 +88,8 @@ function onWishlist() {
   <div class="app-shell">
     <Navbar
       :brand="t('brand')"
-      logo="/brand/logo-mark.png"
+      logo="/brand/logo-lockup.png"
+      logo-only
       :links="links"
       :active="active"
       :cta="cta"
