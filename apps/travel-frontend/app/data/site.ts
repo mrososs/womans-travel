@@ -70,6 +70,15 @@ export interface HeroSlide {
   grad: string;
 }
 
+/** Business contact details — single source of truth for phone/WhatsApp.
+ *  `phoneDisplay` is the local Saudi format shown to users; `telHref` and
+ *  `whatsappHref` use the international form (country code 966, no leading 0). */
+export const CONTACT = {
+  phoneDisplay: '0569202654',
+  telHref: 'tel:+966569202654',
+  whatsappHref: 'https://wa.me/966569202654',
+};
+
 /** Structural nav entries; labels come from i18n (`nav.<key>`). */
 export const NAV: { key: string; path: string; hash?: string }[] = [
   { key: 'home', path: '/' },

@@ -4,7 +4,7 @@ import { Navbar, Footer } from '@org/shared-ui';
 import WhatsappFab from '~/components/WhatsappFab.vue';
 import CartDrawer from '~/components/cart/CartDrawer.vue';
 import WishlistDrawer from '~/components/wishlist/WishlistDrawer.vue';
-import { NAV } from '~/data/site';
+import { NAV, CONTACT } from '~/data/site';
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -115,6 +115,9 @@ function onWishlist() {
       :columns="footerColumns"
       :legal="t('footer.legal')"
       :seal="t('footer.seal')"
+      :phone="CONTACT.phoneDisplay"
+      :phone-href="CONTACT.telHref"
+      :whatsapp-href="CONTACT.whatsappHref"
       @navigate="onNavigate"
     />
     <WhatsappFab />

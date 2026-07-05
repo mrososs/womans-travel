@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { Icon } from '@org/shared-ui';
+import { CONTACT } from '~/data/site';
 
 const { t } = useI18n();
 
-// Placeholder number — replace with the real business WhatsApp number.
-const phone = '966500000000';
-const href = `https://wa.me/${phone}`;
+const href = CONTACT.whatsappHref;
 </script>
 
 <template>
