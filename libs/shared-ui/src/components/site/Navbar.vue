@@ -321,4 +321,20 @@ function go(href: string, event: MouseEvent) {
   .drh-nav__right .drh-nav__cta--desktop { display: none; }
   .drh-nav__burger { display: inline-flex; }
 }
+
+/* On phones the brand name + action icons can't both fit at full size, so
+   shrink the name and tighten spacing. It stays flexible (min-width:0 +
+   ellipsis) so it can never push the row into horizontal overflow. */
+@media (max-width: 560px) {
+  .drh-nav__bar { gap: 8px; padding: 0 14px; }
+  .drh-nav__brand { flex-shrink: 1; gap: 6px; }
+  .drh-nav__brand b {
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .drh-nav__diamond { width: 9px; height: 9px; }
+  .drh-nav__right { gap: 8px; }
+}
 </style>
