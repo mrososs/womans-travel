@@ -9,6 +9,8 @@ import type { FooterColumn } from '../../types';
 withDefaults(
   defineProps<{
     brand?: string;
+    /** Optional brand lockup image; shown on a light chip in place of the text wordmark. */
+    logo?: string;
     blurb?: string;
     columns?: FooterColumn[];
     socials?: string[];
@@ -23,6 +25,7 @@ withDefaults(
   }>(),
   {
     brand: 'رحلات المستقبل الذهبي',
+    logo: '',
     blurb: '',
     columns: () => [],
     socials: () => ['instagram', 'twitter', 'facebook'],
@@ -42,7 +45,10 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
     <div class="drh-footer__inner">
       <div class="drh-footer__top">
         <div class="drh-footer__brand">
-          <b>{{ brand }}<span class="d" /></b>
+          <span v-if="logo" class="drh-footer__logo">
+            <img :src="logo" :alt="brand" loading="lazy">
+          </span>
+          <b v-else>{{ brand }}<span class="d" /></b>
           <p v-if="blurb">{{ blurb }}</p>
           <div v-if="phone" class="drh-footer__contact">
             <a v-if="phoneHref" class="drh-footer__contactrow" :href="phoneHref">
@@ -108,6 +114,14 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
   gap: 10px;
 }
 .drh-footer__brand .d { width: 12px; height: 12px; flex-shrink: 0; background: var(--grad-gold); transform: rotate(45deg); border-radius: 2px; }
+.drh-footer__logo {
+  display: inline-flex;
+  padding: 14px 18px;
+  background: #fff;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.drh-footer__logo img { display: block; height: 68px; width: auto; }
 .drh-footer__brand p { color: var(--text-on-navy-muted); font-size: 14px; line-height: 1.8; margin: 14px 0 0; max-width: 320px; }
 .drh-footer__contact { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 .drh-footer__contactrow {

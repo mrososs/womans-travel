@@ -21,7 +21,9 @@ useHead(() => ({
 </script>
 
 <template>
+  <RouteProgress />
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+  <AppSplash />
 </template>

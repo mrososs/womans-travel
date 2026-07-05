@@ -51,12 +51,19 @@ export default defineNuxtConfig({
   // dynamically per locale via useLocaleHead() (see app.vue); the values here
   // are just the SSR default for the Arabic (default) locale.
   app: {
+    // Crossfade + subtle lift between routes (CSS in app/assets/css/site.css).
+    // Reduced-motion users get an instant swap via the media query there.
+    pageTransition: { name: 'page', mode: 'out-in' },
+    layoutTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: {
         dir: 'rtl',
         lang: 'ar',
       },
       link: [
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
+        { rel: 'icon', type: 'image/png', sizes: '512x512', href: '/brand/icon-512.png' },
+        { rel: 'apple-touch-icon', href: '/brand/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         {
           rel: 'preconnect',
@@ -71,6 +78,14 @@ export default defineNuxtConfig({
           as: 'image',
           href: '/hero/hero-1.webp',
           type: 'image/webp',
+          fetchpriority: 'high',
+        },
+        // First-paint splash logo — preload so the brand lockup renders instantly.
+        {
+          rel: 'preload',
+          as: 'image',
+          href: '/brand/logo-lockup.png',
+          type: 'image/png',
           fetchpriority: 'high',
         },
         {

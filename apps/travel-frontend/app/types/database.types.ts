@@ -287,6 +287,7 @@ export type Database = {
           grad: string
           icon: string
           id: string
+          image_url: string | null
           kind: string
           price_amount: number | null
           price_ar: string | null
@@ -302,6 +303,7 @@ export type Database = {
           grad: string
           icon: string
           id: string
+          image_url?: string | null
           kind: string
           price_amount?: number | null
           price_ar?: string | null
@@ -317,6 +319,7 @@ export type Database = {
           grad?: string
           icon?: string
           id?: string
+          image_url?: string | null
           kind?: string
           price_amount?: number | null
           price_ar?: string | null
@@ -494,6 +497,7 @@ export type Database = {
           grad: string
           icon: string
           id: string
+          image_url: string | null
           kind: string
           price_amount: number | null
           price_ar: string
@@ -519,6 +523,7 @@ export type Database = {
           grad: string
           icon: string
           id: string
+          image_url?: string | null
           kind: string
           price_amount?: number | null
           price_ar: string
@@ -544,6 +549,7 @@ export type Database = {
           grad?: string
           icon?: string
           id?: string
+          image_url?: string | null
           kind?: string
           price_amount?: number | null
           price_ar?: string

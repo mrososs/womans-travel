@@ -144,3 +144,23 @@
 .trip-grid { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: start; }
 @media (min-width: 940px) { .trip-grid { grid-template-columns: 1.7fr 1fr; } }
 .book-card { position: sticky; top: 90px; }
+
+/* ============================================================
+   Route (page/layout) transitions — crossfade + subtle lift.
+   Named "page" to match app.pageTransition/layoutTransition in
+   nuxt.config. Exit is faster than enter (natural deceleration).
+   ============================================================ */
+.page-enter-active { transition: opacity 0.42s var(--ease-out), transform 0.42s var(--ease-out); }
+.page-leave-active { transition: opacity 0.24s var(--ease-standard), transform 0.24s var(--ease-standard); }
+.page-enter-from { opacity: 0; transform: translateY(12px); }
+.page-leave-to { opacity: 0; transform: translateY(-8px); }
+
+/* Freeze scrolling while the first-load splash is on screen. */
+.splash-lock { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active { transition: opacity 0.2s linear; }
+  .page-enter-from,
+  .page-leave-to { transform: none; }
+}

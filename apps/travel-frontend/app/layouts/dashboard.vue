@@ -28,7 +28,8 @@ function isActive(to: string) {
   <div class="dash">
     <aside class="dash__side">
       <NuxtLink :to="localePath('/')" class="dash__brand">
-        <b>{{ t('brand') }}</b><span class="dash__diamond" />
+        <span class="dash__logo"><img src="/brand/logo-mark.png" :alt="t('brand')"></span>
+        <b>{{ t('brand') }}</b>
       </NuxtLink>
       <div class="dash__eyebrow">{{ t('dashboard.adminArea') }}</div>
       <nav class="dash__nav">
@@ -80,7 +81,9 @@ function isActive(to: string) {
   position: sticky; top: 0; height: 100vh;
 }
 .dash__brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #fff; }
-.dash__brand b { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
+.dash__brand b { font-family: var(--font-display); font-weight: 800; font-size: 20px; }
+.dash__logo { display: inline-flex; padding: 5px 7px; background: #fff; border-radius: var(--radius-sm); flex: none; }
+.dash__logo img { display: block; height: 30px; width: auto; }
 .dash__diamond { width: 10px; height: 10px; background: var(--grad-gold, var(--gold-500)); transform: rotate(45deg); border-radius: 2px; }
 .dash__eyebrow {
   font-family: var(--font-display); font-weight: 800; font-size: 12px;

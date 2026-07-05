@@ -13,6 +13,8 @@ import type { NavLink } from '../../types';
 withDefaults(
   defineProps<{
     brand?: string;
+    /** Optional brand mark image (shown before the brand text). */
+    logo?: string;
     links?: NavLink[];
     active?: string;
     cta?: { label: string; href: string } | null;
@@ -34,6 +36,7 @@ withDefaults(
   }>(),
   {
     brand: 'رحلات المستقبل الذهبي',
+    logo: '',
     links: () => [],
     active: '',
     cta: () => ({ label: 'احجزي رحلتكِ', href: '#' }),
@@ -75,7 +78,9 @@ function go(href: string, event: MouseEvent) {
         :href="links[0] ? links[0].href : '#'"
         @click="go(links[0] ? links[0].href : '#', $event)"
       >
-        <b>{{ brand }}</b><span class="drh-nav__diamond" />
+        <img v-if="logo" :src="logo" class="drh-nav__logo" :alt="brand">
+        <b>{{ brand }}</b>
+        <span v-if="!logo" class="drh-nav__diamond" />
       </a>
 
       <nav class="drh-nav__links">
@@ -188,6 +193,13 @@ function go(href: string, event: MouseEvent) {
   gap: 20px;
 }
 .drh-nav__brand { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; flex-shrink: 0; min-width: 0; }
+.drh-nav__logo {
+  height: 38px;
+  width: auto;
+  flex-shrink: 0;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.drh-nav__brand:hover .drh-nav__logo { transform: translateY(-1px) scale(1.04); }
 .drh-nav__brand b {
   font-family: var(--font-display);
   font-weight: 800;
@@ -335,6 +347,7 @@ function go(href: string, event: MouseEvent) {
     min-width: 0;
   }
   .drh-nav__diamond { width: 9px; height: 9px; }
+  .drh-nav__logo { height: 30px; }
   .drh-nav__right { gap: 8px; }
 }
 </style>
