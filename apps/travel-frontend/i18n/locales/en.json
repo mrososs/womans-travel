@@ -1,5 +1,5 @@
 {
-  "brand": "test",
+  "brand": "Rahlat Almustaqbal Aldhahabi",
   "lang": { "switch": "العربية", "current": "EN" },
   "actions": { "wishlist": "Add to wishlist", "wishlistRemove": "Remove from wishlist", "view": "View" },
   "cart": {
@@ -156,7 +156,7 @@
   "pages": {
     "packages": { "eyebrow": "Our packages", "title": "Thoughtfully crafted packages", "lead": "Complete travel packages — international and domestic — fully arranged with total privacy." },
     "services": { "eyebrow": "Tourism services", "title": "Everything you need for a perfect trip", "lead": "From visas to stays and transport — we handle every detail for you." },
-    "products": { "eyebrow": "Travel products", "title": "Companions for every journey", "lead": "Hand-picked travel products with the test touch." }
+    "products": { "eyebrow": "Travel products", "title": "Companions for every journey", "lead": "Hand-picked travel products with the Rahlat Almustaqbal Aldhahabi touch." }
   },
   "faq": { "eyebrow": "FAQ", "title": "Questions you might have" },
   "newsletter": {
@@ -186,7 +186,7 @@
   },
   "whatsapp": { "label": "Chat on WhatsApp" },
   "hero": {
-    "eyebrow": "Welcome to test",
+    "eyebrow": "Welcome to Rahlat Almustaqbal Aldhahabi",
     "title": "Discover the world in safety and luxury",
     "subtitle": "Group journeys crafted exclusively for women — hand-picked destinations, complete privacy, and refined hospitality in every detail.",
     "search": {
@@ -216,11 +216,11 @@
     "domestic": "Domestic",
     "popular": "Popular"
   },
-  "why": { "eyebrow": "Why test?", "title": "Travel that befits you" },
+  "why": { "eyebrow": "Why Rahlat Almustaqbal Aldhahabi?", "title": "Travel that befits you" },
   "reviewsSection": { "eyebrow": "Traveller reviews", "title": "Stories from our journeys" },
   "cta": {
     "title": "Ready for your next journey?",
-    "lead": "Join test and discover exceptional destinations in curated women's company.",
+    "lead": "Join Rahlat Almustaqbal Aldhahabi and discover exceptional destinations in curated women's company.",
     "button": "Explore trips"
   },
   "footer": {
@@ -242,7 +242,7 @@
       "terms": "Terms & conditions",
       "contact": "Contact us"
     },
-    "legal": "© test. All rights reserved.",
+    "legal": "© Rahlat Almustaqbal Aldhahabi. All rights reserved.",
     "seal": "Fully women-only · Complete privacy"
   },
   "destinations": {
@@ -292,7 +292,7 @@
     },
     "success": {
       "title": "Your request is received",
-      "body": "Thank you! The test team will contact you within 24 hours to confirm your booking details for \"{title}\".",
+      "body": "Thank you! The Rahlat Almustaqbal Aldhahabi team will contact you within 24 hours to confirm your booking details for \"{title}\".",
       "ok": "Done"
     }
   }
