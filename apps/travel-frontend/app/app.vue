@@ -12,10 +12,10 @@ const dir = computed(
 useHead(() => ({
   htmlAttrs: { lang: locale.value, dir: dir.value },
   titleTemplate: (title?: string) => {
-    const brand = 'test';
-    const home = locale.value === 'ar' ? 'test · سفر نسائي فاخر' : 'test · Women’s luxury travel';
+    const brand = locale.value === 'ar' ? 'رحلات المستقبل الذهبي' : 'Rahlat Almustaqbal Aldhahabi';
+    const home = locale.value === 'ar' ? `${brand} · سفر نسائي فاخر` : `${brand} · Women’s luxury travel`;
     if (!title) return home;
-    return title.includes('test') ? title : `${title} · ${brand}`;
+    return title.includes(brand) ? title : `${title} · ${brand}`;
   },
 }));
 </script>

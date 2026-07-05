@@ -33,7 +33,7 @@ withDefaults(
     dashboardLabel?: string;
   }>(),
   {
-    brand: 'test',
+    brand: 'رحلات المستقبل الذهبي',
     links: () => [],
     active: '',
     cta: () => ({ label: 'احجزي رحلتكِ', href: '#' }),
@@ -187,23 +187,28 @@ function go(href: string, event: MouseEvent) {
   justify-content: space-between;
   gap: 20px;
 }
-.drh-nav__brand { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
+.drh-nav__brand { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; flex-shrink: 0; min-width: 0; }
 .drh-nav__brand b {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 26px;
+  /* Scales with viewport so the (longer) brand name stays on one line
+     from mobile up to desktop without crowding the nav links. */
+  font-size: clamp(15px, 0.9vw + 8px, 20px);
+  line-height: 1.15;
+  white-space: nowrap;
   color: var(--navy-900);
   letter-spacing: -0.01em;
 }
 .drh-nav__diamond {
   width: 12px;
   height: 12px;
+  flex-shrink: 0;
   background: var(--grad-gold);
   transform: rotate(45deg);
   border-radius: 2px;
   box-shadow: var(--shadow-gold);
 }
-.drh-nav__links { display: flex; align-items: center; gap: 28px; }
+.drh-nav__links { display: flex; align-items: center; gap: clamp(14px, 1.6vw, 28px); }
 .drh-nav__link {
   font-family: var(--font-body);
   font-weight: 600;
@@ -212,6 +217,7 @@ function go(href: string, event: MouseEvent) {
   text-decoration: none;
   position: relative;
   padding: 6px 0;
+  white-space: nowrap;
   transition: color var(--dur-base) var(--ease-standard);
 }
 .drh-nav__link:hover { color: var(--brand-strong); }
@@ -307,7 +313,9 @@ function go(href: string, event: MouseEvent) {
 .drh-nav__drawer .drh-nav__link { padding: 14px 0; font-size: 17px; border-bottom: 1px solid var(--border-hair); }
 .drh-nav__drawer .drh-nav__cta { margin-top: 14px; }
 
-@media (max-width: 860px) {
+/* Longer brand name needs more room, so the inline links collapse into the
+   burger drawer earlier than the original 860px. */
+@media (max-width: 1160px) {
   .drh-nav__links { display: none; }
   .drh-nav__right .drh-nav__globe,
   .drh-nav__right .drh-nav__cta--desktop { display: none; }

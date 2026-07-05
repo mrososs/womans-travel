@@ -16,7 +16,7 @@ withDefaults(
     seal?: string;
   }>(),
   {
-    brand: 'test',
+    brand: 'رحلات المستقبل الذهبي',
     blurb: '',
     columns: () => [],
     socials: () => ['instagram', 'twitter', 'facebook'],
@@ -75,13 +75,14 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
 .drh-footer__brand b {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 28px;
+  font-size: clamp(20px, 1.2vw + 12px, 28px);
+  line-height: 1.2;
   color: #fff;
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
-.drh-footer__brand .d { width: 12px; height: 12px; background: var(--grad-gold); transform: rotate(45deg); border-radius: 2px; }
+.drh-footer__brand .d { width: 12px; height: 12px; flex-shrink: 0; background: var(--grad-gold); transform: rotate(45deg); border-radius: 2px; }
 .drh-footer__brand p { color: var(--text-on-navy-muted); font-size: 14px; line-height: 1.8; margin: 14px 0 0; max-width: 320px; }
 .drh-footer__socials { display: flex; gap: 10px; margin-top: 20px; }
 .drh-footer__soc {
