@@ -180,6 +180,7 @@
     "error": "Couldn't send, please try again.",
     "infoTitle": "Contact information",
     "phoneLabel": "Phone",
+    "whatsappLabel": "WhatsApp",
     "emailLabel": "Email",
     "hoursLabel": "Working hours",
     "hoursValue": "Sun – Thu · 9am – 6pm"

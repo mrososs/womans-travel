@@ -14,6 +14,12 @@ withDefaults(
     socials?: string[];
     legal?: string;
     seal?: string;
+    /** Display phone number (e.g. local format). */
+    phone?: string;
+    /** tel: link for the phone number. */
+    phoneHref?: string;
+    /** wa.me link for WhatsApp contact. */
+    whatsappHref?: string;
   }>(),
   {
     brand: 'رحلات المستقبل الذهبي',
@@ -22,6 +28,9 @@ withDefaults(
     socials: () => ['instagram', 'twitter', 'facebook'],
     legal: '',
     seal: 'رحلات نسائية بالكامل · خصوصية تامّة',
+    phone: '',
+    phoneHref: '',
+    whatsappHref: '',
   }
 );
 
@@ -35,6 +44,22 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
         <div class="drh-footer__brand">
           <b>{{ brand }}<span class="d" /></b>
           <p v-if="blurb">{{ blurb }}</p>
+          <div v-if="phone" class="drh-footer__contact">
+            <a v-if="phoneHref" class="drh-footer__contactrow" :href="phoneHref">
+              <Icon name="phone" :size="16" color="var(--gold-400)" />
+              <span dir="ltr">{{ phone }}</span>
+            </a>
+            <a
+              v-if="whatsappHref"
+              class="drh-footer__contactrow"
+              :href="whatsappHref"
+              target="_blank"
+              rel="noopener"
+            >
+              <Icon name="message-circle" :size="16" color="var(--gold-400)" />
+              <span dir="ltr">{{ phone }}</span>
+            </a>
+          </div>
           <div class="drh-footer__socials">
             <a
               v-for="s in socials"
@@ -84,6 +109,13 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
 }
 .drh-footer__brand .d { width: 12px; height: 12px; flex-shrink: 0; background: var(--grad-gold); transform: rotate(45deg); border-radius: 2px; }
 .drh-footer__brand p { color: var(--text-on-navy-muted); font-size: 14px; line-height: 1.8; margin: 14px 0 0; max-width: 320px; }
+.drh-footer__contact { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.drh-footer__contactrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  color: var(--text-on-navy); font-size: 14px; text-decoration: none;
+  transition: color var(--dur-base) var(--ease-standard);
+}
+.drh-footer__contactrow:hover { color: var(--gold-300); }
 .drh-footer__socials { display: flex; gap: 10px; margin-top: 20px; }
 .drh-footer__soc {
   width: 40px;

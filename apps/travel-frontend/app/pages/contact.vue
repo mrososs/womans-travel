@@ -2,14 +2,25 @@
 import { Card, Icon } from '@org/shared-ui';
 import PageHero from '~/components/PageHero.vue';
 import ContactForm from '~/components/ContactForm.vue';
+import { CONTACT } from '~/data/site';
 
 const { t } = useI18n();
 useHead(() => ({ title: `${t('contact.title')} · ${t('brand')}` }));
 
-const info = [
-  { icon: 'phone', label: 'contact.phoneLabel', value: '+966 50 000 0000', dir: 'ltr' },
-  { icon: 'mail', label: 'contact.emailLabel', value: 'hello@durrah.travel', dir: 'ltr' },
-  { icon: 'clock', label: 'contact.hoursLabel', value: 'contact.hoursValue', dir: undefined },
+interface ContactRow {
+  icon: string;
+  label: string;
+  value: string;
+  dir?: string;
+  href?: string;
+  external?: boolean;
+}
+
+const info: ContactRow[] = [
+  { icon: 'phone', label: 'contact.phoneLabel', value: CONTACT.phoneDisplay, dir: 'ltr', href: CONTACT.telHref },
+  { icon: 'message-circle', label: 'contact.whatsappLabel', value: CONTACT.phoneDisplay, dir: 'ltr', href: CONTACT.whatsappHref, external: true },
+  { icon: 'mail', label: 'contact.emailLabel', value: 'hello@durrah.travel', dir: 'ltr', href: 'mailto:hello@durrah.travel' },
+  { icon: 'clock', label: 'contact.hoursLabel', value: 'contact.hoursValue' },
 ];
 </script>
 
@@ -36,7 +47,15 @@ const info = [
               <span class="contact-info__icon"><Icon :name="row.icon" :size="20" /></span>
               <div>
                 <div class="contact-info__label">{{ t(row.label) }}</div>
-                <div class="contact-info__value" :dir="row.dir">
+                <a
+                  v-if="row.href"
+                  class="contact-info__value contact-info__value--link"
+                  :href="row.href"
+                  :dir="row.dir"
+                  :target="row.external ? '_blank' : undefined"
+                  :rel="row.external ? 'noopener' : undefined"
+                >{{ row.value }}</a>
+                <div v-else class="contact-info__value" :dir="row.dir">
                   {{ row.value.startsWith('contact.') ? t(row.value) : row.value }}
                 </div>
               </div>
@@ -60,4 +79,6 @@ const info = [
 }
 .contact-info__label { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text-strong); }
 .contact-info__value { font-size: 14px; color: var(--text-muted); margin-top: 2px; }
+.contact-info__value--link { display: inline-block; text-decoration: none; transition: color var(--dur-base) var(--ease-standard); }
+.contact-info__value--link:hover { color: var(--brand-strong); }
 </style>
