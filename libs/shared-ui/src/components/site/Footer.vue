@@ -22,6 +22,10 @@ withDefaults(
     phoneHref?: string;
     /** wa.me link for WhatsApp contact. */
     whatsappHref?: string;
+    /** Display email address (e.g. info@example.com). */
+    email?: string;
+    /** mailto: link for the email address. */
+    emailHref?: string;
   }>(),
   {
     brand: 'رحلات المستقبل الذهبي',
@@ -34,6 +38,8 @@ withDefaults(
     phone: '',
     phoneHref: '',
     whatsappHref: '',
+    email: '',
+    emailHref: '',
   }
 );
 
@@ -50,7 +56,7 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
           </span>
           <b v-else>{{ brand }}<span class="d" /></b>
           <p v-if="blurb">{{ blurb }}</p>
-          <div v-if="phone" class="drh-footer__contact">
+          <div v-if="phone || email" class="drh-footer__contact">
             <a v-if="phoneHref" class="drh-footer__contactrow" :href="phoneHref">
               <Icon name="phone" :size="16" color="var(--gold-400)" />
               <span dir="ltr">{{ phone }}</span>
@@ -64,6 +70,10 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
             >
               <Icon name="message-circle" :size="16" color="var(--gold-400)" />
               <span dir="ltr">{{ phone }}</span>
+            </a>
+            <a v-if="email" class="drh-footer__contactrow" :href="emailHref || `mailto:${email}`">
+              <Icon name="mail" :size="16" color="var(--gold-400)" />
+              <span dir="ltr">{{ email }}</span>
             </a>
           </div>
           <div class="drh-footer__socials">

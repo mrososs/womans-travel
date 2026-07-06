@@ -4,21 +4,25 @@ import { Badge, Card, Dialog, Button, Icon } from '@org/shared-ui';
 import BookingCard from '~/components/trip/BookingCard.vue';
 import TripGrid from '~/components/TripGrid.vue';
 import TripPhoto from '~/components/TripPhoto.vue';
-import { TRIPS, findTrip, HIGHLIGHTS, ITINERARY, INCLUDES } from '~/data/site';
+import { HIGHLIGHTS, ITINERARY, INCLUDES } from '~/data/site';
 
 const { t } = useI18n();
 const { lc } = useLocalize();
 const localePath = useLocalePath();
 const route = useRoute();
 
-const trip = computed(() => findTrip(String(route.params.id)));
+// All trips from Supabase (shared 'trips' asyncData cache). Awaited so the
+// 404 check + SSR status resolve before render.
+const { data: trips } = await useTrips();
+
+const trip = computed(() => (trips.value ?? []).find((tr) => tr.id === String(route.params.id)));
 
 if (!trip.value) {
   throw createError({ statusCode: 404, statusMessage: 'Trip not found', fatal: true });
 }
 
 const current = computed(() => trip.value!);
-const related = computed(() => TRIPS.filter((tr) => tr.id !== current.value.id).slice(0, 3));
+const related = computed(() => (trips.value ?? []).filter((tr) => tr.id !== current.value.id).slice(0, 3));
 const done = ref(false);
 
 useHead(() => ({ title: `${lc(current.value.title)} · ${t('brand')}` }));

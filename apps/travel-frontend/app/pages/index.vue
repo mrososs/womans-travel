@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Button, Tag, Icon } from '@org/shared-ui';
 import { useScrollReveal } from '@org/shared-utils';
 import HeroCarousel from '~/components/home/HeroCarousel.vue';
@@ -11,7 +11,8 @@ import CtaBand from '~/components/home/CtaBand.vue';
 import FaqSection from '~/components/FaqSection.vue';
 import NewsletterBand from '~/components/NewsletterBand.vue';
 import TripGrid from '~/components/TripGrid.vue';
-import { CATEGORIES, TRIPS } from '~/data/site';
+import TripCardSkeleton from '~/components/TripCardSkeleton.vue';
+import { CATEGORIES } from '~/data/site';
 
 const { t } = useI18n();
 const localePath = useLocalePath();
@@ -21,8 +22,13 @@ useHead(() => ({
   meta: [{ name: 'description', content: t('hero.subtitle') }],
 }));
 
+// Featured trips are served from Supabase (public-read `trips` table).
+const { data: trips, pending } = useTrips();
+const { ready } = useDelayedReady(pending);
+const featuredTrips = computed(() => trips.value ?? []);
+
 const featured = ref<HTMLElement | null>(null);
-useScrollReveal(featured, { selector: '.grid-trips > *', stagger: 0.09 });
+useScrollReveal(featured, { selector: '.grid-trips > *', stagger: 0.09, watch: ready });
 
 function goTrip(id: string) {
   navigateTo(localePath(`/trip/${id}`));
@@ -67,7 +73,10 @@ function goDestinations() {
             {{ t(`categories.${c.id}`) }}
           </Tag>
         </div>
-        <TripGrid :trips="TRIPS" @open="goTrip" />
+        <TripGrid v-if="ready" :trips="featuredTrips" @open="goTrip" />
+        <div v-else class="grid-trips">
+          <TripCardSkeleton v-for="n in 6" :key="`sk-${n}`" />
+        </div>
       </div>
     </section>
 
