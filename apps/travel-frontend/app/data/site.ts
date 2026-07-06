@@ -79,6 +79,8 @@ export const CONTACT = {
   phoneDisplay: '0569202654',
   telHref: 'tel:+966569202654',
   whatsappHref: 'https://wa.me/966569202654',
+  email: 'info@goldenfuturetravel.com',
+  mailtoHref: 'mailto:info@goldenfuturetravel.com',
 };
 
 /** Official business registration details, shown in the credentials band above
@@ -109,54 +111,6 @@ export const CATEGORIES: Category[] = [
   { id: 'beach', icon: 'palmtree' },
   { id: 'mountain', icon: 'mountain' },
   { id: 'city', icon: 'building-2' },
-];
-
-export const TRIPS: Trip[] = [
-  {
-    id: 'moscow', cat: 'city', kind: 'intl', icon: 'landmark', grad: 'linear-gradient(155deg,#24314B,#9E5863)', img: '/trips/moscow.webp',
-    rating: 4.8, reviews: 112, seats: 4, tierKey: 'luxury', tierVariant: 'solid',
-    region: { ar: 'روسيا', en: 'Russia' },
-    title: { ar: 'موسكو الساحرة', en: 'Enchanting Moscow' },
-    duration: { ar: '٦ أيام', en: '6 days' },
-    dates: { ar: '١٠–١٥ سبتمبر', en: '10–15 Sep' },
-    price: { ar: '١٠٬٩٠٠', en: '10,900' },
-  },
-  {
-    id: 'istanbul', cat: 'city', kind: 'intl', icon: 'building-2', grad: 'linear-gradient(155deg,#B76E79,#7C444E)', img: '/trips/istanbul.webp',
-    rating: 4.7, reviews: 138, seats: 6, tierKey: 'popular', tierVariant: 'gold',
-    region: { ar: 'تركيا', en: 'Turkey' },
-    title: { ar: 'إسطنبول بين القارتين', en: 'Istanbul across two continents' },
-    duration: { ar: '٥ أيام', en: '5 days' },
-    dates: { ar: '٣–٧ أكتوبر', en: '3–7 Oct' },
-    price: { ar: '٦٬٨٠٠', en: '6,800' },
-  },
-  {
-    id: 'london', cat: 'city', kind: 'intl', icon: 'ferris-wheel', grad: 'linear-gradient(155deg,#4E6A8A,#9E5863)', img: '/trips/london.webp',
-    rating: 4.9, reviews: 92, seats: 3, tierKey: 'exclusive', tierVariant: 'navy',
-    region: { ar: 'بريطانيا', en: 'Britain' },
-    title: { ar: 'لندن العريقة', en: 'Timeless London' },
-    duration: { ar: '٧ أيام', en: '7 days' },
-    dates: { ar: '١٢–١٨ نوفمبر', en: '12–18 Nov' },
-    price: { ar: '١٣٬٥٠٠', en: '13,500' },
-  },
-  {
-    id: 'baha', cat: 'mountain', kind: 'local', icon: 'mountain', grad: 'linear-gradient(155deg,#4E7A5B,#24314B)', img: '/trips/baha.webp',
-    rating: 4.6, reviews: 74, seats: 8, tierKey: 'domestic', tierVariant: 'brand',
-    region: { ar: 'السعودية · الباحة', en: 'Saudi Arabia · Al-Baha' },
-    title: { ar: 'الباحة والمرتفعات الخضراء', en: 'Al-Baha & the green highlands' },
-    duration: { ar: '٣ أيام', en: '3 days' },
-    dates: { ar: '٥–٧ مايو', en: '5–7 May' },
-    price: { ar: '٣٬٢٠٠', en: '3,200' },
-  },
-  {
-    id: 'red-sea', cat: 'beach', kind: 'local', icon: 'palmtree', grad: 'linear-gradient(155deg,#C6A15B,#B76E79)', img: '/trips/red-sea.webp',
-    rating: 4.8, reviews: 105, seats: 5, tierKey: 'domestic', tierVariant: 'brand',
-    region: { ar: 'السعودية · البحر الأحمر', en: 'Saudi Arabia · Red Sea' },
-    title: { ar: 'منتجعات البحر الأحمر', en: 'Red Sea resorts' },
-    duration: { ar: '٤ أيام', en: '4 days' },
-    dates: { ar: '٢٠–٢٣ يونيو', en: '20–23 Jun' },
-    price: { ar: '٧٬٢٠٠', en: '7,200' },
-  },
 ];
 
 export const WHY: Feature[] = [
@@ -201,7 +155,3 @@ export const INCLUDES: Loc[] = [
   { ar: 'جميع التنقلات الداخلية', en: 'All internal transfers' },
   { ar: 'الأنشطة والجولات المذكورة', en: 'Listed activities & tours' },
 ];
-
-export function findTrip(id: string): Trip | undefined {
-  return TRIPS.find((t) => t.id === id);
-}

@@ -4,13 +4,19 @@ import { Button, Input, Select, Tag, Tabs, Checkbox, Dialog, Icon } from '@org/s
 import { useScrollReveal } from '@org/shared-utils';
 import PageHero from '~/components/PageHero.vue';
 import TripGrid from '~/components/TripGrid.vue';
-import { CATEGORIES, TRIPS } from '~/data/site';
+import TripCardSkeleton from '~/components/TripCardSkeleton.vue';
+import { CATEGORIES } from '~/data/site';
 
 const { t } = useI18n();
 const { lc } = useLocalize();
 const localePath = useLocalePath();
 
 useHead(() => ({ title: `${t('destinations.title')} · ${t('brand')}` }));
+
+// Trips are served from Supabase (public-read `trips` table) via useTrips().
+const { data: trips, pending } = useTrips();
+const { ready } = useDelayedReady(pending);
+const allTrips = computed(() => trips.value ?? []);
 
 const query = ref('');
 const cat = ref('all');
@@ -28,7 +34,7 @@ const kindTabs = computed(() => [
 ]);
 
 const results = computed(() =>
-  TRIPS.filter((trip) => {
+  allTrips.value.filter((trip) => {
     const byCat = cat.value === 'all' || trip.cat === cat.value;
     const byKind = kind.value === 'all' || trip.kind === kind.value;
     const q = query.value.trim();
@@ -38,7 +44,7 @@ const results = computed(() =>
 );
 
 const resultsGrid = ref<HTMLElement | null>(null);
-useScrollReveal(resultsGrid, { selector: '.grid-trips > *', stagger: 0.07 });
+useScrollReveal(resultsGrid, { selector: '.grid-trips > *', stagger: 0.07, watch: ready });
 
 function goTrip(id: string) {
   navigateTo(localePath(`/trip/${id}`));
@@ -85,8 +91,13 @@ function goTrip(id: string) {
             {{ t(`categories.${c.id}`) }}
           </Tag>
         </div>
-        <div class="dest-count">{{ t('destinations.resultsCount', { count: results.length }) }}</div>
-        <TripGrid :trips="results" @open="goTrip" />
+        <template v-if="ready">
+          <div class="dest-count">{{ t('destinations.resultsCount', { count: results.length }) }}</div>
+          <TripGrid :trips="results" @open="goTrip" />
+        </template>
+        <div v-else class="grid-trips">
+          <TripCardSkeleton v-for="n in 6" :key="`sk-${n}`" />
+        </div>
       </div>
     </section>
 
