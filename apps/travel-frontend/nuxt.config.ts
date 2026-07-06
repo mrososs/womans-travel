@@ -60,6 +60,9 @@ export default defineNuxtConfig({
         dir: 'rtl',
         lang: 'ar',
       },
+      meta: [
+        { name: 'domain-verification', content: 'b3f2fc43ee0cfc1616338dc27d7e9955234d8d03cd1c530a959498b9529bd68a' }
+      ],
       link: [
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
         { rel: 'icon', type: 'image/png', sizes: '512x512', href: '/brand/icon-512.png' },
