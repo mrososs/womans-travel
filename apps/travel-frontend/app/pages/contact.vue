@@ -19,7 +19,7 @@ interface ContactRow {
 const info: ContactRow[] = [
   { icon: 'phone', label: 'contact.phoneLabel', value: CONTACT.phoneDisplay, dir: 'ltr', href: CONTACT.telHref },
   { icon: 'message-circle', label: 'contact.whatsappLabel', value: CONTACT.phoneDisplay, dir: 'ltr', href: CONTACT.whatsappHref, external: true },
-  { icon: 'mail', label: 'contact.emailLabel', value: 'hello@durrah.travel', dir: 'ltr', href: 'mailto:hello@durrah.travel' },
+  { icon: 'mail', label: 'contact.emailLabel', value: CONTACT.email, dir: 'ltr', href: CONTACT.mailtoHref },
   { icon: 'clock', label: 'contact.hoursLabel', value: 'contact.hoursValue' },
 ];
 </script>

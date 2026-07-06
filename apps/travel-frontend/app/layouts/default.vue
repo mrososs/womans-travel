@@ -124,6 +124,8 @@ function onWishlist() {
       :phone="CONTACT.phoneDisplay"
       :phone-href="CONTACT.telHref"
       :whatsapp-href="CONTACT.whatsappHref"
+      :email="CONTACT.email"
+      :email-href="CONTACT.mailtoHref"
       @navigate="onNavigate"
     />
     <WhatsappFab />
