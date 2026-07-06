@@ -17,6 +17,8 @@ function toggleLang() {
 const nav = computed(() => [
   { key: 'overview', to: localePath('/dashboard'), icon: 'layout-dashboard' },
   { key: 'orders', to: localePath('/dashboard/orders'), icon: 'package' },
+  { key: 'trips', to: localePath('/dashboard/trips'), icon: 'compass' },
+  { key: 'packages', to: localePath('/dashboard/packages'), icon: 'crown' },
 ]);
 
 function isActive(to: string) {
