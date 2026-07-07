@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue';
 import { Card, Input, Button, Icon } from '@org/shared-ui';
+import AccountNav from '~/components/account/AccountNav.vue';
 
 definePageMeta({ middleware: 'auth' });
 
 const { t } = useI18n();
-const localePath = useLocalePath();
-const { user, signOut } = useAuth();
+const { user } = useAuth();
 const { profile, update } = useProfile();
 const notify = useNotify();
 
@@ -62,20 +62,7 @@ async function save() {
       </div>
 
       <div class="account__grid">
-        <nav class="account__nav">
-          <NuxtLink class="account__navlink account__navlink--active" :to="localePath('/account')">
-            <Icon name="user" :size="18" />{{ t('account.title') }}
-          </NuxtLink>
-          <NuxtLink class="account__navlink" :to="localePath('/account/wishlist')">
-            <Icon name="heart" :size="18" />{{ t('account.wishlist') }}
-          </NuxtLink>
-          <NuxtLink class="account__navlink" :to="localePath('/account/orders')">
-            <Icon name="package" :size="18" />{{ t('account.orders') }}
-          </NuxtLink>
-          <button class="account__navlink account__navlink--signout" @click="signOut">
-            <Icon name="log-out" :size="18" />{{ t('account.signOut') }}
-          </button>
-        </nav>
+        <AccountNav active="profile" />
 
         <Card variant="elevated" padding="lg" class="account__panel">
           <form class="account__form" @submit.prevent="save">
@@ -108,19 +95,6 @@ async function save() {
 .account__name { font-family: var(--font-display); font-weight: 800; font-size: var(--text-2xl); color: var(--text-strong); margin: 2px 0 0; }
 .account__grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
 @media (min-width: 860px) { .account__grid { grid-template-columns: 240px 1fr; } }
-.account__nav { display: flex; flex-direction: column; gap: 4px; }
-.account__navlink {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px; border-radius: var(--radius-md);
-  font-family: var(--font-body); font-weight: 600; font-size: 15px;
-  color: var(--text-body); text-decoration: none; background: transparent;
-  border: none; cursor: pointer; text-align: start; width: 100%;
-  transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
-}
-.account__navlink:hover { background: var(--rose-50); color: var(--brand-strong); }
-.account__navlink--active { background: var(--rose-100); color: var(--brand-strong); }
-.account__navlink--signout { color: var(--danger-500); margin-top: 8px; }
-.account__navlink--signout:hover { background: var(--danger-100); color: var(--danger-500); }
 .account__form { display: grid; gap: 16px; }
 .account__actions { display: flex; align-items: center; gap: 14px; }
 .account__saved { display: inline-flex; align-items: center; gap: 6px; color: var(--success-500); font-size: 14px; font-weight: 700; }
