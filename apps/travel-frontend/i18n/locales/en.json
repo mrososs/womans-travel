@@ -99,7 +99,28 @@
     "wishlist": "Wishlist",
     "orders": "My orders",
     "signOut": "Sign out",
-    "soon": "This feature is coming soon."
+    "soon": "This feature is coming soon.",
+    "bookings": {
+      "title": "My bookings",
+      "subtitle": "Your confirmed trips and packages — free cancellation within 48 hours of booking.",
+      "empty": "No bookings yet",
+      "emptyCta": "Browse packages",
+      "purchasedOn": "Booked on",
+      "total": "Total",
+      "cancel": "Cancel booking",
+      "confirmTitle": "Cancel this booking?",
+      "confirmYes": "Yes, cancel",
+      "confirmNo": "Keep it",
+      "timeLeft": "{h}h {m}m left for free cancellation",
+      "windowEnded": "Free-cancellation window ended",
+      "cancelled": "Booking cancelled successfully",
+      "cancelError": "Couldn't cancel the booking, please try again.",
+      "status": {
+        "paid": "Confirmed",
+        "cancelled": "Cancelled",
+        "refunded": "Refunded"
+      }
+    }
   },
   "nav": {
     "home": "Home",
@@ -179,7 +200,14 @@
   "pages": {
     "packages": { "eyebrow": "Our packages", "title": "Thoughtfully crafted packages", "lead": "Complete travel packages — international and domestic — fully arranged with total privacy." },
     "services": { "eyebrow": "Tourism services", "title": "Everything you need for a perfect trip", "lead": "From visas to stays and transport — we handle every detail for you." },
-    "products": { "eyebrow": "Travel products", "title": "Companions for every journey", "lead": "Hand-picked travel products with the Rahlat Almustaqbal Aldhahabi touch." }
+    "products": { "eyebrow": "Travel products", "title": "Companions for every journey", "lead": "Hand-picked travel products with the Rahlat Almustaqbal Aldhahabi touch." },
+    "about": { "eyebrow": "About us", "title": "Our story at Golden Future Travel", "lead": "A Saudi brand specialising in luxury women-only travel — crafting safe, private journeys inside the Kingdom and beyond." },
+    "membership": { "eyebrow": "Golden membership", "title": "Join the Golden Membership", "lead": "Exclusive perks, priority booking, and special rates for Golden Future Travel members." },
+    "blog": { "eyebrow": "Blog", "title": "The Golden Future Travel blog", "lead": "Travel stories, destination guides, and curated tips for women travellers." },
+    "careers": { "eyebrow": "Careers", "title": "Join our team", "lead": "We're always looking for talent passionate about luxury women-only travel." },
+    "faq": { "eyebrow": "Support", "title": "Frequently asked questions", "lead": "Answers to the most common questions about booking, payment, and trips." },
+    "privacy": { "eyebrow": "Privacy", "title": "Privacy Policy", "lead": "We are committed to protecting your personal data and privacy at every step." },
+    "terms": { "eyebrow": "Terms", "title": "Terms & Conditions", "lead": "The terms governing the use of the Golden Future Travel website and services." }
   },
   "faq": { "eyebrow": "FAQ", "title": "Questions you might have" },
   "newsletter": {
@@ -273,7 +301,8 @@
       "contact": "Contact us"
     },
     "legal": "© Rahlat Almustaqbal Aldhahabi. All rights reserved.",
-    "seal": "Fully women-only · Complete privacy"
+    "seal": "Fully women-only · Complete privacy",
+    "securePayments": "Secure & fast payments supported"
   },
   "destinations": {
     "eyebrow": "Destinations",
