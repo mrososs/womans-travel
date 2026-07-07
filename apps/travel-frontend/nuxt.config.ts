@@ -34,7 +34,8 @@ const SECURITY_HEADERS = {
   'x-frame-options': 'SAMEORIGIN',
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
-  'permissions-policy': 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+  'permissions-policy':
+    'camera=(), microphone=(), geolocation=(), browsing-topics=()',
   'x-dns-prefetch-control': 'off',
 };
 
@@ -61,11 +62,25 @@ export default defineNuxtConfig({
         lang: 'ar',
       },
       meta: [
-        { name: 'domain-verification', content: 'b3f2fc43ee0cfc1616338dc27d7e9955234d8d03cd1c530a959498b9529bd68a' }
+        {
+          name: 'domain-verification',
+          content:
+            '83065a6f543e8c0ddad02416200a0670156ec3f0c221f8d0cdbc0d864fc5aef2',
+        },
       ],
       link: [
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '512x512', href: '/brand/icon-512.png' },
+        {
+          rel: 'icon',
+          type: 'image/png',
+          sizes: '32x32',
+          href: '/favicon-32.png',
+        },
+        {
+          rel: 'icon',
+          type: 'image/png',
+          sizes: '512x512',
+          href: '/brand/icon-512.png',
+        },
         { rel: 'apple-touch-icon', href: '/brand/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         {
@@ -121,8 +136,20 @@ export default defineNuxtConfig({
     defaultLocale: 'ar',
     langDir: 'locales',
     locales: [
-      { code: 'ar', language: 'ar-SA', name: 'العربية', dir: 'rtl', file: 'ar.json' },
-      { code: 'en', language: 'en-US', name: 'English', dir: 'ltr', file: 'en.json' },
+      {
+        code: 'ar',
+        language: 'ar-SA',
+        name: 'العربية',
+        dir: 'rtl',
+        file: 'ar.json',
+      },
+      {
+        code: 'en',
+        language: 'en-US',
+        name: 'English',
+        dir: 'ltr',
+        file: 'en.json',
+      },
     ],
     detectBrowserLanguage: false,
     bundle: { optimizeTranslationDirective: false },
