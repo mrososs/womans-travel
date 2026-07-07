@@ -61,13 +61,9 @@ export default defineNuxtConfig({
         dir: 'rtl',
         lang: 'ar',
       },
-      meta: [
-        {
-          name: 'domain-verification',
-          content:
-            '83065a6f543e8c0ddad02416200a0670156ec3f0c221f8d0cdbc0d864fc5aef2',
-        },
-      ],
+      // NOTE: the domain-verification meta tag is injected at the TOP of <head>
+      // by server/plugins/domain-verification.ts (crawlers only read the first
+      // chunk of HTML, and app.head renders meta after all component styles).
       link: [
         {
           rel: 'icon',
@@ -152,7 +148,6 @@ export default defineNuxtConfig({
       },
     ],
     detectBrowserLanguage: false,
-    bundle: { optimizeTranslationDirective: false },
   },
 
   // Supabase connection is read from SUPABASE_URL / SUPABASE_KEY (see .env.example).
