@@ -254,6 +254,7 @@ export type Database = {
           status: string
           subtotal: number
           total: number
+          traveler_info: Json | null
           user_id: string
         }
         Insert: {
@@ -266,6 +267,7 @@ export type Database = {
           status?: string
           subtotal?: number
           total?: number
+          traveler_info?: Json | null
           user_id: string
         }
         Update: {
@@ -278,6 +280,7 @@ export type Database = {
           status?: string
           subtotal?: number
           total?: number
+          traveler_info?: Json | null
           user_id?: string
         }
         Relationships: []

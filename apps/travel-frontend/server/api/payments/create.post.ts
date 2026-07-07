@@ -25,6 +25,97 @@ const DEMO_ITEM = {
   quantity: 1,
 };
 
+type TravelerInput = {
+  firstName?: unknown;
+  fatherName?: unknown;
+  grandfatherName?: unknown;
+  familyName?: unknown;
+  passportNumber?: unknown;
+  passportIssueDate?: unknown;
+  passportExpiryDate?: unknown;
+  declaredAccurate?: unknown;
+  pledgedCompliance?: unknown;
+};
+
+const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+
+// Saudi validation rules — kept in sync with the client form
+// (app/components/CheckoutTravelerForm.vue). Enforced here too so the checks
+// can't be bypassed by calling the endpoint directly.
+const AR_NAME = /^[ء-يـ\s]{2,}$/; // Arabic letters + tatweel + spaces
+const SA_PASSPORT = /^[A-Za-z][0-9]{7,8}$/; // letter + 7–8 digits, e.g. A1234567
+
+const bad = (statusMessage: string) => createError({ statusCode: 400, statusMessage });
+
+/**
+ * Validate + normalize the traveler details captured in the checkout stepper.
+ * Returns the sanitized object to snapshot onto the order, or throws a 400 with
+ * a shopper-facing (Arabic) message when a field is missing or malformed.
+ */
+function normalizeTraveler(raw: TravelerInput | undefined) {
+  if (!raw || typeof raw !== 'object') {
+    throw bad('بيانات المسافرة مطلوبة قبل الدفع.');
+  }
+
+  const firstName = str(raw.firstName);
+  const fatherName = str(raw.fatherName);
+  const grandfatherName = str(raw.grandfatherName);
+  const familyName = str(raw.familyName);
+  const passportNumber = str(raw.passportNumber).toUpperCase();
+  const passportIssueDate = str(raw.passportIssueDate);
+  const passportExpiryDate = str(raw.passportExpiryDate);
+
+  const nameParts: [string, string][] = [
+    [firstName, 'الاسم الأول'],
+    [fatherName, 'اسم الأب'],
+    [grandfatherName, 'اسم الجد'],
+    [familyName, 'اسم العائلة'],
+  ];
+  for (const [value, label] of nameParts) {
+    if (!value) throw bad(`${label} مطلوب.`);
+    if (!AR_NAME.test(value)) throw bad(`${label} يجب أن يكون بالأحرف العربية فقط.`);
+  }
+
+  if (!passportNumber) throw bad('رقم جواز السفر مطلوب.');
+  if (!SA_PASSPORT.test(passportNumber)) {
+    throw bad('رقم جواز السفر غير صحيح — حرف يليه 7 أو 8 أرقام (مثال: A1234567).');
+  }
+
+  if (!passportExpiryDate) throw bad('تاريخ انتهاء الجواز مطلوب.');
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const minExpiry = new Date();
+  minExpiry.setMonth(minExpiry.getMonth() + 6);
+  const minExpiryISO = minExpiry.toISOString().slice(0, 10);
+  if (passportExpiryDate <= todayISO) throw bad('تاريخ انتهاء الجواز يجب أن يكون في المستقبل.');
+  if (passportExpiryDate < minExpiryISO) {
+    throw bad('يجب أن يكون الجواز صالحًا 6 أشهر على الأقل من اليوم.');
+  }
+  if (passportIssueDate) {
+    if (passportIssueDate > todayISO) throw bad('تاريخ الإصدار لا يمكن أن يكون في المستقبل.');
+    if (passportIssueDate >= passportExpiryDate) {
+      throw bad('تاريخ الإصدار يجب أن يسبق تاريخ الانتهاء.');
+    }
+  }
+
+  if (raw.declaredAccurate !== true || raw.pledgedCompliance !== true) {
+    throw bad('الرجاء الإقرار بصحة المعلومات والتعهّد بالالتزام قبل المتابعة.');
+  }
+
+  return {
+    firstName,
+    fatherName,
+    grandfatherName,
+    familyName,
+    fullName: [firstName, fatherName, grandfatherName, familyName].join(' '),
+    passportNumber,
+    passportIssueDate: passportIssueDate || null,
+    passportExpiryDate,
+    declaredAccurate: true,
+    pledgedCompliance: true,
+    capturedAt: new Date().toISOString(),
+  };
+}
+
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
   // NOTE: serverSupabaseUser returns verified JWT *claims* here, where the user
@@ -33,6 +124,10 @@ export default defineEventHandler(async (event) => {
   if (!uid) {
     throw createError({ statusCode: 401, statusMessage: 'Sign in to check out' });
   }
+
+  // Traveler details captured in the checkout stepper (required before payment).
+  const body = await readBody<{ traveler?: TravelerInput }>(event).catch(() => ({}));
+  const traveler = normalizeTraveler(body?.traveler);
 
   const client = await serverSupabaseClient<Database>(event);
 
@@ -82,6 +177,17 @@ export default defineEventHandler(async (event) => {
 
   if (orderError || !order) {
     throw createError({ statusCode: 500, statusMessage: orderError?.message ?? 'Could not create order' });
+  }
+
+  // 2b) Snapshot the traveler manifest onto the order. Done as a separate,
+  // fail-soft update so the flow keeps working even if the traveler_info column
+  // migration (20260707130000) has not yet been applied to this environment.
+  const { error: travelerError } = await client
+    .from('orders')
+    .update({ traveler_info: traveler })
+    .eq('id', order.id);
+  if (travelerError) {
+    console.warn('[payments/create] could not persist traveler_info:', travelerError.message);
   }
 
   // 3) Snapshot the line items onto the order.

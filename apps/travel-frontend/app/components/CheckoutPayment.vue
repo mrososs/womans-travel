@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { Button, Icon } from '@org/shared-ui';
+import CheckoutTravelerForm from '~/components/CheckoutTravelerForm.vue';
+import type { TravelerDetails } from '~/components/CheckoutTravelerForm.vue';
 
 /**
- * CheckoutPayment — real Moyasar checkout for the Durrah women's travel
- * frontend. Renders the order summary from the shopper's cart (with a demo
- * fallback), then on "proceed" creates a server-side pending order and mounts
- * Moyasar's hosted payment form (mada / Visa / Mastercard). Card data goes
- * directly to Moyasar (PCI-safe); the order is only confirmed server-side by
- * /api/payments/callback (+ webhook) once Moyasar reports the charge as paid.
+ * CheckoutPayment — two-step checkout for the Durrah women's travel frontend.
+ *
+ * Step 1 (traveler): collects the traveler's four-part name, passport number +
+ * dates, and the accuracy / group-compliance declarations (CheckoutTravelerForm).
+ * Step 2 (payment): creates a server-side pending order (with the traveler
+ * manifest) and mounts Moyasar's hosted card form (mada / Visa / Mastercard).
+ *
+ * Card data goes directly to Moyasar (PCI-safe); the order is only confirmed
+ * server-side by /api/payments/callback (+ webhook) once Moyasar reports the
+ * charge as paid. The order summary is shown alongside both steps.
  */
 
 type MoyasarGlobal = { init: (opts: Record<string, unknown>) => void };
@@ -37,6 +43,10 @@ const localePath = useLocalePath();
 const config = useRuntimeConfig();
 const publishableKey = config.public.moyasarPublishableKey as string;
 
+// Only surface the test-card hint when a Moyasar *test* key is in use, so the
+// live deployment never shows "use test Visa 4111…".
+const isTestMode = computed(() => publishableKey.startsWith('pk_test'));
+
 const nf = new Intl.NumberFormat('en-US');
 
 const lines = computed(() => (items.value.length ? items.value : [DEMO_ITEM]));
@@ -47,8 +57,12 @@ const subtotal = computed(() =>
 const vat = computed(() => Math.round(subtotal.value * VAT_RATE));
 const total = computed(() => subtotal.value + vat.value);
 
-type Phase = 'idle' | 'loading' | 'form' | 'error';
-const phase = ref<Phase>('idle');
+// Stepper: 1 = traveler details, 2 = payment.
+const step = ref<1 | 2>(1);
+const traveler = ref<TravelerDetails | null>(null);
+
+type Phase = 'loading' | 'form' | 'error';
+const phase = ref<Phase>('loading');
 const errorMsg = ref('');
 
 /** Inject Moyasar's CSS + JS once and resolve when the global is ready. */
@@ -80,11 +94,28 @@ function loadMoyasar(): Promise<MoyasarGlobal> {
   });
 }
 
-async function begin() {
-  if (phase.value === 'loading' || phase.value === 'form') return;
-
+/** Step 1 → 2: store the validated traveler details and start the payment. */
+function onTravelerNext(details: TravelerDetails) {
   if (!isLoggedIn.value) {
     navigateTo(localePath('/auth/login'));
+    return;
+  }
+  traveler.value = details;
+  step.value = 2;
+  begin();
+}
+
+/** Return to the traveler form to edit the details (step 2 → 1). */
+function editTraveler() {
+  step.value = 1;
+  phase.value = 'loading';
+  errorMsg.value = '';
+}
+
+async function begin() {
+  if (phase.value === 'form') return;
+  if (!traveler.value) {
+    step.value = 1;
     return;
   }
   if (!publishableKey) {
@@ -97,13 +128,14 @@ async function begin() {
   errorMsg.value = '';
 
   try {
-    // 1) Create the pending order server-side (amount recomputed there).
+    // 1) Create the pending order server-side (amount recomputed there); the
+    // traveler manifest is validated + snapshotted onto the order.
     const order = await $fetch<{
       orderId: string;
       amount: number;
       currency: string;
       description: string;
-    }>('/api/payments/create', { method: 'POST' });
+    }>('/api/payments/create', { method: 'POST', body: { traveler: traveler.value } });
 
     // 2) Load + mount Moyasar's hosted form.
     const Moyasar = await loadMoyasar();
@@ -151,31 +183,45 @@ onMounted(() => {
       </p>
     </header>
 
-    <div class="co__grid">
-      <!-- ============ PAYMENT ============ -->
-      <div class="co__pay">
-        <div class="co-card">
-          <h2 class="co-card__title">طريقة الدفع</h2>
+    <!-- ============ STEPPER ============ -->
+    <ol class="co-steps" aria-label="خطوات إتمام الحجز">
+      <li class="co-step" :class="{ 'is-active': step === 1, 'is-done': step > 1 }">
+        <span class="co-step__num">
+          <Icon v-if="step > 1" name="check" :size="16" />
+          <template v-else>1</template>
+        </span>
+        <span class="co-step__label">بيانات المسافرة</span>
+      </li>
+      <li class="co-step__sep" aria-hidden="true" />
+      <li class="co-step" :class="{ 'is-active': step === 2 }">
+        <span class="co-step__num">2</span>
+        <span class="co-step__label">الدفع</span>
+      </li>
+    </ol>
 
-          <!-- Idle: intro + proceed -->
-          <div v-if="phase === 'idle'" class="co-intro">
-            <ul class="co-brands" aria-hidden="true">
-              <li><Icon name="credit-card" :size="20" /> مدى</li>
-              <li><Icon name="credit-card" :size="20" /> Visa</li>
-              <li><Icon name="credit-card" :size="20" /> Mastercard</li>
-            </ul>
-            <p class="co-intro__note">
-              سيتم تحويلكِ إلى نموذج دفع آمن معتمد من Moyasar. لا يتم تخزين بيانات
-              بطاقتكِ على خوادمنا إطلاقًا.
-            </p>
-            <Button variant="primary" size="lg" block @click="begin">
-              <template #iconStart><Icon name="lock" :size="18" /></template>
-              متابعة الدفع الآمن
-            </Button>
+    <div class="co__grid">
+      <!-- ============ LEFT: STEP CONTENT ============ -->
+      <div class="co__pay">
+        <!-- STEP 1 — traveler details -->
+        <div v-if="step === 1" class="co-card">
+          <h2 class="co-card__title">بيانات المسافرة</h2>
+          <p class="co-step__lead">
+            أدخلي بياناتكِ كما وردت في جواز السفر، ثم أقرّي بصحة المعلومات قبل المتابعة إلى الدفع.
+          </p>
+          <CheckoutTravelerForm @next="onTravelerNext" />
+        </div>
+
+        <!-- STEP 2 — payment -->
+        <div v-else class="co-card">
+          <div class="co-card__head">
+            <h2 class="co-card__title">طريقة الدفع</h2>
+            <button type="button" class="co-back" @click="editTraveler">
+              <Icon name="chevron-right" :size="15" /> تعديل البيانات
+            </button>
           </div>
 
           <!-- Loading -->
-          <div v-else-if="phase === 'loading'" class="co-loading">
+          <div v-if="phase === 'loading'" class="co-loading">
             <Icon name="loader" :size="26" class="co-spin" />
             <p>جارٍ تجهيز بوابة الدفع…</p>
           </div>
@@ -189,10 +235,19 @@ onMounted(() => {
 
           <!-- Moyasar hosted form mounts here -->
           <div v-show="phase === 'form'" class="co-mysr">
-            <div class="mysr-form"></div>
-            <p class="co-mysr__hint">
+            <ul class="co-brands" aria-hidden="true">
+              <li><Icon name="credit-card" :size="18" /> مدى</li>
+              <li><Icon name="credit-card" :size="18" /> Visa</li>
+              <li><Icon name="credit-card" :size="18" /> Mastercard</li>
+            </ul>
+            <div class="mysr-form" />
+            <p v-if="isTestMode" class="co-mysr__hint">
               <Icon name="shield-check" :size="14" />
               بيئة اختبار — استخدمي بطاقة Visa التجريبية 4111&nbsp;1111&nbsp;1111&nbsp;1111
+            </p>
+            <p v-else class="co-mysr__hint">
+              <Icon name="shield-check" :size="14" />
+              دفع آمن ومشفّر عبر بوابة Moyasar — بياناتكِ محميّة بالكامل
             </p>
           </div>
         </div>
@@ -271,6 +326,41 @@ onMounted(() => {
 }
 .co__lead { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: var(--text-sm); }
 .co__lead :deep(svg) { color: var(--success-500); }
+
+/* stepper */
+.co-steps {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-3);
+  list-style: none; margin: 0 auto clamp(24px, 4vw, 40px); padding: 0;
+  max-width: 480px;
+}
+.co-step { display: inline-flex; align-items: center; gap: 10px; }
+.co-step__num {
+  width: 34px; height: 34px; flex: none; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: var(--weight-bold); font-size: var(--text-sm);
+  background: var(--surface-card); color: var(--text-muted);
+  border: 1.5px solid var(--border-default);
+  transition: background var(--dur-base), color var(--dur-base), border-color var(--dur-base);
+}
+.co-step__label { font-family: var(--font-display); font-weight: var(--weight-bold); font-size: var(--text-sm); color: var(--text-muted); }
+.co-step.is-active .co-step__num { background: var(--brand-solid); border-color: var(--brand-solid); color: #fff; }
+.co-step.is-active .co-step__label { color: var(--text-strong); }
+.co-step.is-done .co-step__num { background: var(--success-500); border-color: var(--success-500); color: #fff; }
+.co-step.is-done .co-step__label { color: var(--text-strong); }
+.co-step__sep { flex: 1; max-width: 72px; height: 2px; background: var(--border-default); border-radius: 2px; }
+
+.co-step__lead { color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-relaxed); margin: 0 0 var(--space-5); }
+
+.co-card__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-5); }
+.co-card__head .co-card__title { margin: 0; }
+.co-back {
+  display: inline-flex; align-items: center; gap: 3px;
+  border: none; background: transparent; cursor: pointer;
+  font-family: var(--font-body); font-weight: var(--weight-bold); font-size: var(--text-sm);
+  color: var(--text-brand); padding: 6px 8px; border-radius: var(--radius-sm);
+  transition: background var(--dur-fast);
+}
+.co-back:hover { background: var(--rose-50); }
 
 .co__grid {
   display: grid;
