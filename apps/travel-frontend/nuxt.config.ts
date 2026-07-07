@@ -13,17 +13,26 @@ const SUPABASE_ORIGIN = 'https://snqujifbaottvysziysj.supabase.co';
 // injects the inline hydration payload, and for styles because of scoped/inline
 // styles; 'unsafe-eval' is intentionally NOT allowed. Fonts come from Google
 // Fonts; images may come from Supabase Storage and other https hosts.
+// Moyasar payment gateway: Moyasar.js is served from cdn.moyasar.com and talks
+// to api.moyasar.com; the 3-D Secure step renders in an iframe hosted on
+// api.moyasar.com (and the issuing bank's ACS). These origins are whitelisted
+// across script/style/connect/frame/form-action so the hosted form works.
+const MOYASAR_CDN = 'https://cdn.moyasar.com';
+const MOYASAR_API = 'https://api.moyasar.com';
+
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
-  "form-action 'self'",
+  `form-action 'self' ${MOYASAR_API}`,
   "img-src 'self' data: blob: https:",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "script-src 'self' 'unsafe-inline'",
-  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co`,
+  `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${MOYASAR_CDN}`,
+  `script-src 'self' 'unsafe-inline' ${MOYASAR_CDN}`,
+  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co ${MOYASAR_API}`,
+  // 3-D Secure challenge iframe (Moyasar + the issuing bank).
+  `frame-src 'self' ${MOYASAR_API} https://*.moyasar.com`,
   'upgrade-insecure-requests',
 ].join('; ');
 
@@ -154,6 +163,16 @@ export default defineNuxtConfig({
   // `redirect: false` keeps auth-gating opt-in while we scaffold; enable per-route later.
   supabase: {
     redirect: false,
+  },
+
+  // Server-only secrets stay at the top level; only `public.*` is sent to the
+  // browser. The Moyasar secret + webhook secret never leave the server.
+  runtimeConfig: {
+    moyasarSecretKey: process.env.MOYASAR_SECRET_KEY || '',
+    moyasarWebhookSecret: process.env.MOYASAR_WEBHOOK_SECRET || '',
+    public: {
+      moyasarPublishableKey: process.env.MOYASAR_PUBLISHABLE_KEY || '',
+    },
   },
 
   tailwindcss: {

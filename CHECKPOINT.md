@@ -31,7 +31,7 @@
 | 1 | موقع مميز وفخم وجذاب سهل الاستخدام | ✅ | نظام تصميم دُرّة (ذهبي وردي/كحلي)، مكوّنات، GSAP |
 | 2 | متجاوب وسهل من الجوال (mobile-first) | ✅ | RTL + breakpoints، تخطيطات جوال |
 | 3 | "دوبامين" / تجربة ممتعة وجذابة | 🚧 | يوجد GSAP وحركات؛ يُنصح بلمسات micro-interactions إضافية |
-| 4 | ربط الدفع الإلكتروني السعودي | 🚧 | `CheckoutMockup.vue` **نموذج بصري فقط**؛ لا بوابة Moyasar/mada حقيقية ولا webhook |
+| 4 | ربط الدفع الإلكتروني السعودي | ✅ | بوابة **Moyasar** حقيقية: نموذج مستضاف (mada/Visa/MC)، `create`/`callback` + webhook (Edge Function)، تحقّق من جهة الخادم، مفاتيح في Vault. مفاتيح live جاهزة للنشر (راجع `docs/payments-moyasar.md`) |
 | 5 | ربط/عرض السجل التجاري | ⬜ | لا يوجد أي عرض للسجل التجاري أو توثيق "معروف" في الفوتر أو التواصل |
 | 6 | تواصل مع المدير عبر واتساب | 🚧 | زر واتساب عائم موجود لكن الرقم **وهمي** `966500000000` |
 | 7 | بريد إلكتروني خاص بالمسؤول | 🚧 | نموذج تواصل يعمل، لكن البريد المعروض **وهمي** `hello@durrah.travel` |
@@ -71,12 +71,12 @@
 
 ### أولوية عُليا (متطلبات تجارية أساسية للعميل)
 
-- [ ] **بوابة الدفع السعودية الحقيقية (Moyasar)**
-  - استبدال `CheckoutMockup.vue` بتكامل فعلي: mada / Apple Pay / Visa.
-  - `server/api/payments/create` (ينشئ order pending ويحسب المبلغ من الخادم).
-  - `server/api/payments/webhook` (تحقق توقيع → تحديث الطلب إلى paid → تفريغ السلة).
-  - مفاتيح: `MOYASAR_PUBLISHABLE_KEY` (عميل) / `MOYASAR_SECRET_KEY` (خادم فقط).
-  - **قرار مطلوب من العميل:** Moyasar (موصى به) أم Tap / HyperPay؟
+- [x] **بوابة الدفع السعودية الحقيقية (Moyasar)** ✅
+  - `CheckoutPayment.vue` بنموذج Moyasar المستضاف (mada / Visa / MC) بدل النموذج البصري.
+  - `server/api/payments/create` (ينشئ order pending ويحسب المبلغ من الخادم +15% ضريبة).
+  - `server/api/payments/callback` (تحقّق عبر Moyasar API → paid → تفريغ السلة) + `webhook` (Nitro) + **Edge Function `moyasar-webhook`** (service_role، مفاتيح من Vault).
+  - المفاتيح في Supabase Vault + `.env`؛ مفاتيح **live** مخزّنة للنشر — راجع `docs/payments-moyasar.md`.
+  - تبقّى: اختبار متصفّح شامل ببطاقة تجريبية + ضبط webhook في لوحة Moyasar + متغيّرات Vercel للـ live.
 
 - [ ] **لوحة التقارير الشهرية للمؤسسة (Admin dashboard)**
   - صفحة/قسم أدمن محمي بدور (role) — يتطلب جدول أدوار + سياسات RLS للأدمن.

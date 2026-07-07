@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CheckoutMockup from '~/components/CheckoutMockup.vue';
+import CheckoutPayment from '~/components/CheckoutPayment.vue';
 
 const { t } = useI18n();
 useHead(() => ({ title: `${t('cart.checkout')} · ${t('brand')}` }));
@@ -8,7 +8,7 @@ useHead(() => ({ title: `${t('cart.checkout')} · ${t('brand')}` }));
 <template>
   <section class="section">
     <div class="container">
-      <CheckoutMockup />
+      <CheckoutPayment />
     </div>
   </section>
 </template>

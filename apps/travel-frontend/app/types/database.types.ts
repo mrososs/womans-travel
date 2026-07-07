@@ -248,6 +248,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          paid_at: string | null
           payment_provider: string | null
           payment_ref: string | null
           status: string
@@ -259,6 +260,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          paid_at?: string | null
           payment_provider?: string | null
           payment_ref?: string | null
           status?: string
@@ -270,6 +272,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          paid_at?: string | null
           payment_provider?: string | null
           payment_ref?: string | null
           status?: string
@@ -488,6 +491,7 @@ export type Database = {
       trips: {
         Row: {
           category_id: string | null
+          cost_amount: number | null
           created_at: string
           dates_ar: string
           dates_en: string
@@ -514,6 +518,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          cost_amount?: number | null
           created_at?: string
           dates_ar: string
           dates_en: string
@@ -540,6 +545,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          cost_amount?: number | null
           created_at?: string
           dates_ar?: string
           dates_en?: string
@@ -640,6 +646,7 @@ export type Database = {
           total_units: number
         }[]
       }
+      get_secret: { Args: { p_name: string }; Returns: string }
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
     }
     Enums: {
