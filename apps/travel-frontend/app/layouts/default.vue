@@ -36,26 +36,26 @@ const footerColumns = computed(() => [
     links: [
       { label: t('footer.links.intl'), href: localePath('/destinations') },
       { label: t('footer.links.local'), href: localePath('/destinations') },
-      { label: t('footer.links.seasonal') },
-      { label: t('footer.links.new') },
+      { label: t('footer.links.seasonal'), href: localePath('/packages') },
+      { label: t('footer.links.new'), href: localePath('/destinations') },
     ],
   },
   {
     title: t('footer.colAbout'),
     links: [
-      { label: t('footer.links.about') },
-      { label: t('footer.links.membership') },
-      { label: t('footer.links.blog') },
-      { label: t('footer.links.careers') },
+      { label: t('footer.links.about'), href: localePath('/about') },
+      { label: t('footer.links.membership'), href: localePath('/membership') },
+      { label: t('footer.links.blog'), href: localePath('/blog') },
+      { label: t('footer.links.careers'), href: localePath('/careers') },
     ],
   },
   {
     title: t('footer.colHelp'),
     links: [
-      { label: t('footer.links.faq') },
-      { label: t('footer.links.privacy') },
-      { label: t('footer.links.terms') },
-      { label: t('footer.links.contact') },
+      { label: t('footer.links.faq'), href: localePath('/faq') },
+      { label: t('footer.links.privacy'), href: localePath('/privacy') },
+      { label: t('footer.links.terms'), href: localePath('/terms') },
+      { label: t('footer.links.contact'), href: localePath('/contact') },
     ],
   },
 ]);
@@ -126,6 +126,8 @@ function onWishlist() {
       :whatsapp-href="CONTACT.whatsappHref"
       :email="CONTACT.email"
       :email-href="CONTACT.mailtoHref"
+      show-payments
+      :payments-label="t('footer.securePayments')"
       @navigate="onNavigate"
     />
     <WhatsappFab />

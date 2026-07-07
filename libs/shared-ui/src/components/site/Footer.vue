@@ -26,6 +26,10 @@ withDefaults(
     email?: string;
     /** mailto: link for the email address. */
     emailHref?: string;
+    /** Show the accepted-payment-methods strip (mada / Visa / Mastercard). */
+    showPayments?: boolean;
+    /** Label shown above the payment brand marks. */
+    paymentsLabel?: string;
   }>(),
   {
     brand: 'رحلات المستقبل الذهبي',
@@ -40,6 +44,8 @@ withDefaults(
     whatsappHref: '',
     email: '',
     emailHref: '',
+    showPayments: false,
+    paymentsLabel: 'ندعم الدفع الآمن والسريع',
   }
 );
 
@@ -99,6 +105,40 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
           </ul>
         </div>
       </div>
+
+      <div v-if="showPayments" class="drh-footer__pay">
+        <span class="drh-footer__pay-label">
+          <Icon name="lock" :size="14" color="var(--gold-400)" />{{ paymentsLabel }}
+        </span>
+        <ul class="drh-footer__pay-marks">
+          <!-- mada -->
+          <li class="drh-pay" aria-label="mada">
+            <svg viewBox="0 0 60 24" role="img" aria-hidden="true">
+              <text x="30" y="11" text-anchor="middle" font-family="Tahoma, Arial, sans-serif"
+                    font-size="9" font-weight="700" fill="#231F20">مدى</text>
+              <text x="30" y="21" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+                    font-size="9" font-weight="800" letter-spacing="0.5" fill="#84B740">mada</text>
+            </svg>
+          </li>
+          <!-- Visa -->
+          <li class="drh-pay" aria-label="Visa">
+            <svg viewBox="0 0 60 24" role="img" aria-hidden="true">
+              <text x="30" y="17" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+                    font-size="15" font-style="italic" font-weight="800" letter-spacing="1"
+                    fill="#1434CB">VISA</text>
+            </svg>
+          </li>
+          <!-- Mastercard -->
+          <li class="drh-pay" aria-label="Mastercard">
+            <svg viewBox="0 0 60 24" role="img" aria-hidden="true">
+              <circle cx="25" cy="12" r="8" fill="#EB001B" />
+              <circle cx="35" cy="12" r="8" fill="#F79E1B" />
+              <path d="M30 6.1a8 8 0 0 0 0 11.8 8 8 0 0 0 0-11.8Z" fill="#FF5F00" />
+            </svg>
+          </li>
+        </ul>
+      </div>
+
       <div class="drh-footer__bar">
         <span>{{ legal || `© ${brand}. جميع الحقوق محفوظة.` }}</span>
         <span class="drh-footer__seal">
@@ -171,6 +211,30 @@ const emit = defineEmits<{ navigate: [href: string, event: MouseEvent] }>();
   font-size: 13px;
 }
 .drh-footer__seal { display: inline-flex; align-items: center; gap: 6px; }
+
+.drh-footer__pay {
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.drh-footer__pay-label {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: var(--text-on-navy-muted); font-size: 13px; font-weight: 700;
+}
+.drh-footer__pay-marks { display: flex; align-items: center; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.drh-pay {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; height: 34px; background: #fff; border-radius: 7px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.drh-pay svg { width: 48px; height: 22px; display: block; }
+/* When the payments strip is present it owns the top divider; drop the bar's. */
+.drh-footer__pay + .drh-footer__bar { margin-top: var(--space-6); border-top: none; padding-top: 0; }
 
 @media (max-width: 860px) {
   .drh-footer__top { grid-template-columns: 1fr 1fr; gap: 32px; }
