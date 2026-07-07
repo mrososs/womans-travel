@@ -27,7 +27,10 @@ const DEMO_ITEM = {
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
-  if (!user) {
+  // NOTE: serverSupabaseUser returns verified JWT *claims* here, where the user
+  // id is `sub` (not `id`). Support both shapes so this is version-proof.
+  const uid = (user as { id?: string; sub?: string } | null)?.id ?? (user as { sub?: string } | null)?.sub;
+  if (!uid) {
     throw createError({ statusCode: 401, statusMessage: 'Sign in to check out' });
   }
 
@@ -37,7 +40,7 @@ export default defineEventHandler(async (event) => {
   const { data: cart, error: cartError } = await client
     .from('cart_items')
     .select('item_type, item_id, title, unit_price, quantity')
-    .eq('user_id', user.id);
+    .eq('user_id', uid);
 
   if (cartError) {
     throw createError({ statusCode: 500, statusMessage: cartError.message });
@@ -67,7 +70,7 @@ export default defineEventHandler(async (event) => {
   const { data: order, error: orderError } = await client
     .from('orders')
     .insert({
-      user_id: user.id,
+      user_id: uid,
       status: 'pending',
       currency: 'SAR',
       subtotal,

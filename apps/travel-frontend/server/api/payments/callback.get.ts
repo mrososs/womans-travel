@@ -43,6 +43,8 @@ export default defineEventHandler(async (event) => {
   if (!orderId) return fail('missing_order');
 
   const user = await serverSupabaseUser(event).catch(() => null);
+  // serverSupabaseUser returns JWT claims (user id is `sub`, not `id`).
+  const uid = (user as { id?: string; sub?: string } | null)?.id ?? (user as { sub?: string } | null)?.sub;
   const client = await serverSupabaseClient<Database>(event);
 
   // Load the order to verify the amount before trusting the payment.
@@ -70,7 +72,7 @@ export default defineEventHandler(async (event) => {
 
   if (paid) {
     // Clear the shopper's cart now that the order is confirmed.
-    if (user) await client.from('cart_items').delete().eq('user_id', user.id);
+    if (uid) await client.from('cart_items').delete().eq('user_id', uid);
     return sendRedirect(event, `/checkout/success?order=${orderId}`, 302);
   }
 

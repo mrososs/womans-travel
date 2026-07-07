@@ -491,6 +491,7 @@ export type Database = {
       trips: {
         Row: {
           category_id: string | null
+          cost_amount: number | null
           created_at: string
           dates_ar: string
           dates_en: string
@@ -517,6 +518,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          cost_amount?: number | null
           created_at?: string
           dates_ar: string
           dates_en: string
@@ -543,6 +545,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          cost_amount?: number | null
           created_at?: string
           dates_ar?: string
           dates_en?: string
@@ -643,6 +646,7 @@ export type Database = {
           total_units: number
         }[]
       }
+      get_secret: { Args: { p_name: string }; Returns: string }
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
     }
     Enums: {
