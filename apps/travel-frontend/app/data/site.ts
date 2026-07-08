@@ -95,7 +95,6 @@ export const NAV: { key: string; path: string; hash?: string }[] = [
   { key: 'home', path: '/' },
   { key: 'destinations', path: '/destinations' },
   { key: 'packages', path: '/packages' },
-  { key: 'services', path: '/services' },
   { key: 'products', path: '/products' },
   { key: 'contact', path: '/contact' },
 ];
