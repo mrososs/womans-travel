@@ -10,7 +10,7 @@ import { defineNitroPlugin } from 'nitropack/runtime';
 // This hook unshifts the tag to the very top of <head>, guaranteeing it appears
 // in the first bytes of the document on every SSR response.
 const DOMAIN_VERIFICATION_META =
-  '<meta name="domain-verification" content="83065a6f543e8c0ddad02416200a0670156ec3f0c221f8d0cdbc0d864fc5aef2">';
+  '<meta name="domain-verification" content="3546967a2d1f5dac66b5cd3746998233893eda529ed05f7fc406c52b0ad03f50">';
 
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook('render:html', (html) => {
