@@ -181,6 +181,42 @@ export type Database = {
         }
         Relationships: []
       }
+      item_options: {
+        Row: {
+          available: boolean
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          label_ar: string
+          label_en: string
+          price_amount: number
+          sort: number
+        }
+        Insert: {
+          available?: boolean
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          label_ar: string
+          label_en: string
+          price_amount?: number
+          sort?: number
+        }
+        Update: {
+          available?: boolean
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          label_ar?: string
+          label_en?: string
+          price_amount?: number
+          sort?: number
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string

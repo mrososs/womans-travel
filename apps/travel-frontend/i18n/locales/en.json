@@ -24,7 +24,23 @@
     "deleted": "Deleted", "deleteTitle": "Delete item", "deleteConfirm": "Are you sure you want to delete this item? This cannot be undone.",
     "requiredError": "Slug and both titles are required.",
     "emptyTrips": "No trips yet. Add your first trip.",
-    "emptyPackages": "No packages yet. Add your first package."
+    "emptyPackages": "No packages yet. Add your first package.",
+    "options": {
+      "title": "Options",
+      "hint": "Purchasable variants (room type, deposit, …). The chosen one sets the price.",
+      "add": "Add option",
+      "empty": "No options yet. Add one so buyers can choose.",
+      "saveFirst": "Save this item first, then you can add options.",
+      "labelAr": "Label (Arabic)",
+      "labelEn": "Label (English)",
+      "price": "Price (SAR)",
+      "available": "Available",
+      "saveRow": "Save option",
+      "saved": "Option saved",
+      "deleted": "Option deleted",
+      "labelRequired": "Both Arabic and English labels are required.",
+      "loadError": "Could not load options"
+    }
   },
   "cart": {
     "title": "Cart",
@@ -41,7 +57,9 @@
   },
   "wishlist": {
     "title": "Wishlist",
+    "subtitle": "The trips and packages you saved for later.",
     "empty": "Your wishlist is empty",
+    "emptyCta": "Browse trips",
     "loginRequired": "You must sign in first",
     "added": "Added to wishlist",
     "removed": "Removed from wishlist",
@@ -52,6 +70,9 @@
     "includes": "The package includes",
     "itinerary": "Itinerary",
     "availability": "Available",
+    "optionLabel": "Choose option",
+    "optionPlaceholder": "Choose",
+    "chooseOption": "Please choose an option first.",
     "travellers": "Travellers",
     "notFound": "This package was not found.",
     "backToPackages": "Back to packages"
@@ -343,6 +364,9 @@
       "pax1": "1 traveller",
       "pax2": "2 travellers",
       "pax3": "3 travellers",
+      "optionLabel": "Choose option",
+      "optionPlaceholder": "Choose",
+      "chooseOption": "Please choose an option first.",
       "roomLabel": "Room type",
       "single": "Single room",
       "double": "Double room (shared)",

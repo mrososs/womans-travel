@@ -1,5 +1,8 @@
+import { toValue, type MaybeRefOrGetter } from 'vue';
 import type { Database } from '~/types/database.types';
 import type { CategoryId, Trip } from '~/data/site';
+
+export type ItemOption = Database['public']['Tables']['item_options']['Row'];
 
 type TripRow = Database['public']['Tables']['trips']['Row'];
 
@@ -81,6 +84,36 @@ export function useProducts() {
     if (error) throw error;
     return data ?? [];
   });
+}
+
+/**
+ * Purchasable options (room type, deposit, …) for one trip or package, only the
+ * available ones, ordered for display. Keyed + watched on the item id so it
+ * refetches when navigating between detail pages.
+ */
+export function useItemOptions(
+  itemType: 'trip' | 'package',
+  itemId: MaybeRefOrGetter<string>
+) {
+  const supabase = useSupabaseClient<Database>();
+  return useAsyncData<ItemOption[]>(
+    () => `item-options-${itemType}-${toValue(itemId)}`,
+    async () => {
+      const id = toValue(itemId);
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from('item_options')
+        .select('*')
+        .eq('item_type', itemType)
+        .eq('item_id', id)
+        .eq('available', true)
+        .order('sort', { ascending: true })
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    { watch: [() => toValue(itemId)] }
+  );
 }
 
 /** FAQs, ordered by `sort`. */

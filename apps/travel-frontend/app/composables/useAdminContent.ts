@@ -2,6 +2,11 @@ import type { Database, TablesInsert } from '~/types/database.types';
 
 export type TripInsert = TablesInsert<'trips'>;
 export type PackageInsert = TablesInsert<'packages'>;
+export type ItemOptionRow = Database['public']['Tables']['item_options']['Row'];
+export type ItemOptionInsert = TablesInsert<'item_options'>;
+
+/** Which content tables carry admin-managed purchasable options. */
+export type OptionOwnerType = 'trip' | 'package';
 
 /** Public bucket that holds admin-uploaded editorial photos. */
 const CONTENT_BUCKET = 'content';
@@ -53,5 +58,45 @@ export function useAdminContent() {
     if (error) throw error;
   }
 
-  return { uploadImage, saveTrip, deleteTrip, savePackage, deletePackage };
+  /* ---------- Item options (per trip / package) ---------- */
+
+  /** All options for one owner item, ordered for display. */
+  async function listOptions(itemType: OptionOwnerType, itemId: string): Promise<ItemOptionRow[]> {
+    const { data, error } = await client
+      .from('item_options')
+      .select('*')
+      .eq('item_type', itemType)
+      .eq('item_id', itemId)
+      .order('sort', { ascending: true })
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  /** Insert (no id) or update (with id) a single option. Returns the saved row. */
+  async function saveOption(row: ItemOptionInsert): Promise<ItemOptionRow> {
+    const { data, error } = await client
+      .from('item_options')
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function deleteOption(id: string): Promise<void> {
+    const { error } = await client.from('item_options').delete().eq('id', id);
+    if (error) throw error;
+  }
+
+  return {
+    uploadImage,
+    saveTrip,
+    deleteTrip,
+    savePackage,
+    deletePackage,
+    listOptions,
+    saveOption,
+    deleteOption,
+  };
 }

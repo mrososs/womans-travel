@@ -15,6 +15,26 @@ const travellers = ref('1');
 const room = ref('single');
 const added = ref(false);
 
+// Admin-managed purchasable options (room type, deposit, …). When present they
+// replace the static room radios and drive the price + cart line.
+const { data: options } = useItemOptions('trip', () => props.trip.id);
+const optionList = computed(() => options.value ?? []);
+const hasOptions = computed(() => optionList.value.length > 0);
+const selectedOptionId = ref('');
+
+const optionLabel = (o: { label_ar: string; label_en: string }) =>
+  locale.value === 'ar' ? o.label_ar : o.label_en;
+
+const optionSelectItems = computed(() =>
+  optionList.value.map((o) => ({
+    value: o.id,
+    label: `${optionLabel(o)} · ${formatPrice(Number(o.price_amount) || 0, locale.value)} ${t('common.currency')}`,
+  }))
+);
+const selectedOption = computed(
+  () => optionList.value.find((o) => o.id === selectedOptionId.value) ?? null
+);
+
 const dateOptions = computed(() => [
   { value: '0', label: lc(props.trip.dates) },
   { value: '1', label: t('trip.booking.waitlist') },
@@ -25,18 +45,40 @@ const paxOptions = computed(() => [
   { value: '3', label: t('trip.booking.pax3') },
 ]);
 
-/** Unit price parsed from the trip's display price (any digit script). */
-const unitPrice = computed(() => parsePriceAmount(props.trip.price.en || props.trip.price.ar));
+/**
+ * Unit price — the selected option's price when options exist, otherwise the
+ * trip's own display price (parsed from any digit script).
+ */
+const unitPrice = computed(() =>
+  selectedOption.value
+    ? Number(selectedOption.value.price_amount) || 0
+    : parsePriceAmount(props.trip.price.en || props.trip.price.ar)
+);
+/** With options, require a choice before a price is shown (matches the design). */
+const needsChoice = computed(() => hasOptions.value && !selectedOption.value);
+/** Big price shown at the top of the card. */
+const priceLabel = computed(() => {
+  if (needsChoice.value) return '—';
+  return hasOptions.value ? formatPrice(unitPrice.value, locale.value) : lc(props.trip.price);
+});
 const qty = computed(() => Number(travellers.value) || 1);
-const totalLabel = computed(() => formatPrice(unitPrice.value * qty.value, locale.value));
+const totalLabel = computed(() =>
+  needsChoice.value ? '—' : formatPrice(unitPrice.value * qty.value, locale.value)
+);
 
 /** Add the trip to the cart — same flow as packages (cart → checkout → pay). */
 async function addToCart() {
+  if (needsChoice.value) {
+    notify.error(t('trip.booking.chooseOption'));
+    return;
+  }
+  const opt = selectedOption.value;
+  const title = opt ? `${lc(props.trip.title)} — ${optionLabel(opt)}` : lc(props.trip.title);
   await add(
     {
       item_type: 'trip',
       item_id: props.trip.id,
-      title: lc(props.trip.title),
+      title,
       unit_price: unitPrice.value,
       icon: props.trip.icon,
       grad: props.trip.grad,
@@ -52,8 +94,8 @@ async function addToCart() {
 <template>
   <Card variant="elevated" padding="lg" class="book-card">
     <div class="bookcard__price">
-      <span class="bookcard__amount">{{ lc(trip.price) }}</span>
-      <Icon name="saudi-riyal" :size="20" class="bookcard__riyal" />
+      <span class="bookcard__amount">{{ priceLabel }}</span>
+      <Icon v-if="!needsChoice" name="saudi-riyal" :size="20" class="bookcard__riyal" />
       <span class="sr-only">{{ t('common.currency') }}</span>
       <span class="bookcard__per">/ {{ t('common.perPerson') }}</span>
     </div>
@@ -66,7 +108,14 @@ async function addToCart() {
       <Select v-model="travellers" :label="t('trip.booking.travellersLabel')" :options="paxOptions">
         <template #iconStart><Icon name="users" :size="17" /></template>
       </Select>
-      <div>
+      <Select
+        v-if="hasOptions"
+        v-model="selectedOptionId"
+        :label="t('trip.booking.optionLabel')"
+        :placeholder="t('trip.booking.optionPlaceholder')"
+        :options="optionSelectItems"
+      />
+      <div v-else>
         <div class="bookcard__label">{{ t('trip.booking.roomLabel') }}</div>
         <div class="bookcard__radios">
           <Radio v-model="room" value="single" name="room" :label="t('trip.booking.single')" />
@@ -80,7 +129,7 @@ async function addToCart() {
       <span class="bookcard__total-label">{{ t('trip.booking.total') }}</span>
       <span class="bookcard__total-value">
         {{ totalLabel }}
-        <Icon name="saudi-riyal" :size="17" class="bookcard__riyal" />
+        <Icon v-if="!needsChoice" name="saudi-riyal" :size="17" class="bookcard__riyal" />
         <span class="sr-only">{{ t('common.currency') }}</span>
       </span>
     </div>

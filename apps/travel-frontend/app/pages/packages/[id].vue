@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Card, Badge, Button, Icon, IconButton } from '@org/shared-ui';
+import { Card, Badge, Button, Icon, IconButton, Select } from '@org/shared-ui';
 import PackageCard from '~/components/PackageCard.vue';
 import type { Database } from '~/types/database.types';
 import { INCLUDES } from '~/data/site';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { pick } = useDbPick();
 const { lc } = useLocalize();
 const localePath = useLocalePath();
@@ -34,20 +34,57 @@ const { data: related } = await useAsyncData('packages-related', async () => {
 
 useHead(() => ({ title: pkg.value ? pick(pkg.value, 'title') : t('detail.notFound') }));
 
-const priceAmount = computed(() =>
+const basePriceAmount = computed(() =>
   pkg.value ? Number((pkg.value.price_en ?? '').replace(/[^0-9.]/g, '')) || 0 : 0
 );
+
+// Admin-managed purchasable options for this package (room type, deposit, …).
+const { data: options } = useItemOptions('package', id);
+const optionList = computed(() => options.value ?? []);
+const hasOptions = computed(() => optionList.value.length > 0);
+const selectedOptionId = ref('');
+
+const optionLabel = (o: { label_ar: string; label_en: string }) =>
+  locale.value === 'ar' ? o.label_ar : o.label_en;
+
+const optionSelectItems = computed(() =>
+  optionList.value.map((o) => ({
+    value: o.id,
+    label: `${optionLabel(o)} · ${formatPrice(Number(o.price_amount) || 0, locale.value)} ${t('common.currency')}`,
+  }))
+);
+const selectedOption = computed(
+  () => optionList.value.find((o) => o.id === selectedOptionId.value) ?? null
+);
+
+/** Unit price — selected option's price when options exist, else base price. */
+const priceAmount = computed(() =>
+  selectedOption.value ? Number(selectedOption.value.price_amount) || 0 : basePriceAmount.value
+);
+/** With options, require a choice before a price is shown (matches the design). */
+const needsChoice = computed(() => hasOptions.value && !selectedOption.value);
+/** Big price shown in the buy card. */
+const priceLabel = computed(() => {
+  if (needsChoice.value) return '—';
+  return hasOptions.value ? formatPrice(priceAmount.value, locale.value) : pkg.value ? pick(pkg.value, 'price') : '';
+});
 
 const qty = ref(1);
 const added = ref(false);
 
 async function addToCart() {
   if (!pkg.value) return;
+  if (needsChoice.value) {
+    notify.error(t('detail.chooseOption'));
+    return;
+  }
+  const opt = selectedOption.value;
+  const title = opt ? `${pick(pkg.value, 'title')} — ${optionLabel(opt)}` : pick(pkg.value, 'title');
   await add(
     {
       item_type: 'package',
       item_id: pkg.value.id,
-      title: pick(pkg.value, 'title'),
+      title,
       unit_price: priceAmount.value,
       icon: pkg.value.icon,
       grad: pkg.value.grad,
@@ -132,11 +169,20 @@ function goPackage(pid: string) {
 
           <Card variant="elevated" padding="lg" class="pd-buy">
             <div class="pd-price">
-              <span class="pd-price__amount">{{ pick(pkg, 'price') }}</span>
-              <Icon name="saudi-riyal" :size="20" class="pd-price__riyal" />
+              <span class="pd-price__amount">{{ priceLabel }}</span>
+              <Icon v-if="!needsChoice" name="saudi-riyal" :size="20" class="pd-price__riyal" />
               <span class="sr-only">{{ t('common.currency') }}</span>
               <span class="pd-price__per">/ {{ t('common.perPerson') }}</span>
             </div>
+
+            <Select
+              v-if="hasOptions"
+              v-model="selectedOptionId"
+              class="pd-options"
+              :label="t('detail.optionLabel')"
+              :placeholder="t('detail.optionPlaceholder')"
+              :options="optionSelectItems"
+            />
 
             <div class="pd-qty">
               <span class="pd-qty__label">{{ t('cart.quantity') }}</span>
@@ -246,6 +292,7 @@ function goPackage(pid: string) {
 .pd-price__amount { font-family: var(--font-display); font-weight: 800; font-size: 32px; color: var(--text-strong); }
 .pd-price__riyal { width: 0.72em; height: 0.72em; color: var(--text-strong); flex: none; }
 .pd-price__per { font-size: 13px; color: var(--text-muted); align-self: flex-end; margin-bottom: 5px; }
+.pd-options { margin-bottom: 18px; }
 .pd-qty { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
 .pd-qty__label { font-family: var(--font-body); font-weight: 700; font-size: 14px; color: var(--text-strong); }
 .pd-stepper { display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid var(--border-default); border-radius: var(--radius-pill); padding: 4px; }
