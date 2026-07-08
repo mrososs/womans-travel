@@ -13,6 +13,7 @@
     "durationAr": "Duration (Arabic)", "durationEn": "Duration (English)",
     "datesAr": "Dates (Arabic)", "datesEn": "Dates (English)",
     "priceAr": "Price label (Arabic)", "priceEn": "Price label (English)",
+    "priceArHint": "Type the number — it displays in Arabic numerals, e.g. ٧٬٢٠٠",
     "priceAmount": "Price amount", "costAmount": "Cost (internal)",
     "seats": "Seats left", "rating": "Rating", "reviews": "Reviews",
     "icon": "Icon", "iconPh": "lucide icon name", "grad": "Gradient", "gradPh": "linear-gradient(...)",

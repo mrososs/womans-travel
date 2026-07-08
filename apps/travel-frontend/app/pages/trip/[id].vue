@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Badge, Card, Dialog, Button, Icon } from '@org/shared-ui';
+import { computed } from 'vue';
+import { Badge, Card, Icon } from '@org/shared-ui';
 import BookingCard from '~/components/trip/BookingCard.vue';
 import TripGrid from '~/components/TripGrid.vue';
 import TripPhoto from '~/components/TripPhoto.vue';
@@ -23,7 +23,6 @@ if (!trip.value) {
 
 const current = computed(() => trip.value!);
 const related = computed(() => (trips.value ?? []).filter((tr) => tr.id !== current.value.id).slice(0, 3));
-const done = ref(false);
 
 useHead(() => ({ title: `${lc(current.value.title)} · ${t('brand')}` }));
 
@@ -101,7 +100,7 @@ function goTrip(id: string) {
             </Card>
           </div>
 
-          <BookingCard :trip="current" @book="done = true" />
+          <BookingCard :trip="current" />
         </div>
       </div>
     </section>
@@ -112,16 +111,6 @@ function goTrip(id: string) {
         <TripGrid :trips="related" @open="goTrip" />
       </div>
     </section>
-
-    <Dialog v-model:open="done" variant="center" :title="t('trip.success.title')" @close="done = false">
-      <div class="trip-done">
-        <span class="trip-done__icon"><Icon name="check" :size="32" /></span>
-        <p>{{ t('trip.success.body', { title: lc(current.title) }) }}</p>
-      </div>
-      <template #footer>
-        <Button block @click="done = false">{{ t('trip.success.ok') }}</Button>
-      </template>
-    </Dialog>
   </div>
 </template>
 
@@ -161,9 +150,6 @@ function goTrip(id: string) {
 .trip-include__tick { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--success-100); color: var(--success-500); display: inline-flex; align-items: center; justify-content: center; }
 .trip-related { padding-top: 0; }
 .trip-related__head { margin-bottom: 30px; }
-.trip-done { text-align: center; padding: 4px 0; }
-.trip-done__icon { display: inline-flex; width: 64px; height: 64px; border-radius: 50%; background: var(--success-100); color: var(--success-500); align-items: center; justify-content: center; margin-bottom: 14px; }
-.trip-done p { color: var(--text-body); margin: 0; line-height: 1.8; }
 
 @media (max-width: 620px) {
   .trip-highlights, .trip-includes { grid-template-columns: 1fr; }

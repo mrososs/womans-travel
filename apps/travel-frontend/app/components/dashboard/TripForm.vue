@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Input, Select, Switch } from '@org/shared-ui';
 import ImageUpload from '~/components/dashboard/ImageUpload.vue';
 import type { TripInsert } from '~/composables/useAdminContent';
@@ -8,9 +9,23 @@ import type { TripInsert } from '~/composables/useAdminContent';
  * `model` object; this component mutates its fields in place (v-model per field).
  * `isNew` toggles whether the `id` slug is editable (locked when editing).
  */
-defineProps<{ model: TripInsert; isNew: boolean }>();
+const props = defineProps<{ model: TripInsert; isNew: boolean }>();
 
 const { t } = useI18n();
+
+/**
+ * Arabic price proxy: the admin can type digits in any script, and the field
+ * shows them as grouped Arabic-Indic numerals (e.g. 7200 → ٧٬٢٠٠). Whenever the
+ * Arabic price changes we also mirror it into the numeric `price_amount`, which
+ * drives reports and cart totals.
+ */
+const priceAr = computed({
+  get: () => props.model.price_ar ?? '',
+  set: (v: string) => {
+    props.model.price_ar = formatArabicPriceInput(v);
+    props.model.price_amount = parsePriceAmount(v) || null;
+  },
+});
 
 const kindOptions = [
   { value: 'intl', label: t('destinations.kinds.intl') },
@@ -54,7 +69,7 @@ const variantOptions = [
       <Input v-model="model.duration_en" :label="t('admin.durationEn')" />
       <Input v-model="model.dates_ar" :label="t('admin.datesAr')" />
       <Input v-model="model.dates_en" :label="t('admin.datesEn')" />
-      <Input v-model="model.price_ar" :label="t('admin.priceAr')" />
+      <Input v-model="priceAr" :label="t('admin.priceAr')" :hint="t('admin.priceArHint')" />
       <Input v-model="model.price_en" :label="t('admin.priceEn')" />
       <Input v-model.number="model.price_amount" type="number" :label="t('admin.priceAmount')" />
       <Input v-model.number="model.seats" type="number" :label="t('admin.seats')" />
