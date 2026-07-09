@@ -37,7 +37,7 @@ const DEMO_ITEM = {
   quantity: 1,
 };
 
-const { items, hydrate } = useCart();
+const { items, hydrate, clear } = useCart();
 const { isLoggedIn } = useAuth();
 const localePath = useLocalePath();
 const config = useRuntimeConfig();
@@ -60,6 +60,23 @@ const total = computed(() => subtotal.value + vat.value);
 // Stepper: 1 = traveler details, 2 = payment.
 const step = ref<1 | 2>(1);
 const traveler = ref<TravelerDetails | null>(null);
+
+// Payment method chosen in step 2.
+type PaymentMethod = 'moyasar' | 'bank_transfer';
+const method = ref<PaymentMethod>('moyasar');
+
+// Static bank-account details for the manual-transfer option (demo data).
+const BANK = {
+  bankName: 'مصرف الراجحي',
+  accountName: 'مؤسسة رحلات المستقبل الذهبي للسياحة',
+  accountNumber: '575608010000904',
+  iban: 'SA84 8000 0575 6080 1000 0904',
+};
+
+const transferReference = ref('');
+const submitting = ref(false);
+const bankError = ref('');
+const copied = ref('');
 
 type Phase = 'loading' | 'form' | 'error';
 const phase = ref<Phase>('loading');
@@ -102,7 +119,71 @@ function onTravelerNext(details: TravelerDetails) {
   }
   traveler.value = details;
   step.value = 2;
-  begin();
+  // Only the electronic gateway needs preparing; the bank card is static.
+  if (method.value === 'moyasar') begin();
+}
+
+/** Switch payment method in step 2 (mounts Moyasar lazily on first select). */
+function selectMethod(m: PaymentMethod) {
+  if (method.value === m) return;
+  method.value = m;
+  bankError.value = '';
+  if (m === 'moyasar' && step.value === 2) begin();
+}
+
+/** Copy a bank detail to the clipboard with a brief "copied" confirmation. */
+async function copyValue(value: string, key: string) {
+  try {
+    await navigator.clipboard.writeText(value.replace(/\s+/g, ''));
+    copied.value = key;
+    setTimeout(() => (copied.value = copied.value === key ? '' : copied.value), 1500);
+  } catch {
+    /* clipboard unavailable — no-op */
+  }
+}
+
+/**
+ * Bank-transfer submit ("تم إرسال المبلغ"): create a pending bank-transfer
+ * order server-side, clear the cart, and send the shopper to My Bookings where
+ * the transfer shows as "under review" until an admin approves it.
+ */
+async function submitBankTransfer() {
+  if (!isLoggedIn.value) {
+    navigateTo(localePath('/auth/login'));
+    return;
+  }
+  if (!traveler.value) {
+    step.value = 1;
+    return;
+  }
+  const ref_ = transferReference.value.trim();
+  if (ref_.length < 4) {
+    bankError.value = 'الرجاء إدخال رقم عملية التحويل البنكي.';
+    return;
+  }
+
+  submitting.value = true;
+  bankError.value = '';
+  try {
+    await $fetch<{ orderId: string }>('/api/orders/bank-transfer', {
+      method: 'POST',
+      body: { traveler: traveler.value, transferReference: ref_ },
+    });
+    await clear(); // server already cleared the DB cart; reset local state too
+    navigateTo(localePath('/account/orders'));
+  } catch (err: unknown) {
+    const status = (err as { statusCode?: number })?.statusCode;
+    if (status === 401) {
+      navigateTo(localePath('/auth/login'));
+      return;
+    }
+    bankError.value =
+      (err as { statusMessage?: string; message?: string })?.statusMessage ||
+      (err as Error)?.message ||
+      'تعذّر تسجيل الحجز، حاولي مرة أخرى.';
+  } finally {
+    submitting.value = false;
+  }
 }
 
 /** Return to the traveler form to edit the details (step 2 → 1). */
@@ -220,34 +301,134 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- Loading -->
-          <div v-if="phase === 'loading'" class="co-loading">
-            <Icon name="loader" :size="26" class="co-spin" />
-            <p>جارٍ تجهيز بوابة الدفع…</p>
+          <!-- Payment-method selector -->
+          <div class="co-methods" role="radiogroup" aria-label="اختيار طريقة الدفع">
+            <button
+              type="button"
+              class="co-method"
+              :class="{ 'is-active': method === 'moyasar' }"
+              role="radio"
+              :aria-checked="method === 'moyasar'"
+              @click="selectMethod('moyasar')"
+            >
+              <span class="co-method__radio"><span class="co-method__dot" /></span>
+              <Icon name="credit-card" :size="20" />
+              <span class="co-method__label">الدفع الإلكتروني (ميسّر)</span>
+            </button>
+            <button
+              type="button"
+              class="co-method"
+              :class="{ 'is-active': method === 'bank_transfer' }"
+              role="radio"
+              :aria-checked="method === 'bank_transfer'"
+              @click="selectMethod('bank_transfer')"
+            >
+              <span class="co-method__radio"><span class="co-method__dot" /></span>
+              <Icon name="building-2" :size="20" />
+              <span class="co-method__label">تحويل بنكي</span>
+            </button>
           </div>
 
-          <!-- Error -->
-          <div v-else-if="phase === 'error'" class="co-error">
-            <Icon name="alert-triangle" :size="26" />
-            <p>{{ errorMsg }}</p>
-            <Button variant="outline" size="md" @click="begin">إعادة المحاولة</Button>
-          </div>
+          <!-- ===== Electronic payment (Moyasar) ===== -->
+          <template v-if="method === 'moyasar'">
+            <!-- Loading -->
+            <div v-if="phase === 'loading'" class="co-loading">
+              <Icon name="loader" :size="26" class="co-spin" />
+              <p>جارٍ تجهيز بوابة الدفع…</p>
+            </div>
 
-          <!-- Moyasar hosted form mounts here -->
-          <div v-show="phase === 'form'" class="co-mysr">
-            <ul class="co-brands" aria-hidden="true">
-              <li><Icon name="credit-card" :size="18" /> مدى</li>
-              <li><Icon name="credit-card" :size="18" /> Visa</li>
-              <li><Icon name="credit-card" :size="18" /> Mastercard</li>
-            </ul>
-            <div class="mysr-form" />
-            <p v-if="isTestMode" class="co-mysr__hint">
-              <Icon name="shield-check" :size="14" />
-              بيئة اختبار — استخدمي بطاقة Visa التجريبية 4111&nbsp;1111&nbsp;1111&nbsp;1111
+            <!-- Error -->
+            <div v-else-if="phase === 'error'" class="co-error">
+              <Icon name="alert-triangle" :size="26" />
+              <p>{{ errorMsg }}</p>
+              <Button variant="outline" size="md" @click="begin">إعادة المحاولة</Button>
+            </div>
+
+            <!-- Moyasar hosted form mounts here -->
+            <div v-show="phase === 'form'" class="co-mysr">
+              <ul class="co-brands" aria-hidden="true">
+                <li><Icon name="credit-card" :size="18" /> مدى</li>
+                <li><Icon name="credit-card" :size="18" /> Visa</li>
+                <li><Icon name="credit-card" :size="18" /> Mastercard</li>
+              </ul>
+              <div class="mysr-form" />
+              <p v-if="isTestMode" class="co-mysr__hint">
+                <Icon name="shield-check" :size="14" />
+                بيئة اختبار — استخدمي بطاقة Visa التجريبية 4111&nbsp;1111&nbsp;1111&nbsp;1111
+              </p>
+              <p v-else class="co-mysr__hint">
+                <Icon name="shield-check" :size="14" />
+                دفع آمن ومشفّر عبر بوابة Moyasar — بياناتكِ محميّة بالكامل
+              </p>
+            </div>
+          </template>
+
+          <!-- ===== Manual bank transfer ===== -->
+          <div v-else class="co-bank">
+            <p class="co-bank__lead">
+              حوّلي المبلغ الإجمالي إلى الحساب البنكي التالي، ثم أدخلي رقم عملية التحويل واضغطي «تم إرسال المبلغ».
+              سيتم تأكيد حجزكِ بعد مراجعة الإدارة للتحويل.
             </p>
-            <p v-else class="co-mysr__hint">
-              <Icon name="shield-check" :size="14" />
-              دفع آمن ومشفّر عبر بوابة Moyasar — بياناتكِ محميّة بالكامل
+
+            <div class="co-bank__amount">
+              <span>المبلغ المطلوب تحويله</span>
+              <strong class="co-price">{{ nf.format(total) }}<Icon name="saudi-riyal" :size="18" /></strong>
+            </div>
+
+            <dl class="co-bank__details">
+              <div class="co-bank__row">
+                <dt><Icon name="building-2" :size="15" /> اسم البنك</dt>
+                <dd>{{ BANK.bankName }}</dd>
+              </div>
+              <div class="co-bank__row">
+                <dt><Icon name="user" :size="15" /> اسم صاحب الحساب</dt>
+                <dd>{{ BANK.accountName }}</dd>
+              </div>
+              <div class="co-bank__row">
+                <dt><Icon name="hash" :size="15" /> رقم الحساب</dt>
+                <dd class="co-bank__mono">
+                  {{ BANK.accountNumber }}
+                  <button type="button" class="co-bank__copy" @click="copyValue(BANK.accountNumber, 'acc')">
+                    <Icon :name="copied === 'acc' ? 'check' : 'copy'" :size="14" />
+                  </button>
+                </dd>
+              </div>
+              <div class="co-bank__row">
+                <dt><Icon name="credit-card" :size="15" /> الآيبان (IBAN)</dt>
+                <dd class="co-bank__mono">
+                  {{ BANK.iban }}
+                  <button type="button" class="co-bank__copy" @click="copyValue(BANK.iban, 'iban')">
+                    <Icon :name="copied === 'iban' ? 'check' : 'copy'" :size="14" />
+                  </button>
+                </dd>
+              </div>
+            </dl>
+
+            <label class="co-bank__field">
+              <span class="co-bank__field-label">رقم عملية التحويل البنكي</span>
+              <input
+                v-model="transferReference"
+                type="text"
+                inputmode="numeric"
+                class="co-bank__input"
+                placeholder="مثال: 1029384756"
+                :disabled="submitting"
+                @input="bankError = ''"
+              />
+            </label>
+
+            <p v-if="bankError" class="co-bank__error">
+              <Icon name="alert-triangle" :size="15" /> {{ bankError }}
+            </p>
+
+            <Button variant="primary" size="lg" :disabled="submitting" @click="submitBankTransfer">
+              <template #iconStart><Icon name="check" :size="18" /></template>
+              {{ submitting ? 'جارٍ الإرسال…' : 'تم إرسال المبلغ' }}
+            </Button>
+
+            <p class="co-bank__note">
+              <Icon name="info" :size="14" />
+              لن يتم تأكيد الحجز إلا بعد التحقق من وصول المبلغ. يمكنكِ متابعة حالة الطلب من صفحة «حجوزاتي».
             </p>
           </div>
         </div>
@@ -411,6 +592,71 @@ onMounted(() => {
   margin: var(--space-4) 0 0; font-size: var(--text-xs); color: var(--text-muted);
 }
 .co-mysr__hint :deep(svg) { color: var(--success-500); flex: none; }
+
+/* payment-method selector */
+.co-methods { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-5); }
+.co-method {
+  display: flex; align-items: center; gap: 10px; cursor: pointer; text-align: start;
+  padding: 14px 16px; border: 1.5px solid var(--border-default); border-radius: var(--radius-md);
+  background: var(--surface-card); color: var(--text-strong);
+  font-family: var(--font-display); font-weight: var(--weight-bold); font-size: var(--text-sm);
+  transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
+}
+.co-method:hover { border-color: var(--brand-solid); }
+.co-method.is-active { border-color: var(--brand-solid); background: var(--rose-50); box-shadow: var(--shadow-sm); }
+.co-method :deep(svg) { color: var(--brand-strong); flex: none; }
+.co-method__label { flex: 1; min-width: 0; }
+.co-method__radio {
+  width: 18px; height: 18px; flex: none; border-radius: 50%;
+  border: 2px solid var(--border-default); display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color var(--dur-fast);
+}
+.co-method.is-active .co-method__radio { border-color: var(--brand-solid); }
+.co-method__dot { width: 9px; height: 9px; border-radius: 50%; background: transparent; transition: background var(--dur-fast); }
+.co-method.is-active .co-method__dot { background: var(--brand-solid); }
+
+/* bank-transfer card */
+.co-bank { display: grid; gap: var(--space-4); }
+.co-bank__lead { color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-relaxed); margin: 0; }
+.co-bank__amount {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: var(--space-4); border-radius: var(--radius-md);
+  background: var(--surface-cream, var(--rose-50)); border: 1.5px dashed var(--border-default);
+}
+.co-bank__amount span { font-size: var(--text-sm); color: var(--text-muted); font-weight: var(--weight-semibold); }
+.co-bank__amount strong { font-family: var(--font-display); font-weight: var(--weight-extrabold); font-size: var(--text-2xl); color: var(--brand-strong); }
+.co-bank__details {
+  margin: 0; display: grid; gap: 2px; border: 1.5px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden;
+}
+.co-bank__row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  padding: 12px 16px; background: var(--surface-card); border-bottom: 1px solid var(--border-hair);
+}
+.co-bank__row:last-child { border-bottom: none; }
+.co-bank__row dt { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); color: var(--text-muted); font-weight: var(--weight-semibold); }
+.co-bank__row dt :deep(svg) { color: var(--brand-strong); }
+.co-bank__row dd { margin: 0; font-weight: var(--weight-bold); color: var(--text-strong); font-size: var(--text-sm); text-align: end; }
+.co-bank__mono { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-num); direction: ltr; }
+.co-bank__copy {
+  border: none; background: transparent; cursor: pointer; color: var(--text-brand);
+  display: inline-flex; padding: 4px; border-radius: var(--radius-sm); transition: background var(--dur-fast);
+}
+.co-bank__copy:hover { background: var(--rose-50); }
+.co-bank__field { display: grid; gap: 6px; }
+.co-bank__field-label { font-family: var(--font-display); font-weight: var(--weight-bold); font-size: var(--text-sm); color: var(--text-strong); }
+.co-bank__input {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-default); border-radius: var(--radius-md);
+  font-family: var(--font-num); font-size: var(--text-base); color: var(--text-strong); background: var(--surface-card);
+  transition: border-color var(--dur-fast);
+}
+.co-bank__input:focus { outline: none; border-color: var(--brand-solid); }
+.co-bank__error { display: flex; align-items: center; gap: 6px; margin: 0; font-size: var(--text-sm); color: var(--danger-500); }
+.co-bank__note { display: flex; align-items: flex-start; gap: 6px; margin: 0; font-size: var(--text-xs); color: var(--text-muted); line-height: var(--leading-relaxed); }
+.co-bank__note :deep(svg) { color: var(--text-brand); flex: none; margin-top: 2px; }
+
+@media (max-width: 520px) {
+  .co-methods { grid-template-columns: 1fr; }
+}
 
 /* summary */
 .co-demo-note {

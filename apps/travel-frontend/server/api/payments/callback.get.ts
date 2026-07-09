@@ -66,6 +66,8 @@ export default defineEventHandler(async (event) => {
       status: paid ? 'paid' : 'failed',
       payment_ref: payment.id,
       payment_provider: 'moyasar',
+      payment_method: 'moyasar',
+      payment_status: paid ? 'paid' : 'failed',
       paid_at: paid ? new Date().toISOString() : null,
     })
     .eq('id', orderId);

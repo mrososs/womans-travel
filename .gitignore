@@ -64,3 +64,6 @@ Thumbs.db
 # Vercel build output (Build Output API) & local link
 .vercel
 vitest.config.*.timestamp*
+
+# Internal working notes (not for the repo)
+docs/wow-features.md

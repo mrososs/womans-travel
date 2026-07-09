@@ -283,39 +283,51 @@ export type Database = {
         Row: {
           created_at: string
           currency: string
+          customer_email: string | null
           id: string
           paid_at: string | null
+          payment_method: string | null
           payment_provider: string | null
           payment_ref: string | null
+          payment_status: string
           status: string
           subtotal: number
           total: number
+          transfer_reference: string | null
           traveler_info: Json | null
           user_id: string
         }
         Insert: {
           created_at?: string
           currency?: string
+          customer_email?: string | null
           id?: string
           paid_at?: string | null
+          payment_method?: string | null
           payment_provider?: string | null
           payment_ref?: string | null
+          payment_status?: string
           status?: string
           subtotal?: number
           total?: number
+          transfer_reference?: string | null
           traveler_info?: Json | null
           user_id: string
         }
         Update: {
           created_at?: string
           currency?: string
+          customer_email?: string | null
           id?: string
           paid_at?: string | null
+          payment_method?: string | null
           payment_provider?: string | null
           payment_ref?: string | null
+          payment_status?: string
           status?: string
           subtotal?: number
           total?: number
+          transfer_reference?: string | null
           traveler_info?: Json | null
           user_id?: string
         }

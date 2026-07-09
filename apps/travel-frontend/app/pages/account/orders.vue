@@ -30,17 +30,26 @@ interface Booking {
   status: string;
   total: number;
   currency: string;
+  payment_method: string | null;
+  payment_status: string;
   order_items: OrderItem[];
 }
+
+// Administration contact number shown when a payment is cancelled.
+const ADMIN_PHONE = '0500000000';
 
 const nf = new Intl.NumberFormat('en-US');
 const bcp47 = computed(() => (locale.value === 'ar' ? 'ar-SA' : 'en-GB'));
 
 const { data, pending } = useAsyncData('account-bookings', async () => {
+  // Show confirmed/cancelled/refunded orders, plus pending *bank transfers*
+  // (which are awaiting admin review). Abandoned Moyasar drafts stay hidden.
   const { data: rows } = await client
     .from('orders')
-    .select('id, created_at, status, total, currency, order_items(title, quantity, item_type)')
-    .in('status', ['paid', 'cancelled', 'refunded'])
+    .select(
+      'id, created_at, status, total, currency, payment_method, payment_status, order_items(title, quantity, item_type)'
+    )
+    .or('status.in.(paid,cancelled,refunded),and(status.eq.pending,payment_method.eq.bank_transfer)')
     .order('created_at', { ascending: false });
   return (rows ?? []) as Booking[];
 });
@@ -62,7 +71,18 @@ function deadline(o: Booking) {
   return new Date(o.created_at).getTime() + CANCEL_WINDOW_MS;
 }
 function cancellable(o: Booking) {
-  return o.status === 'paid' && now.value < deadline(o);
+  return o.payment_status === 'paid' && now.value < deadline(o);
+}
+
+// Booking state (drives the messaging on each card).
+function isReview(o: Booking) {
+  return o.payment_status === 'pending' && o.payment_method === 'bank_transfer';
+}
+function isCancelled(o: Booking) {
+  return o.payment_status === 'cancelled' || o.status === 'cancelled';
+}
+function isPaid(o: Booking) {
+  return o.payment_status === 'paid' || o.status === 'paid';
 }
 function timeLeft(o: Booking) {
   const ms = Math.max(0, deadline(o) - now.value);
@@ -85,10 +105,17 @@ function media(o: Booking) {
   if (type === 'product') return { icon: 'shopping-bag', grad: 'var(--grad-navy)' };
   return { icon: 'package', grad: 'var(--grad-rose)' };
 }
-function statusVariant(status: string): BadgeVariant {
-  if (status === 'paid') return 'success';
-  if (status === 'refunded') return 'info';
+function stateVariant(o: Booking): BadgeVariant {
+  if (isReview(o)) return 'warning';
+  if (isPaid(o)) return 'success';
+  if (o.status === 'refunded') return 'info';
   return 'neutral';
+}
+function stateLabel(o: Booking) {
+  if (isReview(o)) return t('account.bookings.status.review');
+  if (isPaid(o)) return t('account.bookings.status.paid');
+  if (isCancelled(o)) return t('account.bookings.status.cancelled');
+  return t(`account.bookings.status.${o.status}`);
 }
 
 // Cancellation ----------------------------------------------------------
@@ -100,7 +127,10 @@ async function doCancel(o: Booking) {
   try {
     await $fetch('/api/orders/cancel', { method: 'POST', body: { orderId: o.id } });
     const row = bookings.value.find((b) => b.id === o.id);
-    if (row) row.status = 'cancelled';
+    if (row) {
+      row.status = 'cancelled';
+      row.payment_status = 'cancelled';
+    }
     notify.success(t('account.bookings.cancelled'));
     confirmId.value = null;
   } catch (err: unknown) {
@@ -144,7 +174,7 @@ async function doCancel(o: Booking) {
 
           <!-- Bookings -->
           <ul v-else class="bk__list">
-            <li v-for="o in bookings" :key="o.id" class="bk-card" :class="{ 'is-cancelled': o.status === 'cancelled' }">
+            <li v-for="o in bookings" :key="o.id" class="bk-card" :class="{ 'is-cancelled': isCancelled(o) }">
               <div class="bk-card__main">
                 <span class="bk-card__media" :style="{ background: media(o).grad }">
                   <Icon :name="media(o).icon" :size="26" :stroke-width="1.4" color="#fff" />
@@ -152,7 +182,7 @@ async function doCancel(o: Booking) {
                 <div class="bk-card__info">
                   <div class="bk-card__row">
                     <h2 class="bk-card__title">{{ titles(o) }}</h2>
-                    <Badge :variant="statusVariant(o.status)">{{ t(`account.bookings.status.${o.status}`) }}</Badge>
+                    <Badge :variant="stateVariant(o)">{{ stateLabel(o) }}</Badge>
                   </div>
                   <div class="bk-card__meta">
                     <span><Icon name="calendar" :size="14" /> {{ t('account.bookings.purchasedOn') }}: {{ fmtDate(o.created_at) }}</span>
@@ -165,13 +195,30 @@ async function doCancel(o: Booking) {
                 </div>
               </div>
 
-              <!-- Cancellation footer -->
-              <div class="bk-card__foot">
-                <template v-if="o.status === 'cancelled'">
-                  <span class="bk-note bk-note--muted"><Icon name="x-circle" :size="15" /> {{ t('account.bookings.status.cancelled') }}</span>
+              <!-- Status / cancellation footer -->
+              <div class="bk-card__foot" :class="{ 'bk-card__foot--alert': isCancelled(o) }">
+                <!-- Bank transfer awaiting admin review -->
+                <template v-if="isReview(o)">
+                  <span class="bk-note bk-note--review">
+                    <Icon name="clock" :size="15" /> {{ t('account.bookings.bankReview') }}
+                  </span>
                 </template>
 
-                <template v-else-if="cancellable(o)">
+                <!-- Payment cancelled — show contact-admin alert -->
+                <template v-else-if="isCancelled(o)">
+                  <span class="bk-alert">
+                    <Icon name="alert-triangle" :size="16" />
+                    {{ t('account.bookings.cancelledAlert', { phone: ADMIN_PHONE }) }}
+                  </span>
+                </template>
+
+                <!-- Paid & confirmed — plus free-cancellation controls within 48h -->
+                <template v-else-if="isPaid(o)">
+                  <span class="bk-note bk-note--ok">
+                    <Icon name="check-circle" :size="15" /> {{ t('account.bookings.paidConfirmed') }}
+                  </span>
+
+                  <template v-if="cancellable(o)">
                   <template v-if="confirmId === o.id">
                     <span class="bk-note bk-note--warn"><Icon name="alert-triangle" :size="15" /> {{ t('account.bookings.confirmTitle') }}</span>
                     <span class="bk-card__foot-actions">
@@ -201,8 +248,9 @@ async function doCancel(o: Booking) {
                   </template>
                 </template>
 
-                <template v-else>
-                  <span class="bk-note bk-note--muted"><Icon name="lock" :size="15" /> {{ t('account.bookings.windowEnded') }}</span>
+                  <template v-else>
+                    <span class="bk-note bk-note--muted"><Icon name="lock" :size="15" /> {{ t('account.bookings.windowEnded') }}</span>
+                  </template>
                 </template>
               </div>
             </li>
@@ -271,6 +319,16 @@ async function doCancel(o: Booking) {
 .bk-note--ok { color: var(--success-600, var(--success-500)); }
 .bk-note--warn { color: var(--danger-500); }
 .bk-note--muted { color: var(--text-subtle); }
+.bk-note--review { color: var(--warning-600, var(--warning-500)); }
+
+/* Cancelled-payment alert (contact administration) */
+.bk-card__foot--alert { background: var(--danger-100, #fdecec); border-top-color: var(--danger-200, var(--danger-100)); }
+.bk-alert {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--text-sm); font-weight: 600; color: var(--danger-600, var(--danger-500));
+  line-height: var(--leading-relaxed);
+}
+.bk-alert :deep(svg) { flex: none; }
 
 @media (max-width: 560px) {
   .bk-card__main { flex-wrap: wrap; }

@@ -3,37 +3,40 @@ import type { Database } from '~/types/database.types';
 import { normalizeTraveler, priceCart, type TravelerInput } from '../../utils/checkout';
 
 /**
- * POST /api/payments/create
+ * POST /api/orders/bank-transfer  { traveler, transferReference }
  *
- * Creates a `pending` order (+ order_items) for the signed-in user from their
- * Supabase cart, recomputing the amount **server-side** (never trusting the
- * client). Returns the amount in halalas so the client can hand it to
- * Moyasar.js. Payment is only confirmed later, server-side, by the
- * callback/webhook once Moyasar reports the charge as paid.
+ * Creates a bank-transfer order for the signed-in shopper. Unlike the Moyasar
+ * flow (confirmed by the gateway), a manual transfer is created as
+ * `payment_status: 'pending'` and stays that way until an admin verifies the
+ * money arrived and approves it from the dashboard.
  *
- * If the cart is empty we fall back to a single demo trip so the flow is always
- * testable in the demo environment (see docs/plan.md §5, §8).
+ * The amount is recomputed server-side from the DB cart (client never trusted),
+ * the traveler manifest is validated + snapshotted, and the customer-entered
+ * transfer reference + buyer email are stored on the order. The cart is cleared
+ * once the order is recorded.
  */
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
-  // NOTE: serverSupabaseUser returns verified JWT *claims* here, where the user
-  // id is `sub` (not `id`). Support both shapes so this is version-proof.
   const uid = (user as { id?: string; sub?: string } | null)?.id ?? (user as { sub?: string } | null)?.sub;
   if (!uid) {
-    throw createError({ statusCode: 401, statusMessage: 'Sign in to check out' });
+    throw createError({ statusCode: 401, statusMessage: 'الرجاء تسجيل الدخول لإتمام الحجز.' });
   }
   const email = (user as { email?: string } | null)?.email ?? null;
 
-  // Traveler details captured in the checkout stepper (required before payment).
-  const body = await readBody<{ traveler?: TravelerInput }>(event).catch(() => ({}));
+  const body = await readBody<{ traveler?: TravelerInput; transferReference?: unknown }>(event).catch(() => ({}));
   const traveler = normalizeTraveler(body?.traveler);
+
+  const transferReference = (typeof body?.transferReference === 'string' ? body.transferReference : '').trim();
+  if (transferReference.length < 4) {
+    throw createError({ statusCode: 400, statusMessage: 'الرجاء إدخال رقم عملية التحويل البنكي.' });
+  }
 
   const client = await serverSupabaseClient<Database>(event);
 
   // 1) Read the authoritative cart + recompute totals server-side.
-  const { lines, subtotal, vat, total } = await priceCart(client, uid);
+  const { lines, subtotal, total } = await priceCart(client, uid);
 
-  // 2) Create the pending order.
+  // 2) Create the pending bank-transfer order.
   const { data: order, error: orderError } = await client
     .from('orders')
     .insert({
@@ -42,9 +45,10 @@ export default defineEventHandler(async (event) => {
       currency: 'SAR',
       subtotal,
       total,
-      payment_provider: 'moyasar',
-      payment_method: 'moyasar',
+      payment_provider: 'bank_transfer',
+      payment_method: 'bank_transfer',
       payment_status: 'pending',
+      transfer_reference: transferReference,
       customer_email: email,
     })
     .select('id')
@@ -54,15 +58,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: orderError?.message ?? 'Could not create order' });
   }
 
-  // 2b) Snapshot the traveler manifest onto the order. Done as a separate,
-  // fail-soft update so the flow keeps working even if the traveler_info column
-  // migration (20260707130000) has not yet been applied to this environment.
+  // 2b) Snapshot the traveler manifest (fail-soft, mirrors the Moyasar flow).
   const { error: travelerError } = await client
     .from('orders')
     .update({ traveler_info: traveler })
     .eq('id', order.id);
   if (travelerError) {
-    console.warn('[payments/create] could not persist traveler_info:', travelerError.message);
+    console.warn('[orders/bank-transfer] could not persist traveler_info:', travelerError.message);
   }
 
   // 3) Snapshot the line items onto the order.
@@ -77,18 +79,12 @@ export default defineEventHandler(async (event) => {
       line_total: l.line_total,
     }))
   );
-
   if (itemsError) {
     throw createError({ statusCode: 500, statusMessage: itemsError.message });
   }
 
-  return {
-    orderId: order.id,
-    amount: Math.round(total * 100), // halalas — the value Moyasar charges
-    currency: 'SAR',
-    description: `Durrah — طلب رقم ${order.id.slice(0, 8)}`,
-    subtotal,
-    vat,
-    total,
-  };
+  // 4) The order now owns the items — clear the shopper's cart.
+  await client.from('cart_items').delete().eq('user_id', uid);
+
+  return { orderId: order.id, total, currency: 'SAR' };
 });
