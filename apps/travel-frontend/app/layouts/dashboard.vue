@@ -19,6 +19,7 @@ const nav = computed(() => [
   { key: 'orders', to: localePath('/dashboard/orders'), icon: 'package' },
   { key: 'trips', to: localePath('/dashboard/trips'), icon: 'compass' },
   { key: 'packages', to: localePath('/dashboard/packages'), icon: 'crown' },
+  { key: 'settings', to: localePath('/dashboard/settings'), icon: 'building-2' },
 ]);
 
 function isActive(to: string) {

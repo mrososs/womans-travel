@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_settings: {
+        Row: {
+          account_name: string
+          account_number: string
+          bank_name: string
+          iban: string
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          bank_name: string
+          iban: string
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          bank_name?: string
+          iban?: string
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { Button, Icon } from '@org/shared-ui';
 import CheckoutTravelerForm from '~/components/CheckoutTravelerForm.vue';
 import type { TravelerDetails } from '~/components/CheckoutTravelerForm.vue';
+import type { Database } from '~/types/database.types';
 
 /**
  * CheckoutPayment — two-step checkout for the Durrah women's travel frontend.
@@ -65,13 +66,14 @@ const traveler = ref<TravelerDetails | null>(null);
 type PaymentMethod = 'moyasar' | 'bank_transfer';
 const method = ref<PaymentMethod>('moyasar');
 
-// Static bank-account details for the manual-transfer option (demo data).
-const BANK = {
-  bankName: 'مصرف الراجحي',
-  accountName: 'مؤسسة رحلات المستقبل الذهبي للسياحة',
-  accountNumber: '575608010000904',
-  iban: 'SA84 8000 0575 6080 1000 0904',
-};
+// Business bank-account details for the manual-transfer option. Defaults mirror
+// the seeded row; the live (admin-editable) values are loaded from bank_settings.
+const bank = ref({
+  bankName: 'مصرف الإنماء',
+  accountName: 'مسفره عيسى سعد الزهراني',
+  accountNumber: '68207575565000',
+  iban: 'SA3705000068207575565000',
+});
 
 const transferReference = ref('');
 const submitting = ref(false);
@@ -247,9 +249,25 @@ async function begin() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   // Preload the cart so the summary reflects the real items.
   hydrate();
+
+  // Load the live bank-account details (admin-editable via the dashboard).
+  const supa = useSupabaseClient<Database>();
+  const { data } = await supa
+    .from('bank_settings')
+    .select('bank_name, account_name, account_number, iban')
+    .eq('id', 1)
+    .maybeSingle();
+  if (data) {
+    bank.value = {
+      bankName: data.bank_name,
+      accountName: data.account_name,
+      accountNumber: data.account_number,
+      iban: data.iban,
+    };
+  }
 });
 </script>
 
@@ -378,17 +396,17 @@ onMounted(() => {
             <dl class="co-bank__details">
               <div class="co-bank__row">
                 <dt><Icon name="building-2" :size="15" /> اسم البنك</dt>
-                <dd>{{ BANK.bankName }}</dd>
+                <dd>{{ bank.bankName }}</dd>
               </div>
               <div class="co-bank__row">
                 <dt><Icon name="user" :size="15" /> اسم صاحب الحساب</dt>
-                <dd>{{ BANK.accountName }}</dd>
+                <dd>{{ bank.accountName }}</dd>
               </div>
               <div class="co-bank__row">
                 <dt><Icon name="hash" :size="15" /> رقم الحساب</dt>
                 <dd class="co-bank__mono">
-                  {{ BANK.accountNumber }}
-                  <button type="button" class="co-bank__copy" @click="copyValue(BANK.accountNumber, 'acc')">
+                  {{ bank.accountNumber }}
+                  <button type="button" class="co-bank__copy" @click="copyValue(bank.accountNumber, 'acc')">
                     <Icon :name="copied === 'acc' ? 'check' : 'copy'" :size="14" />
                   </button>
                 </dd>
@@ -396,8 +414,8 @@ onMounted(() => {
               <div class="co-bank__row">
                 <dt><Icon name="credit-card" :size="15" /> الآيبان (IBAN)</dt>
                 <dd class="co-bank__mono">
-                  {{ BANK.iban }}
-                  <button type="button" class="co-bank__copy" @click="copyValue(BANK.iban, 'iban')">
+                  {{ bank.iban }}
+                  <button type="button" class="co-bank__copy" @click="copyValue(bank.iban, 'iban')">
                     <Icon :name="copied === 'iban' ? 'check' : 'copy'" :size="14" />
                   </button>
                 </dd>

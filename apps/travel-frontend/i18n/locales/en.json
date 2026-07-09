@@ -176,7 +176,19 @@
     "title": "Reports & statistics",
     "adminArea": "Admin area",
     "backToSite": "Back to site",
-    "nav": { "overview": "Overview", "orders": "Orders", "trips": "Trips", "packages": "Packages" },
+    "nav": { "overview": "Overview", "orders": "Orders", "trips": "Trips", "packages": "Packages", "settings": "Bank account" },
+    "bank": {
+      "title": "Bank account details",
+      "lead": "These details are shown to the customer when they choose bank transfer. You can edit them at any time.",
+      "bankName": "Bank name",
+      "accountName": "Account holder",
+      "accountNumber": "Account number",
+      "iban": "IBAN",
+      "save": "Save details",
+      "saved": "Bank account details saved.",
+      "saveError": "Couldn't save the details, please try again.",
+      "requiredError": "Please fill in all fields."
+    },
     "kpi": {
       "buyers": "Package buyers",
       "buyersSub": "Distinct paying customers",
