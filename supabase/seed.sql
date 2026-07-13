@@ -46,13 +46,70 @@ insert into public.faqs (question_ar, question_en, answer_ar, answer_en, sort) v
    'اختاري الرحلة، حدّدي التاريخ وعدد المسافرات ونوع الغرفة، ثم اضغطي «احجزي الآن» وسيتواصل معكِ فريقنا.','Choose a trip, set the date, number of travellers and room type, then tap "Book now" and our team will contact you.',4)
 on conflict do nothing;
 
-insert into public.packages (id, kind, icon, grad, title_ar, title_en, desc_ar, desc_en, price_ar, price_en, sort, image_url) values
-  ('moscow-group','intl','landmark','linear-gradient(155deg,#24314B,#9E5863)','قروب موسكو','Moscow group','٦ أيام في موسكو بين الميادين الحمراء والقصور التاريخية بإقامة فاخرة ومرافِقة مختصّة.','6 days in Moscow across Red Square and historic palaces with luxury stays and a dedicated escort.','١٢٬٩٠٠','12,900',1,'/trips/moscow.webp'),
-  ('istanbul-group','intl','building-2','linear-gradient(155deg,#B76E79,#7C444E)','قروب إسطنبول','Istanbul group','٥ أيام بين إسطنبول والبوسفور بضيافة راقية وتسوّق فاخر.','5 days across Istanbul and the Bosphorus with refined hospitality and fine shopping.','٨٬٤٠٠','8,400',2,'/trips/istanbul.webp'),
-  ('london-group','intl','ferris-wheel','linear-gradient(155deg,#4E6A8A,#9E5863)','قروب لندن','London group','٧ أيام في لندن بين المعالم العريقة وأرقى المتاجر.','7 days in London across timeless landmarks and the finest stores.','١٦٬٥٠٠','16,500',3,'/trips/london.webp'),
-  ('baha-group','local','mountain','linear-gradient(155deg,#4E7A5B,#24314B)','قروب الباحة','Al-Baha group','٣ أيام بين مرتفعات الباحة الخضراء وقراها التراثية.','3 days across Al-Baha''s green highlands and heritage villages.','٣٬٩٠٠','3,900',4,'/trips/baha.webp'),
-  ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','عطلة شاطئية خاصّة على منتجعات ساحل البحر الأحمر السعودي.','A private beach getaway at Saudi Arabia''s Red Sea coast resorts.','٧٬٢٠٠','7,200',5,'/trips/red-sea.webp')
+insert into public.packages (id, kind, icon, grad, title_ar, title_en, desc_ar, desc_en, price_ar, price_en, price_amount, sort, image_url) values
+  ('turkey-north','intl','mountain-snow','linear-gradient(155deg,#24314B,#4E7A5B)','الشمال التركي','North Turkey','٧ أيام (٦–١٣ أغسطس) بين طرابزون ودير سوميلا وأوزنجول وريزا وآيدر، بإقامة في فندق ٥ نجوم ومشرفة للقروب. شامل تذاكر السفر والمواصلات والإفطار.','7 days (6–13 Aug) across Trabzon, Sumela Monastery, Uzungol, Rize and Ayder, with a 5-star hotel stay and a group escort. Includes travel tickets, transport and breakfast.','٦٬٥٥٠','6,550',6550,0,'/trips/istanbul.webp'),
+  ('moscow-group','intl','landmark','linear-gradient(155deg,#24314B,#9E5863)','قروب موسكو','Moscow group','٦ أيام في موسكو بين الميادين الحمراء والقصور التاريخية بإقامة فاخرة ومرافِقة مختصّة.','6 days in Moscow across Red Square and historic palaces with luxury stays and a dedicated escort.','١٢٬٩٠٠','12,900',12900,1,'/trips/moscow.webp'),
+  ('istanbul-group','intl','building-2','linear-gradient(155deg,#B76E79,#7C444E)','قروب إسطنبول','Istanbul group','٥ أيام بين إسطنبول والبوسفور بضيافة راقية وتسوّق فاخر.','5 days across Istanbul and the Bosphorus with refined hospitality and fine shopping.','٨٬٤٠٠','8,400',8400,2,'/trips/istanbul.webp'),
+  ('london-group','intl','ferris-wheel','linear-gradient(155deg,#4E6A8A,#9E5863)','قروب لندن','London group','٧ أيام في لندن بين المعالم العريقة وأرقى المتاجر.','7 days in London across timeless landmarks and the finest stores.','١٦٬٥٠٠','16,500',16500,3,'/trips/london.webp'),
+  ('baha-group','local','mountain','linear-gradient(155deg,#4E7A5B,#24314B)','قروب الباحة','Al-Baha group','٣ أيام بين مرتفعات الباحة الخضراء وقراها التراثية.','3 days across Al-Baha''s green highlands and heritage villages.','٣٬٩٠٠','3,900',3900,4,'/trips/baha.webp'),
+  ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','٣ أيام (١٩–٢٢ أغسطس) على منتجع فاخر ٥ نجوم بساحل البحر الأحمر، شامل تذاكر الطيران والمواصلات والإفطار ومشرفة للقروب.','3 days (19–22 Aug) at a luxury 5-star Red Sea coast resort. Includes flight tickets, transport, breakfast and a group escort.','٥٬٥٥٠','5,550',5550,5,'/trips/red-sea.webp')
 on conflict (id) do nothing;
+
+-- Room-type options for the client packages (single / shared room). Idempotent:
+-- only insert a label once per package. item_options has a uuid PK, so we guard
+-- on (item_type, item_id, label_en) instead of relying on ON CONFLICT.
+insert into public.item_options (item_type, item_id, label_ar, label_en, price_amount, available, sort)
+select v.item_type, v.item_id, v.label_ar, v.label_en, v.price_amount, true, v.sort
+from (values
+  ('package','turkey-north','غرفة مشتركة (حجز مبكر)','Shared room (early booking)',6550::numeric,0),
+  ('package','turkey-north','غرفة مفردة (حجز مبكر)','Single room (early booking)',8650::numeric,1),
+  ('package','red-sea','غرفة مشتركة','Shared room',5550::numeric,0),
+  ('package','red-sea','غرفة مفردة','Single room',8950::numeric,1)
+) as v(item_type, item_id, label_ar, label_en, price_amount, sort)
+where not exists (
+  select 1 from public.item_options o
+  where o.item_type = v.item_type and o.item_id = v.item_id and o.label_en = v.label_en
+);
+
+-- Day-by-day itinerary for the client packages. Idempotent on (package_id, day_number).
+insert into public.package_days (package_id, day_number, title_ar, title_en, items_ar, items_en, sort)
+select v.package_id, v.day_number, v.title_ar, v.title_en, v.items_ar, v.items_en, v.day_number - 1
+from (values
+  ('turkey-north',1,'الوصول إلى طرابزون','Arrival in Trabzon',
+   E'تسجيل الدخول للفندق\nاستلام الغرف',
+   E'Hotel check-in\nRoom allocation'),
+  ('turkey-north',2,'دير سوميلا','Sumela Monastery',
+   E'الإفطار في الفندق\nزيارة دير سوميلا\nمتنزه ألتين ديره الوطني\nقرية همسي كوي وتذوق الأرز بالحليب الشهير\nالعودة إلى طرابزون',
+   E'Breakfast at the hotel\nVisit Sumela Monastery\nAltindere National Park\nHamsikoy village and its famous rice pudding\nReturn to Trabzon'),
+  ('turkey-north',3,'أوزنجول','Uzungol',
+   E'الإفطار في الفندق\nالتوجه إلى أوزنجول\nالتجول حول البحيرة\nزيارة شلالات أوزنجول\nالصعود إلى مرتفعات السلطان مراد',
+   E'Breakfast at the hotel\nHead to Uzungol\nStroll around the lake\nVisit the Uzungol waterfalls\nClimb to the Sultan Murat highlands'),
+  ('turkey-north',4,'ريزا وآيدر','Rize and Ayder',
+   E'الإفطار في الفندق والانطلاق إلى ريزا\nزيارة مزارع الشاي في ريزا\nركوب التلفريك في ريزا (اختياري)\nالوصول إلى آيدر\nزيارة شلال جيلين تولو',
+   E'Breakfast, then set off to Rize\nVisit the tea plantations of Rize\nRize cable car (optional)\nArrive in Ayder\nVisit the Gelin Tulu waterfall'),
+  ('turkey-north',5,'آيدر','Ayder',
+   E'الإفطار بالفندق\nنهر فرتينا\nالزيب لاين أو التجديف (اختياري)\nجسر الحجر التاريخي\nالاستمتاع بالمقاهي المطلة على النهر',
+   E'Breakfast at the hotel\nFirtina River\nZipline or rafting (optional)\nThe historic stone bridge\nRelax at the riverside cafés'),
+  ('turkey-north',6,'طرابزون','Trabzon',
+   E'الإفطار بالفندق\nزيارة بحيرة سيرا\nمول فوروم طرابزون أو جواهر أوتلت\nقصر أتاتورك\nالتسوق من الأسواق المحلية',
+   E'Breakfast at the hotel\nVisit Sera Lake\nForum Trabzon mall or Cevahir Outlet\nAtaturk Mansion\nShopping in the local markets'),
+  ('turkey-north',7,'قبل المغادرة','Departure day',
+   E'التوجه إلى المطار',
+   E'Transfer to the airport'),
+  ('red-sea',1,'الوصول والاستقبال','Arrival & welcome',
+   E'الاستقبال والانتقال إلى المنتجع\nتسجيل الدخول واستلام الغرف\nأمسية حرة على الشاطئ',
+   E'Meet & greet and transfer to the resort\nCheck-in and room allocation\nFree evening by the beach'),
+  ('red-sea',2,'يوم الشاطئ','Beach day',
+   E'الإفطار في المنتجع\nيوم استجمام على الشاطئ والمسبح\nأنشطة مائية (اختياري)\nالاستمتاع بغروب البحر الأحمر',
+   E'Breakfast at the resort\nA relaxing day at the beach and pool\nWater activities (optional)\nEnjoy the Red Sea sunset'),
+  ('red-sea',3,'المغادرة','Departure',
+   E'الإفطار في المنتجع\nوقت حر للتسوق\nالانتقال إلى المطار',
+   E'Breakfast at the resort\nFree time for shopping\nTransfer to the airport')
+) as v(package_id, day_number, title_ar, title_en, items_ar, items_en)
+where not exists (
+  select 1 from public.package_days d
+  where d.package_id = v.package_id and d.day_number = v.day_number
+);
 
 insert into public.services (id, icon, title_ar, title_en, desc_ar, desc_en, sort) values
   ('visa','stamp','استخراج التأشيرات','Visa assistance','مساعدة كاملة في تجهيز وتقديم طلبات التأشيرة.','Full assistance preparing and submitting visa applications.',1),

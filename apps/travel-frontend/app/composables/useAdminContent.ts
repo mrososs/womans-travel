@@ -4,6 +4,8 @@ export type TripInsert = TablesInsert<'trips'>;
 export type PackageInsert = TablesInsert<'packages'>;
 export type ItemOptionRow = Database['public']['Tables']['item_options']['Row'];
 export type ItemOptionInsert = TablesInsert<'item_options'>;
+export type PackageDayRow = Database['public']['Tables']['package_days']['Row'];
+export type PackageDayInsert = TablesInsert<'package_days'>;
 
 /** Which content tables carry admin-managed purchasable options. */
 export type OptionOwnerType = 'trip' | 'package';
@@ -89,6 +91,36 @@ export function useAdminContent() {
     if (error) throw error;
   }
 
+  /* ---------- Package itinerary (day-by-day program) ---------- */
+
+  /** All itinerary days for one package, ordered for display. */
+  async function listDays(packageId: string): Promise<PackageDayRow[]> {
+    const { data, error } = await client
+      .from('package_days')
+      .select('*')
+      .eq('package_id', packageId)
+      .order('sort', { ascending: true })
+      .order('day_number', { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  /** Insert (no id) or update (with id) a single itinerary day. Returns the saved row. */
+  async function saveDay(row: PackageDayInsert): Promise<PackageDayRow> {
+    const { data, error } = await client
+      .from('package_days')
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function deleteDay(id: string): Promise<void> {
+    const { error } = await client.from('package_days').delete().eq('id', id);
+    if (error) throw error;
+  }
+
   return {
     uploadImage,
     saveTrip,
@@ -98,5 +130,8 @@ export function useAdminContent() {
     listOptions,
     saveOption,
     deleteOption,
+    listDays,
+    saveDay,
+    deleteDay,
   };
 }

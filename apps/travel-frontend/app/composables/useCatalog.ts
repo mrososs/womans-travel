@@ -3,6 +3,7 @@ import type { Database } from '~/types/database.types';
 import type { CategoryId, Trip } from '~/data/site';
 
 export type ItemOption = Database['public']['Tables']['item_options']['Row'];
+export type PackageDay = Database['public']['Tables']['package_days']['Row'];
 
 type TripRow = Database['public']['Tables']['trips']['Row'];
 
@@ -113,6 +114,30 @@ export function useItemOptions(
       return data ?? [];
     },
     { watch: [() => toValue(itemId)] }
+  );
+}
+
+/**
+ * Day-by-day itinerary for one package, ordered for display. Keyed + watched
+ * on the package id so it refetches when navigating between detail pages.
+ */
+export function usePackageDays(packageId: MaybeRefOrGetter<string>) {
+  const supabase = useSupabaseClient<Database>();
+  return useAsyncData<PackageDay[]>(
+    () => `package-days-${toValue(packageId)}`,
+    async () => {
+      const id = toValue(packageId);
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from('package_days')
+        .select('*')
+        .eq('package_id', id)
+        .order('sort', { ascending: true })
+        .order('day_number', { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    { watch: [() => toValue(packageId)] }
   );
 }
 

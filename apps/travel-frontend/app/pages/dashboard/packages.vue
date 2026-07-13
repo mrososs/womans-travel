@@ -3,6 +3,7 @@ import { computed, reactive, ref } from 'vue';
 import { Card, Button, Dialog, Icon } from '@org/shared-ui';
 import PackageForm from '~/components/dashboard/PackageForm.vue';
 import OptionsManager from '~/components/dashboard/OptionsManager.vue';
+import ItineraryManager from '~/components/dashboard/ItineraryManager.vue';
 import type { Database } from '~/types/database.types';
 import type { PackageInsert } from '~/composables/useAdminContent';
 
@@ -151,6 +152,7 @@ async function confirmDelete() {
     <Dialog v-model:open="open" variant="center" :title="isNew ? t('admin.packages.add') : t('admin.packages.edit')" @close="open = false">
       <PackageForm :model="form" :is-new="isNew" />
       <OptionsManager v-if="!isNew" item-type="package" :item-id="form.id" />
+      <ItineraryManager v-if="!isNew" :package-id="form.id" />
       <template #footer>
         <Button variant="ghost" @click="open = false">{{ t('admin.cancel') }}</Button>
         <Button :disabled="saving" @click="save">{{ saving ? t('common.sending') : t('admin.save') }}</Button>

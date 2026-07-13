@@ -360,6 +360,50 @@ export type Database = {
         }
         Relationships: []
       }
+      package_days: {
+        Row: {
+          created_at: string
+          day_number: number
+          id: string
+          items_ar: string
+          items_en: string
+          package_id: string
+          sort: number
+          title_ar: string
+          title_en: string
+        }
+        Insert: {
+          created_at?: string
+          day_number?: number
+          id?: string
+          items_ar?: string
+          items_en?: string
+          package_id: string
+          sort?: number
+          title_ar: string
+          title_en: string
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          id?: string
+          items_ar?: string
+          items_en?: string
+          package_id?: string
+          sort?: number
+          title_ar?: string
+          title_en?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_days_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           cost_amount: number | null

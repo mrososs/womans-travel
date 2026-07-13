@@ -38,6 +38,15 @@ const basePriceAmount = computed(() =>
   pkg.value ? Number((pkg.value.price_en ?? '').replace(/[^0-9.]/g, '')) || 0 : 0
 );
 
+// Day-by-day itinerary (admin-managed). Each day's `items` are newline-separated.
+const { data: days } = usePackageDays(id);
+const dayList = computed(() => days.value ?? []);
+const dayItems = (row: { items_ar: string; items_en: string }) =>
+  (locale.value === 'ar' ? row.items_ar : row.items_en)
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
 // Admin-managed purchasable options for this package (room type, deposit, …).
 const { data: options } = useItemOptions('package', id);
 const optionList = computed(() => options.value ?? []);
@@ -165,6 +174,26 @@ function goPackage(pid: string) {
                 </div>
               </div>
             </Card>
+
+            <div v-if="dayList.length" class="pd-itin">
+              <h2 class="pd-h2 pd-itin__head">{{ t('detail.itinerary') }}</h2>
+              <ol class="pd-timeline">
+                <li v-for="(day, i) in dayList" :key="day.id" class="pd-day">
+                  <span class="pd-day__marker">{{ day.day_number }}</span>
+                  <div class="pd-day__body">
+                    <div class="pd-day__num">{{ t('detail.day', { n: day.day_number }) }}</div>
+                    <h3 class="pd-day__title">{{ pick(day, 'title') }}</h3>
+                    <ul v-if="dayItems(day).length" class="pd-day__list">
+                      <li v-for="(item, j) in dayItems(day)" :key="j">
+                        <Icon name="check" :size="13" class="pd-day__tick" />
+                        <span>{{ item }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <span v-if="i < dayList.length - 1" class="pd-day__line" aria-hidden="true" />
+                </li>
+              </ol>
+            </div>
           </div>
 
           <Card variant="elevated" padding="lg" class="pd-buy">
@@ -285,6 +314,31 @@ function goPackage(pid: string) {
 .pd-inc__item { display: flex; align-items: center; gap: 10px; }
 .pd-inc__item span:last-child { font-size: 14px; color: var(--text-body); }
 .pd-inc__tick { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--success-100); color: var(--success-500); display: inline-flex; align-items: center; justify-content: center; }
+
+/* Itinerary timeline */
+.pd-itin { margin-top: 34px; }
+.pd-itin__head { margin-bottom: 20px; }
+.pd-timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pd-day { position: relative; display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding-bottom: 22px; }
+.pd-day:last-child { padding-bottom: 0; }
+.pd-day__marker {
+  position: relative; z-index: 1; flex: none;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--grad-brand, linear-gradient(155deg, var(--brand), var(--brand-strong)));
+  color: #fff; display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.pd-day__line {
+  position: absolute; z-index: 0; top: 40px; bottom: 0;
+  inset-inline-start: 19px; width: 2px; background: var(--border-soft);
+}
+.pd-day__body { padding-top: 2px; }
+.pd-day__num { font-size: 12px; font-weight: 700; color: var(--brand-strong); text-transform: uppercase; letter-spacing: 0.04em; }
+.pd-day__title { font-family: var(--font-display); font-weight: 800; font-size: var(--text-lg); color: var(--text-strong); margin: 3px 0 10px; }
+.pd-day__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pd-day__list li { display: flex; align-items: flex-start; gap: 9px; font-size: 14.5px; line-height: 1.65; color: var(--text-body); }
+.pd-day__tick { flex: none; margin-top: 3px; color: var(--success-500); }
 
 /* Purchase card */
 .pd-buy { position: sticky; top: 90px; }

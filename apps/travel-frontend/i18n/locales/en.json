@@ -40,6 +40,24 @@
       "deleted": "Option deleted",
       "labelRequired": "Both Arabic and English labels are required.",
       "loadError": "Could not load options"
+    },
+    "itinerary": {
+      "title": "Itinerary (daily program)",
+      "hint": "One entry per day. Put each activity on its own line.",
+      "add": "Add day",
+      "empty": "No days yet. Add the first day of the program.",
+      "saveFirst": "Save this package first, then you can add itinerary days.",
+      "dayNumber": "Day #",
+      "titleAr": "Day title (Arabic)",
+      "titleEn": "Day title (English)",
+      "itemsAr": "Activities (Arabic)",
+      "itemsEn": "Activities (English)",
+      "itemsPh": "One activity per line",
+      "saveRow": "Save day",
+      "saved": "Day saved",
+      "deleted": "Day deleted",
+      "titleRequired": "Both Arabic and English day titles are required.",
+      "loadError": "Could not load itinerary"
     }
   },
   "cart": {
@@ -69,6 +87,7 @@
     "overview": "Overview",
     "includes": "The package includes",
     "itinerary": "Itinerary",
+    "day": "Day {n}",
     "availability": "Available",
     "optionLabel": "Choose option",
     "optionPlaceholder": "Choose",
