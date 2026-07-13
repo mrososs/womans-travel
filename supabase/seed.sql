@@ -40,8 +40,8 @@ insert into public.faqs (question_ar, question_en, answer_ar, answer_en, sort) v
    'نعم، جميع رحلاتنا نسائية بالكامل بمرافِقات وطاقم من السيدات لضمان الخصوصية التامّة.','Yes, all our trips are fully women-only with female escorts and staff to ensure complete privacy.',1),
   ('ما الذي تشمله الباقة؟','What does the package include?',
    'تشمل الباقة الطيران والإقامة الفاخرة والوجبات الرئيسية والمرافِقة والتنقلات والأنشطة المذكورة.','The package includes flights, luxury accommodation, main meals, the escort, transfers, and the listed activities.',2),
-  ('ما سياسة الإلغاء؟','What is the cancellation policy?',
-   'الإلغاء مجاني حتى ٧ أيام قبل موعد الرحلة.','Cancellation is free up to 7 days before the trip date.',3),
+  ('ما سياسة الإلغاء والاسترجاع؟','What is the cancellation and refund policy?',
+   'جميع الحجوزات نهائية. بعد إتمام الدفع، يُعدّ المبلغ غير قابل للاسترجاع ولا يمكن إلغاء الحجز.','All bookings are final. Once payment is completed, the amount is non-refundable and the booking cannot be cancelled.',3),
   ('كيف أحجز؟','How do I book?',
    'اختاري الرحلة، حدّدي التاريخ وعدد المسافرات ونوع الغرفة، ثم اضغطي «احجزي الآن» وسيتواصل معكِ فريقنا.','Choose a trip, set the date, number of travellers and room type, then tap "Book now" and our team will contact you.',4)
 on conflict do nothing;
