@@ -27,6 +27,10 @@ const props = withDefaults(
     tier?: TripTier | null;
     /** Pre-localized scarcity text, e.g. "3 seats left". */
     seatsText?: string;
+    /** When true, show a "coming soon" badge and dim the media. */
+    comingSoon?: boolean;
+    /** Pre-localized "coming soon" label. */
+    comingSoonLabel?: string;
     favourite?: boolean;
     /** Reveal wishlist + view actions on hover. */
     hoverActions?: boolean;
@@ -38,7 +42,8 @@ const props = withDefaults(
   }>(),
   {
     region: '', duration: '', dates: '', rating: null, reviews: null, price: '',
-    priceNote: 'للشخص', tier: null, seatsText: '', favourite: false,
+    priceNote: 'للشخص', tier: null, seatsText: '', comingSoon: false,
+    comingSoonLabel: 'قريبًا', favourite: false,
     hoverActions: true, wishlistLabel: 'حفظ', removeLabel: 'إزالة من المحفوظات',
     viewLabel: 'عرض', clickable: true,
   }
@@ -57,6 +62,7 @@ const heartColor = computed(() =>
     padding="none"
     :interactive="clickable"
     class="drh-trip"
+    :class="{ 'drh-trip--soon': comingSoon }"
     @click="clickable && emit('click')"
   >
     <div class="drh-trip__media">
@@ -65,6 +71,10 @@ const heartColor = computed(() =>
         <Badge v-if="tier" :variant="tier.variant || 'solid'">{{ tier.label }}</Badge>
         <span v-else />
       </div>
+      <span v-if="comingSoon" class="drh-trip__soon">
+        <Icon name="clock" :size="13" :stroke-width="2.4" />
+        {{ comingSoonLabel }}
+      </span>
       <div v-if="hoverActions" class="drh-trip__actions">
         <IconButton
           variant="glass"
@@ -144,6 +154,33 @@ const heartColor = computed(() =>
   align-items: flex-start;
   z-index: 2;
 }
+.drh-trip__soon {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
+  z-index: 4;
+  /* Escape the `.drh-trip__media > *` full-bleed sizing used for the photo. */
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--navy-900, #121b33);
+  background: var(--gold-300, #e6c675);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(18, 27, 51, 0.18));
+  white-space: nowrap;
+}
+.drh-trip__soon svg { width: 13px; height: 13px; }
+/* Coming-soon cards read as not-yet-available: gentle desaturate + lift scrim.
+   Hover actions (save / view) stay available so travellers can still wishlist. */
+.drh-trip--soon .drh-trip__media > * { filter: grayscale(0.45) brightness(0.94); }
+.drh-trip--soon .drh-trip__media::after { opacity: 0.66; }
 .drh-trip__actions {
   position: absolute;
   inset: 0;

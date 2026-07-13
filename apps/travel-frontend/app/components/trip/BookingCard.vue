@@ -66,8 +66,12 @@ const totalLabel = computed(() =>
   needsChoice.value ? '—' : formatPrice(unitPrice.value * qty.value, locale.value)
 );
 
+/** Coming-soon trips are not yet open for booking. */
+const comingSoon = computed(() => props.trip.comingSoon);
+
 /** Add the trip to the cart — same flow as packages (cart → checkout → pay). */
 async function addToCart() {
+  if (comingSoon.value) return;
   if (needsChoice.value) {
     notify.error(t('trip.booking.chooseOption'));
     return;
@@ -134,13 +138,19 @@ async function addToCart() {
       </span>
     </div>
 
-    <Button block size="lg" @click="addToCart">
-      <template #iconStart><Icon name="shopping-bag" :size="19" /></template>
-      {{ added ? t('cart.added') : t('cart.addToCart') }}
+    <Button block size="lg" :disabled="comingSoon" @click="addToCart">
+      <template #iconStart><Icon :name="comingSoon ? 'clock' : 'shopping-bag'" :size="19" /></template>
+      {{ comingSoon ? t('trip.booking.comingSoon') : (added ? t('cart.added') : t('cart.addToCart')) }}
     </Button>
     <div class="bookcard__note">
-      <Icon name="lock" :size="14" color="var(--success-500)" />
-      {{ t('trip.booking.secure') }}
+      <template v-if="comingSoon">
+        <Icon name="clock" :size="14" color="var(--text-muted)" />
+        {{ t('trip.booking.comingSoonNote') }}
+      </template>
+      <template v-else>
+        <Icon name="lock" :size="14" color="var(--success-500)" />
+        {{ t('trip.booking.secure') }}
+      </template>
     </div>
   </Card>
 </template>

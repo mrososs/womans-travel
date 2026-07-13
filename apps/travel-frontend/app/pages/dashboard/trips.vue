@@ -32,6 +32,7 @@ function blankTrip(): TripInsert {
     price_ar: '', price_en: '', price_amount: null, seats: null,
     rating: 0, reviews: 0, icon: 'map-pin',
     grad: 'linear-gradient(155deg,#24314B,#9E5863)', image_url: null, featured: false,
+    coming_soon: false,
   };
 }
 

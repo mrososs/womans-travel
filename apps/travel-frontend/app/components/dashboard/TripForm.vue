@@ -80,6 +80,7 @@ const variantOptions = [
     </div>
 
     <Switch v-model="model.featured" :label="t('admin.featured')" />
+    <Switch v-model="model.coming_soon" :label="t('admin.comingSoon')" />
   </div>
 </template>
 

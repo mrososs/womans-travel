@@ -14,8 +14,14 @@ withDefaults(
     fromLabel?: string;
     currency?: string;
     viewLabel?: string;
+    /** Show a red "available now" badge (used for bookable groups on home). */
+    availableNow?: boolean;
+    availableLabel?: string;
   }>(),
-  { img: '', price: '', kindLabel: '', fromLabel: '', currency: '', viewLabel: 'عرض' }
+  {
+    img: '', price: '', kindLabel: '', fromLabel: '', currency: '', viewLabel: 'عرض',
+    availableNow: false, availableLabel: 'متاح الآن',
+  }
 );
 
 const emit = defineEmits<{ open: [] }>();
@@ -27,6 +33,10 @@ const emit = defineEmits<{ open: [] }>();
       <img v-if="img" class="pkg__img" :src="img" :alt="title" loading="lazy" decoding="async">
       <Icon v-else :name="icon" :size="64" :stroke-width="1.2" color="#fff" />
       <Badge v-if="kindLabel" variant="solid" class="pkg__badge">{{ kindLabel }}</Badge>
+      <span v-if="availableNow" class="pkg__available">
+        <span class="pkg__available-dot" />
+        {{ availableLabel }}
+      </span>
       <div class="pkg__actions">
         <span class="pkg__view"><Icon name="eye" :size="18" />{{ viewLabel }}</span>
       </div>
@@ -60,6 +70,23 @@ const emit = defineEmits<{ open: [] }>();
 }
 .pkg:hover .pkg__media::after { opacity: 1; }
 .pkg__badge { position: absolute; top: 12px; inset-inline-start: 12px; z-index: 2; }
+.pkg__available {
+  position: absolute; top: 12px; inset-inline-end: 12px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #dc2626; color: #fff;
+  font-family: var(--font-body); font-weight: 800; font-size: 12px;
+  padding: 5px 11px; border-radius: var(--radius-pill);
+  box-shadow: 0 2px 10px rgba(220, 38, 38, 0.45);
+}
+.pkg__available-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); animation: pkg-pulse 1.8s infinite;
+}
+@keyframes pkg-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); }
+  70% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
 .pkg__actions {
   position: absolute; inset-block-end: 12px; inset-inline-end: 12px; z-index: 2;
   opacity: 0; transform: translateY(6px);

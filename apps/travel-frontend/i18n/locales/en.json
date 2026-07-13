@@ -4,7 +4,7 @@
   "actions": { "wishlist": "Add to wishlist", "wishlistRemove": "Remove from wishlist", "view": "View", "edit": "Edit", "delete": "Delete" },
   "admin": {
     "trips": { "title": "Trips", "add": "Add trip", "edit": "Edit trip" },
-    "packages": { "title": "Packages", "add": "Add package", "edit": "Edit package" },
+    "packages": { "title": "Groups", "add": "Add group", "edit": "Edit group" },
     "col": { "photo": "Photo", "title": "Title", "kind": "Type", "price": "Price", "actions": "Actions" },
     "slug": "Slug (ID)", "slugPh": "e.g. moscow",
     "titleAr": "Title (Arabic)", "titleEn": "Title (English)",
@@ -17,7 +17,7 @@
     "priceAmount": "Price amount", "costAmount": "Cost (internal)",
     "seats": "Seats left", "rating": "Rating", "reviews": "Reviews",
     "icon": "Icon", "iconPh": "lucide icon name", "grad": "Gradient", "gradPh": "linear-gradient(...)",
-    "featured": "Featured on home", "descAr": "Description (Arabic)", "descEn": "Description (English)", "sort": "Sort order",
+    "featured": "Featured on home", "comingSoon": "Coming soon (not bookable)", "descAr": "Description (Arabic)", "descEn": "Description (English)", "sort": "Sort order",
     "photo": "Photo", "uploadPhoto": "Upload photo", "uploading": "Uploading…",
     "photoUploaded": "Photo uploaded", "photoError": "Photo upload failed", "photoUrlPlaceholder": "or paste an image URL",
     "save": "Save", "cancel": "Cancel", "saved": "Saved successfully", "saveError": "Could not save",
@@ -163,7 +163,7 @@
   "nav": {
     "home": "Home",
     "destinations": "Destinations",
-    "packages": "Packages",
+    "packages": "Groups",
     "services": "Services",
     "products": "Travel products",
     "why": "Why us",
@@ -178,6 +178,8 @@
     "seatsLeft": "{count} seats left",
     "viewAll": "View all",
     "details": "Details",
+    "comingSoon": "Coming soon",
+    "availableNow": "Available now",
     "sar": "SAR",
     "startingFrom": "from",
     "learnMore": "Learn more",
@@ -188,7 +190,7 @@
     "title": "Reports & statistics",
     "adminArea": "Admin area",
     "backToSite": "Back to site",
-    "nav": { "overview": "Overview", "orders": "Orders", "trips": "Trips", "packages": "Packages", "settings": "Bank account" },
+    "nav": { "overview": "Overview", "orders": "Orders", "trips": "Trips", "packages": "Groups", "settings": "Bank account" },
     "bank": {
       "title": "Bank account details",
       "lead": "These details are shown to the customer when they choose bank transfer. You can edit them at any time.",
@@ -266,7 +268,7 @@
     "actionError": "Couldn't complete the action, please try again."
   },
   "pages": {
-    "packages": { "eyebrow": "Our packages", "title": "Thoughtfully crafted packages", "lead": "Complete travel packages — international and domestic — fully arranged with total privacy." },
+    "packages": { "eyebrow": "Our groups", "title": "Thoughtfully crafted groups", "lead": "Complete travel groups — international and domestic — fully arranged with total privacy." },
     "services": { "eyebrow": "Tourism services", "title": "Everything you need for a perfect trip", "lead": "From visas to stays and transport — we handle every detail for you." },
     "products": { "eyebrow": "Travel products", "title": "Companions for every journey", "lead": "Hand-picked travel products with the Rahlat Almustaqbal Aldhahabi touch." },
     "about": { "eyebrow": "About us", "title": "Our story at Golden Future Travel", "lead": "A Saudi brand specialising in luxury women-only travel — crafting safe, private journeys inside the Kingdom and beyond." },
@@ -323,6 +325,12 @@
     "eyebrow": "Featured destinations",
     "title": "Trips picked for you",
     "viewAll": "View all destinations"
+  },
+  "homeGroups": {
+    "eyebrow": "Our groups",
+    "title": "Groups available now",
+    "lead": "Two ready-to-book travel groups — one domestic and one international.",
+    "viewAll": "View all groups"
   },
   "categories": {
     "all": "All",
@@ -418,6 +426,8 @@
       "double": "Double room (shared)",
       "total": "Estimated total",
       "book": "Book now",
+      "comingSoon": "Coming soon",
+      "comingSoonNote": "This destination isn't open for booking yet.",
       "secure": "Secure payment"
     },
     "success": {

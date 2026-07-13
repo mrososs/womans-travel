@@ -23,6 +23,7 @@ function mapTrip(r: TripRow): Trip {
     rating: Number(r.rating),
     reviews: r.reviews,
     seats: r.seats,
+    comingSoon: r.coming_soon ?? false,
     tierKey: r.tier_key as Trip['tierKey'],
     tierVariant: r.tier_variant as Trip['tierVariant'],
     region: { ar: r.region_ar, en: r.region_en },

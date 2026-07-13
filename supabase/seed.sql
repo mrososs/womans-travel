@@ -12,18 +12,18 @@ on conflict (id) do nothing;
 insert into public.trips
   (id, category_id, kind, icon, grad, rating, reviews, seats, tier_key, tier_variant,
    region_ar, region_en, title_ar, title_en, duration_ar, duration_en, dates_ar, dates_en,
-   price_ar, price_en, price_amount, featured, image_url)
+   price_ar, price_en, price_amount, featured, coming_soon, image_url)
 values
   ('moscow','city','intl','landmark','linear-gradient(155deg,#24314B,#9E5863)',4.8,112,4,'luxury','solid',
-   'روسيا','Russia','موسكو الساحرة','Enchanting Moscow','٦ أيام','6 days','١٠–١٥ سبتمبر','10–15 Sep','١٠٬٩٠٠','10,900',10900,true,'/trips/moscow.webp'),
+   'روسيا','Russia','موسكو الساحرة','Enchanting Moscow','٦ أيام','6 days','١٠–١٥ سبتمبر','10–15 Sep','١٠٬٩٠٠','10,900',10900,true,true,'/trips/moscow.webp'),
   ('istanbul','city','intl','building-2','linear-gradient(155deg,#B76E79,#7C444E)',4.7,138,6,'popular','gold',
-   'تركيا','Turkey','إسطنبول بين القارتين','Istanbul across two continents','٥ أيام','5 days','٣–٧ أكتوبر','3–7 Oct','٦٬٨٠٠','6,800',6800,true,'/trips/istanbul.webp'),
+   'تركيا','Turkey','إسطنبول بين القارتين','Istanbul across two continents','٥ أيام','5 days','٣–٧ أكتوبر','3–7 Oct','٦٬٨٠٠','6,800',6800,true,true,'/trips/istanbul.webp'),
   ('london','city','intl','ferris-wheel','linear-gradient(155deg,#4E6A8A,#9E5863)',4.9,92,3,'exclusive','navy',
-   'بريطانيا','Britain','لندن العريقة','Timeless London','٧ أيام','7 days','١٢–١٨ نوفمبر','12–18 Nov','١٣٬٥٠٠','13,500',13500,true,'/trips/london.webp'),
+   'بريطانيا','Britain','لندن العريقة','Timeless London','٧ أيام','7 days','١٢–١٨ نوفمبر','12–18 Nov','١٣٬٥٠٠','13,500',13500,true,true,'/trips/london.webp'),
   ('baha','mountain','local','mountain','linear-gradient(155deg,#4E7A5B,#24314B)',4.6,74,8,'domestic','brand',
-   'السعودية · الباحة','Saudi Arabia · Al-Baha','الباحة والمرتفعات الخضراء','Al-Baha & the green highlands','٣ أيام','3 days','٥–٧ مايو','5–7 May','٣٬٢٠٠','3,200',3200,true,'/trips/baha.webp'),
+   'السعودية · الباحة','Saudi Arabia · Al-Baha','الباحة والمرتفعات الخضراء','Al-Baha & the green highlands','٣ أيام','3 days','٥–٧ مايو','5–7 May','٣٬٢٠٠','3,200',3200,true,true,'/trips/baha.webp'),
   ('red-sea','beach','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)',4.8,105,5,'domestic','brand',
-   'السعودية · البحر الأحمر','Saudi Arabia · Red Sea','منتجعات البحر الأحمر','Red Sea resorts','٤ أيام','4 days','٢٠–٢٣ يونيو','20–23 Jun','٧٬٢٠٠','7,200',7200,false,'/trips/red-sea.webp')
+   'السعودية · البحر الأحمر','Saudi Arabia · Red Sea','منتجعات البحر الأحمر','Red Sea resorts','٤ أيام','4 days','٢٠–٢٣ يونيو','20–23 Jun','٧٬٢٠٠','7,200',7200,false,true,'/trips/red-sea.webp')
 on conflict (id) do nothing;
 
 insert into public.reviews (trip_id, icon, grad, rating, name_ar, name_en, trip_ar, trip_en, text_ar, text_en) values
@@ -39,7 +39,7 @@ insert into public.faqs (question_ar, question_en, answer_ar, answer_en, sort) v
   ('هل الرحلات نسائية بالكامل؟','Are the trips fully women-only?',
    'نعم، جميع رحلاتنا نسائية بالكامل بمرافِقات وطاقم من السيدات لضمان الخصوصية التامّة.','Yes, all our trips are fully women-only with female escorts and staff to ensure complete privacy.',1),
   ('ما الذي تشمله الباقة؟','What does the package include?',
-   'تشمل الباقة الطيران والإقامة الفاخرة والوجبات الرئيسية والمرافِقة والتنقلات والأنشطة المذكورة.','The package includes flights, luxury accommodation, main meals, the escort, transfers, and the listed activities.',2),
+   'تشمل الباقة الطيران والإقامة الفاخرة ووجبة الإفطار ومشرفة القروب والتنقلات والأنشطة المذكورة.','The package includes flights, luxury accommodation, breakfast, the group supervisor, transfers, and the listed activities.',2),
   ('ما سياسة الإلغاء والاسترجاع؟','What is the cancellation and refund policy?',
    'جميع الحجوزات نهائية. بعد إتمام الدفع، يُعدّ المبلغ غير قابل للاسترجاع ولا يمكن إلغاء الحجز.','All bookings are final. Once payment is completed, the amount is non-refundable and the booking cannot be cancelled.',3),
   ('كيف أحجز؟','How do I book?',

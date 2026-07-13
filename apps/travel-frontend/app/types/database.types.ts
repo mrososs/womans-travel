@@ -613,6 +613,7 @@ export type Database = {
       trips: {
         Row: {
           category_id: string | null
+          coming_soon: boolean
           cost_amount: number | null
           created_at: string
           dates_ar: string
@@ -640,6 +641,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          coming_soon?: boolean
           cost_amount?: number | null
           created_at?: string
           dates_ar: string
@@ -667,6 +669,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          coming_soon?: boolean
           cost_amount?: number | null
           created_at?: string
           dates_ar?: string

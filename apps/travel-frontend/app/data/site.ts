@@ -22,6 +22,8 @@ export interface Trip {
   rating: number;
   reviews: number;
   seats: number | null;
+  /** When true, the trip shows a "coming soon" badge and can't be added to cart. */
+  comingSoon: boolean;
   tierKey: TierKey;
   tierVariant: BadgeVariant;
   region: Loc;
@@ -149,8 +151,8 @@ export const ITINERARY: ItineraryDay[] = [
 export const INCLUDES: Loc[] = [
   { ar: 'تذاكر الطيران ذهابًا وإيابًا', en: 'Round-trip flights' },
   { ar: 'الإقامة الفاخرة', en: 'Luxury accommodation' },
-  { ar: 'الوجبات الرئيسية', en: 'Main meals' },
-  { ar: 'مرافِقة مختصّة طوال الرحلة', en: 'A dedicated escort throughout' },
+  { ar: 'وجبة الإفطار', en: 'Breakfast' },
+  { ar: 'مشرفة على القروب طوال الرحلة', en: 'A group supervisor throughout' },
   { ar: 'جميع التنقلات الداخلية', en: 'All internal transfers' },
   { ar: 'الأنشطة والجولات المذكورة', en: 'Listed activities & tours' },
 ];
