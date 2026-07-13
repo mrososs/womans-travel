@@ -180,6 +180,7 @@
     "details": "Details",
     "comingSoon": "Coming soon",
     "availableNow": "Available now",
+    "vatExcluded": "(Amount excludes VAT)",
     "sar": "SAR",
     "startingFrom": "from",
     "learnMore": "Learn more",
@@ -329,7 +330,7 @@
   "homeGroups": {
     "eyebrow": "Our groups",
     "title": "Groups available now",
-    "lead": "Two ready-to-book travel groups — one domestic and one international.",
+    "lead": "Two ready-to-book travel groups.",
     "viewAll": "View all groups"
   },
   "categories": {

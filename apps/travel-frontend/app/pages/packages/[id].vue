@@ -232,6 +232,8 @@ function goPackage(pid: string) {
               </IconButton>
             </div>
 
+            <div class="pd-vat">{{ t('common.vatExcluded') }}</div>
+
             <div class="pd-note">
               <Icon name="shield-check" :size="14" color="var(--success-500)" />
               {{ t('trip.booking.secure') }}
@@ -355,7 +357,8 @@ function goPackage(pid: string) {
 .pd-stepper__val { min-width: 32px; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--text-strong); }
 .pd-buyrow { display: flex; align-items: center; gap: 10px; }
 .pd-buyrow > :first-child { flex: 1; }
-.pd-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; color: var(--text-muted); font-size: 12.5px; }
+.pd-vat { text-align: center; margin-top: 10px; color: var(--text-subtle); font-size: 11.5px; }
+.pd-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; color: var(--text-muted); font-size: 12.5px; }
 
 /* Related */
 .pd-related { padding-top: 0; }
