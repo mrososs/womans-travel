@@ -32,6 +32,7 @@ export type TravelerInput = {
   passportExpiryDate?: unknown;
   declaredAccurate?: unknown;
   pledgedCompliance?: unknown;
+  pledgedNoCompanions?: unknown;
 };
 
 const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
@@ -94,8 +95,12 @@ export function normalizeTraveler(raw: TravelerInput | undefined) {
     }
   }
 
-  if (raw.declaredAccurate !== true || raw.pledgedCompliance !== true) {
-    throw bad('الرجاء الإقرار بصحة المعلومات والتعهّد بالالتزام قبل المتابعة.');
+  if (
+    raw.declaredAccurate !== true ||
+    raw.pledgedCompliance !== true ||
+    raw.pledgedNoCompanions !== true
+  ) {
+    throw bad('الرجاء الموافقة على جميع بنود الإقرار والتعهّد قبل المتابعة.');
   }
 
   return {
@@ -109,6 +114,7 @@ export function normalizeTraveler(raw: TravelerInput | undefined) {
     passportExpiryDate,
     declaredAccurate: true,
     pledgedCompliance: true,
+    pledgedNoCompanions: true,
     capturedAt: new Date().toISOString(),
   };
 }

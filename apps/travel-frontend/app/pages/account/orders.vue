@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Button, Badge, Icon } from '@org/shared-ui';
 import type { BadgeVariant } from '@org/shared-ui';
 import AccountNav from '~/components/account/AccountNav.vue';
 import type { Database } from '~/types/database.types';
 
 /**
- * Account → My Bookings. Lists the shopper's confirmed trips & packages and
- * lets them cancel for free within 48h of purchase. The window is shown as a
- * live countdown and re-checked server-side by /api/orders/cancel.
+ * Account → My Bookings. Lists the shopper's confirmed trips & packages.
+ * Bookings are final: once paid, the amount is non-refundable and the booking
+ * cannot be cancelled by the shopper.
  */
 
 definePageMeta({ middleware: 'auth' });
@@ -16,12 +16,8 @@ definePageMeta({ middleware: 'auth' });
 const { t, locale } = useI18n();
 const localePath = useLocalePath();
 const client = useSupabaseClient<Database>();
-const notify = useNotify();
 
 useHead(() => ({ title: `${t('account.orders')} · ${t('brand')}` }));
-
-// Keep in sync with CANCEL_WINDOW_HOURS in server/api/orders/cancel.post.ts.
-const CANCEL_WINDOW_MS = 48 * 60 * 60 * 1000;
 
 type OrderItem = { title: string | null; quantity: number; item_type: string | null };
 interface Booking {
@@ -54,25 +50,9 @@ const { data, pending } = useAsyncData('account-bookings', async () => {
   return (rows ?? []) as Booking[];
 });
 
-// Local, mutable copy so a cancel updates the card instantly (no refetch).
+// Local copy of the fetched rows.
 const bookings = ref<Booking[]>([]);
 watch(data, (v) => (bookings.value = v ? [...v] : []), { immediate: true });
-
-// Live clock so the countdown / eligibility refresh without a reload.
-const now = ref(Date.now());
-let timer: ReturnType<typeof setInterval> | undefined;
-onMounted(() => {
-  now.value = Date.now();
-  timer = setInterval(() => (now.value = Date.now()), 30_000);
-});
-onBeforeUnmount(() => timer && clearInterval(timer));
-
-function deadline(o: Booking) {
-  return new Date(o.created_at).getTime() + CANCEL_WINDOW_MS;
-}
-function cancellable(o: Booking) {
-  return o.payment_status === 'paid' && now.value < deadline(o);
-}
 
 // Booking state (drives the messaging on each card).
 function isReview(o: Booking) {
@@ -83,12 +63,6 @@ function isCancelled(o: Booking) {
 }
 function isPaid(o: Booking) {
   return o.payment_status === 'paid' || o.status === 'paid';
-}
-function timeLeft(o: Booking) {
-  const ms = Math.max(0, deadline(o) - now.value);
-  const h = Math.floor(ms / 3_600_000);
-  const m = Math.floor((ms % 3_600_000) / 60_000);
-  return t('account.bookings.timeLeft', { h, m });
 }
 
 function fmtDate(iso: string) {
@@ -116,29 +90,6 @@ function stateLabel(o: Booking) {
   if (isPaid(o)) return t('account.bookings.status.paid');
   if (isCancelled(o)) return t('account.bookings.status.cancelled');
   return t(`account.bookings.status.${o.status}`);
-}
-
-// Cancellation ----------------------------------------------------------
-const confirmId = ref<string | null>(null);
-const cancellingId = ref<string | null>(null);
-
-async function doCancel(o: Booking) {
-  cancellingId.value = o.id;
-  try {
-    await $fetch('/api/orders/cancel', { method: 'POST', body: { orderId: o.id } });
-    const row = bookings.value.find((b) => b.id === o.id);
-    if (row) {
-      row.status = 'cancelled';
-      row.payment_status = 'cancelled';
-    }
-    notify.success(t('account.bookings.cancelled'));
-    confirmId.value = null;
-  } catch (err: unknown) {
-    const msg = (err as { statusMessage?: string })?.statusMessage || t('account.bookings.cancelError');
-    notify.error(msg);
-  } finally {
-    cancellingId.value = null;
-  }
 }
 </script>
 
@@ -212,45 +163,14 @@ async function doCancel(o: Booking) {
                   </span>
                 </template>
 
-                <!-- Paid & confirmed — plus free-cancellation controls within 48h -->
+                <!-- Paid & confirmed — bookings are final / non-refundable -->
                 <template v-else-if="isPaid(o)">
                   <span class="bk-note bk-note--ok">
                     <Icon name="check-circle" :size="15" /> {{ t('account.bookings.paidConfirmed') }}
                   </span>
-
-                  <template v-if="cancellable(o)">
-                  <template v-if="confirmId === o.id">
-                    <span class="bk-note bk-note--warn"><Icon name="alert-triangle" :size="15" /> {{ t('account.bookings.confirmTitle') }}</span>
-                    <span class="bk-card__foot-actions">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        :disabled="cancellingId === o.id"
-                        @click="confirmId = null"
-                      >{{ t('account.bookings.confirmNo') }}</Button>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        :disabled="cancellingId === o.id"
-                        @click="doCancel(o)"
-                      >
-                        <template #iconStart><Icon name="x" :size="15" /></template>
-                        {{ cancellingId === o.id ? t('common.sending') : t('account.bookings.confirmYes') }}
-                      </Button>
-                    </span>
-                  </template>
-                  <template v-else>
-                    <span class="bk-note bk-note--ok"><Icon name="clock" :size="15" /> {{ timeLeft(o) }}</span>
-                    <Button variant="ghost" size="sm" class="bk-card__cancel" @click="confirmId = o.id">
-                      <template #iconStart><Icon name="x-circle" :size="16" /></template>
-                      {{ t('account.bookings.cancel') }}
-                    </Button>
-                  </template>
-                </template>
-
-                  <template v-else>
-                    <span class="bk-note bk-note--muted"><Icon name="lock" :size="15" /> {{ t('account.bookings.windowEnded') }}</span>
-                  </template>
+                  <span class="bk-note bk-note--muted">
+                    <Icon name="lock" :size="15" /> {{ t('account.bookings.nonRefundable') }}
+                  </span>
                 </template>
               </div>
             </li>
@@ -313,11 +233,8 @@ async function doCancel(o: Booking) {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   padding: 12px 20px; border-top: 1.5px solid var(--border-hair); background: var(--surface-page);
 }
-.bk-card__foot-actions { display: inline-flex; align-items: center; gap: 8px; }
-.bk-card__cancel { color: var(--danger-500); }
 .bk-note { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); font-weight: 600; }
 .bk-note--ok { color: var(--success-600, var(--success-500)); }
-.bk-note--warn { color: var(--danger-500); }
 .bk-note--muted { color: var(--text-subtle); }
 .bk-note--review { color: var(--warning-600, var(--warning-500)); }
 

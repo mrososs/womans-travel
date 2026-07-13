@@ -4,9 +4,10 @@ import { Button, Input, Checkbox, Icon } from '@org/shared-ui';
 
 /**
  * CheckoutTravelerForm — step 1 of the checkout stepper. Collects the traveler's
- * full four-part name, passport number + issue/expiry dates, and the two
+ * full four-part name, passport number + issue/expiry dates, and the three
  * mandatory declarations (information accuracy + commitment to the group and
- * the destination countries' policies). On a valid submit it emits `next` with
+ * the destination countries' policies + not bringing children or people with
+ * special needs along). On a valid submit it emits `next` with
  * the sanitized traveler payload; the parent then creates the order and mounts
  * the Moyasar card form (step 2).
  */
@@ -21,6 +22,7 @@ export interface TravelerDetails {
   passportExpiryDate: string;
   declaredAccurate: boolean;
   pledgedCompliance: boolean;
+  pledgedNoCompanions: boolean;
 }
 
 const props = withDefaults(defineProps<{ busy?: boolean }>(), { busy: false });
@@ -36,6 +38,7 @@ const form = reactive<TravelerDetails>({
   passportExpiryDate: '',
   declaredAccurate: false,
   pledgedCompliance: false,
+  pledgedNoCompanions: false,
 });
 
 type FieldKey =
@@ -127,8 +130,8 @@ function validate(): boolean {
     fail('passportIssueDate', 'تاريخ الإصدار يجب أن يسبق تاريخ الانتهاء');
   }
 
-  if (!form.declaredAccurate || !form.pledgedCompliance) {
-    declError.value = 'الرجاء الإقرار بصحة المعلومات والتعهّد بالالتزام قبل المتابعة';
+  if (!form.declaredAccurate || !form.pledgedCompliance || !form.pledgedNoCompanions) {
+    declError.value = 'الرجاء الموافقة على جميع بنود الإقرار والتعهّد قبل المتابعة';
     ok = false;
   }
 
@@ -148,6 +151,7 @@ function submit() {
     passportExpiryDate: form.passportExpiryDate,
     declaredAccurate: form.declaredAccurate,
     pledgedCompliance: form.pledgedCompliance,
+    pledgedNoCompanions: form.pledgedNoCompanions,
   });
 }
 </script>
@@ -240,7 +244,7 @@ function submit() {
         <span class="tf__decl-badge"><Icon name="shield-check" :size="20" /></span>
         <span class="tf__decl-heading">
           <b>الإقرار والتعهّد</b>
-          <small>يُرجى قراءة البندين التاليين والموافقة عليهما قبل المتابعة</small>
+          <small>يُرجى قراءة البنود التالية والموافقة عليها قبل المتابعة</small>
         </span>
       </header>
 
@@ -258,6 +262,14 @@ function submit() {
           <span class="tf__pledge-ico"><Icon name="users" :size="19" /></span>
           <span class="tf__pledge-txt">
             أتعهّد بالالتزام مع المجموعة واحترام سياسات وقوانين الدول المسافر إليها طوال مدة الرحلة.
+          </span>
+        </label>
+
+        <label class="tf__pledge" :class="{ 'is-checked': form.pledgedNoCompanions }">
+          <Checkbox v-model="form.pledgedNoCompanions" />
+          <span class="tf__pledge-ico"><Icon name="user-x" :size="19" /></span>
+          <span class="tf__pledge-txt">
+            أتعهّد بعدم اصطحاب الأطفال أو ذوي الاحتياجات الخاصة مع أي مشتركة طوال مدة الرحلة.
           </span>
         </label>
       </div>

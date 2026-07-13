@@ -17,7 +17,7 @@ const sections = computed(() =>
     ? [
         { h: 'قبول الشروط', p: 'باستخدامكِ موقع رحلات المستقبل الذهبي وحجز أيٍّ من خدماتنا، فإنكِ توافقين على هذه الشروط والأحكام بالكامل.' },
         { h: 'الحجز والدفع', p: 'يتم تأكيد الحجز بعد إتمام الدفع بنجاح عبر بوابة Moyasar. تُضاف ضريبة القيمة المضافة (15%) إلى الأسعار حسب الأنظمة السعودية.' },
-        { h: 'الإلغاء والاسترداد', p: 'يمكنكِ إلغاء الحجز مجّانًا خلال 48 ساعة من إتمامه من صفحة «طلباتي». بعد انتهاء هذه المدّة تُطبَّق سياسة الإلغاء الخاصّة بكل رحلة.' },
+        { h: 'سياسة عدم الاسترجاع', p: 'جميع الحجوزات نهائية. بعد إتمام الدفع بنجاح، يُعدّ المبلغ المدفوع غير قابل للاسترجاع ولا يمكن إلغاء الحجز.' },
         { h: 'مسؤوليات المسافرة', p: 'تلتزم المسافرة بصحّة بياناتها، وصلاحية جواز سفرها لمدّة لا تقل عن 6 أشهر، واحترام سياسات وقوانين الدول المسافر إليها والالتزام مع المجموعة.' },
         { h: 'حدود المسؤولية', p: 'لا نتحمّل مسؤولية التأخير أو الإلغاء الناتج عن ظروف خارجة عن إرادتنا (كقرارات الجهات الرسمية أو الطقس أو شركات الطيران).' },
         { h: 'التعديلات', p: 'قد نُحدّث هذه الشروط من وقتٍ لآخر، ويسري التحديث فور نشره على هذه الصفحة.' },
@@ -26,7 +26,7 @@ const sections = computed(() =>
     : [
         { h: 'Acceptance of terms', p: 'By using the Golden Future Travel website and booking any of our services, you agree to these terms and conditions in full.' },
         { h: 'Booking & payment', p: 'A booking is confirmed after a successful payment through the Moyasar gateway. VAT (15%) is added to prices in line with Saudi regulations.' },
-        { h: 'Cancellation & refunds', p: 'You may cancel a booking free of charge within 48 hours of purchase from the “My bookings” page. After this window, each trip’s specific cancellation policy applies.' },
+        { h: 'No-refund policy', p: 'All bookings are final. Once payment has been completed successfully, the amount paid is non-refundable and the booking cannot be cancelled.' },
         { h: 'Traveller responsibilities', p: 'The traveller is responsible for the accuracy of her details, a passport valid for at least 6 months, and respecting the policies and laws of the destination countries as well as the group.' },
         { h: 'Limitation of liability', p: 'We are not liable for delays or cancellations caused by circumstances beyond our control (such as official decisions, weather, or airlines).' },
         { h: 'Changes', p: 'We may update these terms from time to time; updates take effect as soon as they are published on this page.' },
