@@ -259,6 +259,7 @@ function goPackage(pid: string) {
             :from-label="t('common.startingFrom')"
             :kind-label="t(`destinations.kinds.${p.kind}`)"
             :view-label="t('actions.view')"
+            :vat-note="t('common.vatShort')"
             @open="goPackage(p.id)"
           />
         </div>

@@ -92,6 +92,7 @@ function goPackages() {
               :from-label="t('common.startingFrom')"
               :kind-label="t(`destinations.kinds.${p.kind}`)"
               :view-label="t('actions.view')"
+              :vat-note="t('common.vatShort')"
               available-now
               :available-label="t('common.availableNow')"
               @open="goPackage(p.id)"

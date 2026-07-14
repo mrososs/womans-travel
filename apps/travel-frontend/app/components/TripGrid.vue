@@ -49,6 +49,7 @@ async function onFavourite(trip: Trip) {
       :price="lc(trip.price)"
       :currency-label="t('common.currency')"
       :price-note="t('common.perPerson')"
+      :vat-note="t('common.vatShort')"
       :tier="{ label: t(`tiers.${trip.tierKey}`), variant: trip.tierVariant }"
       :coming-soon="trip.comingSoon"
       :coming-soon-label="t('common.comingSoon')"

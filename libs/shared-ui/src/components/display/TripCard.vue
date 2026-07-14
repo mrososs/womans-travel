@@ -22,6 +22,8 @@ const props = withDefaults(
     reviews?: number | null;
     price?: string;
     priceNote?: string;
+    /** Optional "price excludes VAT" note shown under the price. */
+    vatNote?: string;
     /** Screen-reader label for the currency (the Riyal symbol is shown visually). */
     currencyLabel?: string;
     tier?: TripTier | null;
@@ -42,7 +44,7 @@ const props = withDefaults(
   }>(),
   {
     region: '', duration: '', dates: '', rating: null, reviews: null, price: '',
-    priceNote: 'للشخص', tier: null, seatsText: '', comingSoon: false,
+    priceNote: 'للشخص', vatNote: '', tier: null, seatsText: '', comingSoon: false,
     comingSoonLabel: 'قريبًا', favourite: false,
     hoverActions: true, wishlistLabel: 'حفظ', removeLabel: 'إزالة من المحفوظات',
     viewLabel: 'عرض', clickable: true,
@@ -114,6 +116,7 @@ const heartColor = computed(() =>
             <span v-if="currencyLabel" class="sr-only">{{ currencyLabel }}</span>
           </span>
           <small>{{ priceNote }}</small>
+          <small v-if="vatNote" class="drh-trip__vat">{{ vatNote }}</small>
         </div>
         <slot name="cta" />
       </div>
@@ -241,4 +244,5 @@ const heartColor = computed(() =>
 }
 .drh-trip__riyal { width: 0.8em; height: 0.8em; }
 .drh-trip__price small { display: block; font-size: var(--text-xs); color: var(--text-muted); }
+.drh-trip__vat { color: var(--text-subtle); }
 </style>

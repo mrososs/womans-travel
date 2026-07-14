@@ -17,10 +17,12 @@ withDefaults(
     /** Show a red "available now" badge (used for bookable groups on home). */
     availableNow?: boolean;
     availableLabel?: string;
+    /** Optional "price excludes VAT" note shown under the price. */
+    vatNote?: string;
   }>(),
   {
     img: '', price: '', kindLabel: '', fromLabel: '', currency: '', viewLabel: 'عرض',
-    availableNow: false, availableLabel: 'متاح الآن',
+    availableNow: false, availableLabel: 'متاح الآن', vatNote: '',
   }
 );
 
@@ -50,6 +52,7 @@ const emit = defineEmits<{ open: [] }>();
         <Icon name="saudi-riyal" :size="18" class="pkg__riyal" />
         <span class="sr-only">{{ currency }}</span>
       </div>
+      <p v-if="price && vatNote" class="pkg__vat">{{ vatNote }}</p>
     </div>
   </Card>
 </template>
@@ -106,4 +109,5 @@ const emit = defineEmits<{ open: [] }>();
 .pkg__from { font-size: 12px; color: var(--text-muted); }
 .pkg__price b { font-family: var(--font-display); font-weight: 800; font-size: var(--text-2xl); color: var(--text-strong); }
 .pkg__riyal { width: 0.8em; height: 0.8em; color: var(--text-strong); flex: none; }
+.pkg__vat { margin: 4px 0 0; font-size: 11.5px; color: var(--text-subtle); }
 </style>
