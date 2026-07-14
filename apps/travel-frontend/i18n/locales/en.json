@@ -204,6 +204,15 @@
       "saveError": "Couldn't save the details, please try again.",
       "requiredError": "Please fill in all fields."
     },
+    "tax": {
+      "title": "Value-added tax (VAT)",
+      "lead": "The percentage added to prices at checkout. Applied to all orders as soon as you save.",
+      "vatPercent": "VAT rate (%)",
+      "save": "Save rate",
+      "saved": "VAT rate saved.",
+      "saveError": "Couldn't save the rate, please try again.",
+      "rangeError": "Please enter a rate between 0 and 100."
+    },
     "kpi": {
       "buyers": "Package buyers",
       "buyersSub": "Distinct paying customers",

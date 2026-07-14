@@ -103,6 +103,7 @@ async function addToCart() {
       <span class="sr-only">{{ t('common.currency') }}</span>
       <span class="bookcard__per">/ {{ t('common.perPerson') }}</span>
     </div>
+    <div class="bookcard__vat">{{ t('common.vatExcluded') }}</div>
     <div class="bookcard__rating">
       <Rating :value="trip.rating" :count="trip.reviews" show-value :size="16" />
     </div>
@@ -142,7 +143,6 @@ async function addToCart() {
       <template #iconStart><Icon :name="comingSoon ? 'clock' : 'shopping-bag'" :size="19" /></template>
       {{ comingSoon ? t('trip.booking.comingSoon') : (added ? t('cart.added') : t('cart.addToCart')) }}
     </Button>
-    <div class="bookcard__vat">{{ t('common.vatExcluded') }}</div>
     <div class="bookcard__note">
       <template v-if="comingSoon">
         <Icon name="clock" :size="14" color="var(--text-muted)" />
@@ -170,7 +170,7 @@ async function addToCart() {
 .bookcard__total-label { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--text-strong); }
 .bookcard__total-value { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text-strong); display: inline-flex; align-items: center; gap: 4px; }
 .bookcard__total-value .bookcard__riyal { width: 0.85em; height: 0.85em; }
-.bookcard__vat { text-align: center; margin-top: 10px; color: var(--text-subtle); font-size: 11.5px; }
+.bookcard__vat { margin-top: 4px; color: var(--text-subtle); font-size: 11.5px; }
 .bookcard__note {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   margin-top: 8px; color: var(--text-muted); font-size: 12.5px;

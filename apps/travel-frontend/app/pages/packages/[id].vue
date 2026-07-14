@@ -203,6 +203,7 @@ function goPackage(pid: string) {
               <span class="sr-only">{{ t('common.currency') }}</span>
               <span class="pd-price__per">/ {{ t('common.perPerson') }}</span>
             </div>
+            <div class="pd-vat">{{ t('common.vatExcluded') }}</div>
 
             <Select
               v-if="hasOptions"
@@ -231,8 +232,6 @@ function goPackage(pid: string) {
                 <Icon name="heart" :size="20" :color="has('package', pkg.id) ? 'var(--brand)' : 'var(--brand-strong)'" />
               </IconButton>
             </div>
-
-            <div class="pd-vat">{{ t('common.vatExcluded') }}</div>
 
             <div class="pd-note">
               <Icon name="shield-check" :size="14" color="var(--success-500)" />
@@ -344,7 +343,7 @@ function goPackage(pid: string) {
 
 /* Purchase card */
 .pd-buy { position: sticky; top: 90px; }
-.pd-price { display: flex; align-items: center; gap: 6px; margin-bottom: 20px; }
+.pd-price { display: flex; align-items: center; gap: 6px; }
 .pd-price__amount { font-family: var(--font-display); font-weight: 800; font-size: 32px; color: var(--text-strong); }
 .pd-price__riyal { width: 0.72em; height: 0.72em; color: var(--text-strong); flex: none; }
 .pd-price__per { font-size: 13px; color: var(--text-muted); align-self: flex-end; margin-bottom: 5px; }
@@ -357,7 +356,7 @@ function goPackage(pid: string) {
 .pd-stepper__val { min-width: 32px; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--text-strong); }
 .pd-buyrow { display: flex; align-items: center; gap: 10px; }
 .pd-buyrow > :first-child { flex: 1; }
-.pd-vat { text-align: center; margin-top: 10px; color: var(--text-subtle); font-size: 11.5px; }
+.pd-vat { margin: 4px 0 20px; color: var(--text-subtle); font-size: 11.5px; }
 .pd-note { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; color: var(--text-muted); font-size: 12.5px; }
 
 /* Related */

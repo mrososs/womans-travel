@@ -26,7 +26,11 @@ declare global {
 }
 
 const MOYASAR_VERSION = '1.15.0';
-const VAT_RATE = 0.15;
+// VAT rate (fraction). Default mirrors the seeded tax_settings row; the live
+// admin-editable value is loaded from tax_settings on mount.
+const vatRate = ref(0.15);
+// Whole-number-friendly percentage for the summary label (15.00 → "15").
+const vatPercentLabel = computed(() => `${+(vatRate.value * 100).toFixed(2)}`);
 
 // Demo fallback — mirrors DEMO_ITEM in server/api/payments/create.post.ts so the
 // displayed summary matches what the server actually charges when the cart is empty.
@@ -55,7 +59,7 @@ const usingDemo = computed(() => items.value.length === 0);
 const subtotal = computed(() =>
   lines.value.reduce((s, i) => s + i.unit_price * i.quantity, 0)
 );
-const vat = computed(() => Math.round(subtotal.value * VAT_RATE));
+const vat = computed(() => Math.round(subtotal.value * vatRate.value));
 const total = computed(() => subtotal.value + vat.value);
 
 // Stepper: 1 = traveler details, 2 = payment.
@@ -70,7 +74,7 @@ const method = ref<PaymentMethod>('moyasar');
 // the seeded row; the live (admin-editable) values are loaded from bank_settings.
 const bank = ref({
   bankName: 'مصرف الإنماء',
-  accountName: 'مسفره عيسى سعد الزهراني',
+  accountName: 'مؤسسة رحلات المستقبل الذهبي',
   accountNumber: '68207575565000',
   iban: 'SA3705000068207575565000',
 });
@@ -253,13 +257,16 @@ onMounted(async () => {
   // Preload the cart so the summary reflects the real items.
   hydrate();
 
-  // Load the live bank-account details (admin-editable via the dashboard).
+  // Load the live bank-account details + VAT rate (admin-editable via the dashboard).
   const supa = useSupabaseClient<Database>();
-  const { data } = await supa
-    .from('bank_settings')
-    .select('bank_name, account_name, account_number, iban')
-    .eq('id', 1)
-    .maybeSingle();
+  const [{ data }, { data: tax }] = await Promise.all([
+    supa
+      .from('bank_settings')
+      .select('bank_name, account_name, account_number, iban')
+      .eq('id', 1)
+      .maybeSingle(),
+    supa.from('tax_settings').select('vat_percent').eq('id', 1).maybeSingle(),
+  ]);
   if (data) {
     bank.value = {
       bankName: data.bank_name,
@@ -267,6 +274,10 @@ onMounted(async () => {
       accountNumber: data.account_number,
       iban: data.iban,
     };
+  }
+  if (tax && tax.vat_percent != null) {
+    const pct = Number(tax.vat_percent);
+    if (Number.isFinite(pct) && pct >= 0 && pct <= 100) vatRate.value = pct / 100;
   }
 });
 </script>
@@ -477,7 +488,7 @@ onMounted(async () => {
               <span class="co-line__v co-price">{{ nf.format(subtotal) }}<Icon name="saudi-riyal" :size="13" /></span>
             </div>
             <div class="co-line">
-              <span class="co-line__k">ضريبة القيمة المضافة (15%)</span>
+              <span class="co-line__k">ضريبة القيمة المضافة ({{ vatPercentLabel }}%)</span>
               <span class="co-line__v co-price">{{ nf.format(vat) }}<Icon name="saudi-riyal" :size="13" /></span>
             </div>
           </div>

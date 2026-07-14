@@ -41,6 +41,24 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_settings: {
+        Row: {
+          id: number
+          updated_at: string
+          vat_percent: number
+        }
+        Insert: {
+          id?: number
+          updated_at?: string
+          vat_percent?: number
+        }
+        Update: {
+          id?: number
+          updated_at?: string
+          vat_percent?: number
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string

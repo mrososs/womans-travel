@@ -25,6 +25,10 @@ const form = reactive({
 });
 const saving = ref(false);
 
+// VAT rate (stored as a percentage, e.g. 15). Applied to every order at checkout.
+const vatPercent = ref('15');
+const savingVat = ref(false);
+
 const { pending } = useAsyncData('bank-settings', async () => {
   const { data } = await client
     .from('bank_settings')
@@ -34,6 +38,38 @@ const { pending } = useAsyncData('bank-settings', async () => {
   if (data) Object.assign(form, data);
   return data ?? null;
 });
+
+const { pending: taxPending } = useAsyncData('tax-settings', async () => {
+  const { data } = await client
+    .from('tax_settings')
+    .select('vat_percent')
+    .eq('id', 1)
+    .maybeSingle();
+  if (data && data.vat_percent != null) vatPercent.value = String(data.vat_percent);
+  return data ?? null;
+});
+
+async function saveVat() {
+  const pct = Number(vatPercent.value);
+  if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+    notify.error(t('dashboard.tax.rangeError'));
+    return;
+  }
+  savingVat.value = true;
+  try {
+    // Upsert the singleton row (id = 1). RLS restricts this to admins.
+    const { error } = await client.from('tax_settings').upsert(
+      { id: 1, vat_percent: pct, updated_at: new Date().toISOString() },
+      { onConflict: 'id' }
+    );
+    if (error) throw error;
+    notify.success(t('dashboard.tax.saved'));
+  } catch (err: unknown) {
+    notify.error((err as { message?: string })?.message || t('dashboard.tax.saveError'));
+  } finally {
+    savingVat.value = false;
+  }
+}
 
 async function save() {
   if (!form.bank_name.trim() || !form.account_name.trim() || !form.account_number.trim() || !form.iban.trim()) {
@@ -91,11 +127,39 @@ async function save() {
         </div>
       </form>
     </Card>
+
+    <Card variant="elevated" padding="lg">
+      <div class="settings__head">
+        <span class="settings__ico"><Icon name="percent" :size="22" /></span>
+        <div>
+          <h2 class="settings__title">{{ t('dashboard.tax.title') }}</h2>
+          <p class="settings__lead">{{ t('dashboard.tax.lead') }}</p>
+        </div>
+      </div>
+
+      <div v-if="taxPending" class="settings__loading">{{ t('common.loading') }}</div>
+
+      <form v-else class="settings__form" @submit.prevent="saveVat">
+        <Input
+          v-model="vatPercent"
+          type="number"
+          :label="t('dashboard.tax.vatPercent')"
+          required
+        />
+
+        <div class="settings__actions">
+          <Button type="submit" variant="primary" size="md" :disabled="savingVat">
+            <template #iconStart><Icon name="save" :size="16" /></template>
+            {{ savingVat ? t('common.sending') : t('dashboard.tax.save') }}
+          </Button>
+        </div>
+      </form>
+    </Card>
   </div>
 </template>
 
 <style scoped>
-.settings { max-width: 640px; }
+.settings { max-width: 640px; display: grid; gap: 24px; }
 .settings__head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; }
 .settings__ico {
   width: 46px; height: 46px; flex: none; border-radius: var(--radius-md);

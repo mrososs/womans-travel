@@ -11,7 +11,25 @@ import type { Database } from '~/types/database.types';
  * client is never trusted for either.
  */
 
-export const VAT_RATE = 0.15;
+// Fallback VAT rate used only when the tax_settings row can't be read.
+export const DEFAULT_VAT_RATE = 0.15;
+
+/**
+ * Read the admin-configured VAT rate (as a fraction, e.g. 0.15) from the
+ * singleton tax_settings row. Falls back to the default 15% on any read error
+ * so checkout never breaks if the row/table is missing.
+ */
+export async function getVatRate(client: SupabaseClient<Database>): Promise<number> {
+  const { data, error } = await client
+    .from('tax_settings')
+    .select('vat_percent')
+    .eq('id', 1)
+    .maybeSingle();
+  if (error || !data || data.vat_percent == null) return DEFAULT_VAT_RATE;
+  const pct = Number(data.vat_percent);
+  if (!Number.isFinite(pct) || pct < 0 || pct > 100) return DEFAULT_VAT_RATE;
+  return pct / 100;
+}
 
 // Demo fallback — kept in sync with the client summary in CheckoutPayment.vue.
 export const DEMO_ITEM = {
@@ -23,10 +41,8 @@ export const DEMO_ITEM = {
 };
 
 export type TravelerInput = {
-  firstName?: unknown;
-  fatherName?: unknown;
-  grandfatherName?: unknown;
-  familyName?: unknown;
+  fullNameAr?: unknown;
+  fullNameEn?: unknown;
   passportNumber?: unknown;
   passportIssueDate?: unknown;
   passportExpiryDate?: unknown;
@@ -35,12 +51,14 @@ export type TravelerInput = {
   pledgedNoCompanions?: unknown;
 };
 
-const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+const str = (v: unknown) => (typeof v === 'string' ? v.trim().replace(/\s+/g, ' ') : '');
 
 // Saudi validation rules — kept in sync with the client form
 // (app/components/CheckoutTravelerForm.vue). Enforced here too so the checks
 // can't be bypassed by calling the endpoint directly.
-const AR_NAME = /^[ء-يـ\s]{2,}$/; // Arabic letters + tatweel + spaces
+const AR_FULL_NAME = /^[ء-يـ\s]{2,}$/; // Arabic letters + tatweel + spaces
+const EN_FULL_NAME = /^[A-Za-z][A-Za-z\s'.-]*$/; // Latin letters + spaces
+const countParts = (v: string) => v.split(/\s+/).filter(Boolean).length; // ≥ 4 = full name
 const SA_PASSPORT = /^[A-Za-z][0-9]{7,8}$/; // letter + 7–8 digits, e.g. A1234567
 
 const bad = (statusMessage: string) => createError({ statusCode: 400, statusMessage });
@@ -55,24 +73,19 @@ export function normalizeTraveler(raw: TravelerInput | undefined) {
     throw bad('بيانات المسافرة مطلوبة قبل الدفع.');
   }
 
-  const firstName = str(raw.firstName);
-  const fatherName = str(raw.fatherName);
-  const grandfatherName = str(raw.grandfatherName);
-  const familyName = str(raw.familyName);
+  const fullNameAr = str(raw.fullNameAr);
+  const fullNameEn = str(raw.fullNameEn);
   const passportNumber = str(raw.passportNumber).toUpperCase();
   const passportIssueDate = str(raw.passportIssueDate);
   const passportExpiryDate = str(raw.passportExpiryDate);
 
-  const nameParts: [string, string][] = [
-    [firstName, 'الاسم الأول'],
-    [fatherName, 'اسم الأب'],
-    [grandfatherName, 'اسم الجد'],
-    [familyName, 'اسم العائلة'],
-  ];
-  for (const [value, label] of nameParts) {
-    if (!value) throw bad(`${label} مطلوب.`);
-    if (!AR_NAME.test(value)) throw bad(`${label} يجب أن يكون بالأحرف العربية فقط.`);
-  }
+  if (!fullNameAr) throw bad('الاسم الرباعي بالعربية مطلوب.');
+  if (!AR_FULL_NAME.test(fullNameAr)) throw bad('الاسم يجب أن يكون بالأحرف العربية فقط.');
+  if (countParts(fullNameAr) < 4) throw bad('يُرجى إدخال الاسم رباعيًا كما في جواز السفر.');
+
+  if (!fullNameEn) throw bad('الاسم الرباعي بالإنجليزية مطلوب.');
+  if (!EN_FULL_NAME.test(fullNameEn)) throw bad('الاسم يجب أن يكون بالأحرف الإنجليزية فقط.');
+  if (countParts(fullNameEn) < 4) throw bad('يُرجى إدخال الاسم رباعيًا كما في جواز السفر.');
 
   if (!passportNumber) throw bad('رقم جواز السفر مطلوب.');
   if (!SA_PASSPORT.test(passportNumber)) {
@@ -104,11 +117,9 @@ export function normalizeTraveler(raw: TravelerInput | undefined) {
   }
 
   return {
-    firstName,
-    fatherName,
-    grandfatherName,
-    familyName,
-    fullName: [firstName, fatherName, grandfatherName, familyName].join(' '),
+    fullNameAr,
+    fullNameEn,
+    fullName: fullNameAr,
     passportNumber,
     passportIssueDate: passportIssueDate || null,
     passportExpiryDate,
@@ -160,8 +171,9 @@ export async function priceCart(client: SupabaseClient<Database>, uid: string) {
   if (subtotal <= 0) {
     throw createError({ statusCode: 400, statusMessage: 'Cart total must be greater than zero' });
   }
-  const vat = Math.round(subtotal * VAT_RATE * 100) / 100;
+  const vatRate = await getVatRate(client);
+  const vat = Math.round(subtotal * vatRate * 100) / 100;
   const total = Math.round((subtotal + vat) * 100) / 100;
 
-  return { lines, subtotal, vat, total };
+  return { lines, subtotal, vat, total, vatRate };
 }

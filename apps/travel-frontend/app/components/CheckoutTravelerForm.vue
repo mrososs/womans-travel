@@ -13,10 +13,8 @@ import { Button, Input, Checkbox, Icon } from '@org/shared-ui';
  */
 
 export interface TravelerDetails {
-  firstName: string;
-  fatherName: string;
-  grandfatherName: string;
-  familyName: string;
+  fullNameAr: string;
+  fullNameEn: string;
   passportNumber: string;
   passportIssueDate: string;
   passportExpiryDate: string;
@@ -29,10 +27,8 @@ const props = withDefaults(defineProps<{ busy?: boolean }>(), { busy: false });
 const emit = defineEmits<{ next: [traveler: TravelerDetails] }>();
 
 const form = reactive<TravelerDetails>({
-  firstName: '',
-  fatherName: '',
-  grandfatherName: '',
-  familyName: '',
+  fullNameAr: '',
+  fullNameEn: '',
   passportNumber: '',
   passportIssueDate: '',
   passportExpiryDate: '',
@@ -42,19 +38,15 @@ const form = reactive<TravelerDetails>({
 });
 
 type FieldKey =
-  | 'firstName'
-  | 'fatherName'
-  | 'grandfatherName'
-  | 'familyName'
+  | 'fullNameAr'
+  | 'fullNameEn'
   | 'passportNumber'
   | 'passportIssueDate'
   | 'passportExpiryDate';
 
 const errors = reactive<Record<FieldKey, string>>({
-  firstName: '',
-  fatherName: '',
-  grandfatherName: '',
-  familyName: '',
+  fullNameAr: '',
+  fullNameEn: '',
   passportNumber: '',
   passportIssueDate: '',
   passportExpiryDate: '',
@@ -62,18 +54,15 @@ const errors = reactive<Record<FieldKey, string>>({
 const declError = ref('');
 
 // Saudi validation rules -------------------------------------------------
-// Arabic letters (hamza→yaa) + tatweel + spaces — names as written in the
-// Saudi passport; rejects Latin letters, digits and symbols.
-const AR_NAME = /^[ء-يـ\s]{2,}$/;
+// Full four-part name in Arabic: Arabic letters (hamza→yaa) + tatweel + spaces;
+// rejects Latin letters, digits and symbols.
+const AR_FULL_NAME = /^[ء-يـ\s]{2,}$/;
+// Full four-part name in English: Latin letters + spaces (allow hyphen/apostrophe).
+const EN_FULL_NAME = /^[A-Za-z][A-Za-z\s'.-]*$/;
+// The passport four-part name must be complete — at least four parts.
+const countParts = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
 // Saudi passport: a single letter followed by 7–8 digits, e.g. "A1234567".
 const SA_PASSPORT = /^[A-Za-z][0-9]{7,8}$/;
-
-const NAME_LABELS: Record<'firstName' | 'fatherName' | 'grandfatherName' | 'familyName', string> = {
-  firstName: 'الاسم الأول',
-  fatherName: 'اسم الأب',
-  grandfatherName: 'اسم الجد',
-  familyName: 'اسم العائلة',
-};
 
 // Date bounds for the passport <input type="date"> fields.
 const today = new Date();
@@ -96,12 +85,21 @@ function validate(): boolean {
     ok = false;
   };
 
-  // Four-part name — required + Arabic letters only.
-  (Object.keys(NAME_LABELS) as (keyof typeof NAME_LABELS)[]).forEach((key) => {
-    const value = form[key].trim();
-    if (!value) fail(key, `${NAME_LABELS[key]} مطلوب`);
-    else if (!AR_NAME.test(value)) fail(key, `${NAME_LABELS[key]} يجب أن يكون بالأحرف العربية فقط`);
-  });
+  // Full four-part name (Arabic) — required, Arabic letters only, ≥ 4 parts.
+  const nameAr = form.fullNameAr.trim();
+  if (!nameAr) fail('fullNameAr', 'الاسم الرباعي بالعربية مطلوب');
+  else if (!AR_FULL_NAME.test(nameAr))
+    fail('fullNameAr', 'الاسم يجب أن يكون بالأحرف العربية فقط');
+  else if (countParts(nameAr) < 4)
+    fail('fullNameAr', 'يُرجى إدخال الاسم رباعيًا كما في جواز السفر');
+
+  // Full four-part name (English) — required, Latin letters only, ≥ 4 parts.
+  const nameEn = form.fullNameEn.trim();
+  if (!nameEn) fail('fullNameEn', 'الاسم الرباعي بالإنجليزية مطلوب');
+  else if (!EN_FULL_NAME.test(nameEn))
+    fail('fullNameEn', 'الاسم يجب أن يكون بالأحرف الإنجليزية فقط');
+  else if (countParts(nameEn) < 4)
+    fail('fullNameEn', 'يُرجى إدخال الاسم رباعيًا كما في جواز السفر');
 
   // Passport number — required + Saudi format.
   const passport = form.passportNumber.trim();
@@ -142,10 +140,8 @@ function submit() {
   if (props.busy) return;
   if (!validate()) return;
   emit('next', {
-    firstName: form.firstName.trim(),
-    fatherName: form.fatherName.trim(),
-    grandfatherName: form.grandfatherName.trim(),
-    familyName: form.familyName.trim(),
+    fullNameAr: form.fullNameAr.trim().replace(/\s+/g, ' '),
+    fullNameEn: form.fullNameEn.trim().replace(/\s+/g, ' '),
     passportNumber: form.passportNumber.trim().toUpperCase(),
     passportIssueDate: form.passportIssueDate,
     passportExpiryDate: form.passportExpiryDate,
@@ -158,43 +154,30 @@ function submit() {
 
 <template>
   <form class="tf" novalidate @submit.prevent="submit">
-    <!-- Full four-part name -->
+    <!-- Full four-part name (Arabic + English) -->
     <fieldset class="tf__group">
       <legend class="tf__legend">
         <Icon name="user" :size="16" /> الاسم رباعيًا كما في جواز السفر
       </legend>
-      <div class="tf__grid tf__grid--4">
+      <div class="tf__grid tf__grid--2">
         <Input
-          v-model="form.firstName"
-          label="الاسم الأول"
+          v-model="form.fullNameAr"
+          label="الاسم الرباعي بالعربية"
           required
-          :error="errors.firstName"
-          placeholder="الاسم"
-          @update:model-value="clear('firstName')"
+          :error="errors.fullNameAr"
+          :hint="errors.fullNameAr ? '' : 'الاسم الأول واسم الأب والجد والعائلة'"
+          placeholder="مثال: نورة عبدالله محمد الأحمد"
+          @update:model-value="clear('fullNameAr')"
         />
         <Input
-          v-model="form.fatherName"
-          label="اسم الأب"
+          v-model="form.fullNameEn"
+          label="الاسم الرباعي بالإنجليزية"
           required
-          :error="errors.fatherName"
-          placeholder="اسم الأب"
-          @update:model-value="clear('fatherName')"
-        />
-        <Input
-          v-model="form.grandfatherName"
-          label="اسم الجد"
-          required
-          :error="errors.grandfatherName"
-          placeholder="اسم الجد"
-          @update:model-value="clear('grandfatherName')"
-        />
-        <Input
-          v-model="form.familyName"
-          label="اسم العائلة"
-          required
-          :error="errors.familyName"
-          placeholder="اسم العائلة"
-          @update:model-value="clear('familyName')"
+          dir="ltr"
+          :error="errors.fullNameEn"
+          :hint="errors.fullNameEn ? '' : 'كما هو مكتوب في جواز السفر'"
+          placeholder="e.g. Noura Abdullah Mohammed Alahmad"
+          @update:model-value="clear('fullNameEn')"
         />
       </div>
     </fieldset>
@@ -303,7 +286,7 @@ function submit() {
 }
 .tf__legend :deep(svg) { color: var(--brand-strong); }
 .tf__grid { display: grid; gap: var(--space-4); }
-.tf__grid--4 { grid-template-columns: repeat(2, 1fr); }
+.tf__grid--2 { grid-template-columns: repeat(2, 1fr); }
 .tf__grid--3 { grid-template-columns: repeat(3, 1fr); }
 
 /* ===== Declaration & pledge panel ===== */
@@ -367,6 +350,6 @@ function submit() {
 }
 
 @media (max-width: 640px) {
-  .tf__grid--4, .tf__grid--3 { grid-template-columns: 1fr; }
+  .tf__grid--2, .tf__grid--3 { grid-template-columns: 1fr; }
 }
 </style>
