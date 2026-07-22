@@ -1,6 +1,13 @@
 [mcp_servers.nx-mcp]
 command = "npx"
-args = [ "nx", "mcp", "--minimal" ]
+args = [
+    "nx",
+    "mcp",
+    "--minimal",
+]
+
+[mcp_servers.supabase]
+url = "https://mcp.supabase.com/mcp"
 
 [features]
 multi_agent = true
