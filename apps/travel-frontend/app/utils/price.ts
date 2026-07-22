@@ -41,6 +41,29 @@ export function formatPrice(amount: number, locale: string): string {
   return locale === 'ar' ? formatArabicPrice(amount) : formatLatinPrice(amount);
 }
 
+export interface OfferInfo {
+  /** True while a discount price exists and seats remain (or the offer has no seat cap). */
+  active: boolean;
+  /** Remaining discounted seats, or null when the offer is uncapped/inactive. */
+  seatsLeft: number | null;
+}
+
+/**
+ * Resolve whether a trip/package's limited-seats offer is still live. Once
+ * `seatsClaimed` reaches `seatsLimit` the offer reverts to the regular price
+ * with no separate "active" flag to keep in sync.
+ */
+export function getOfferInfo(
+  seatsLimit: number | null | undefined,
+  seatsClaimed: number | null | undefined,
+  discountAmount: number | null | undefined
+): OfferInfo {
+  if (discountAmount == null) return { active: false, seatsLeft: null };
+  if (seatsLimit == null) return { active: true, seatsLeft: null };
+  const seatsLeft = Math.max(0, seatsLimit - (seatsClaimed ?? 0));
+  return { active: seatsLeft > 0, seatsLeft };
+}
+
 const LATIN_TO_AR = '٠١٢٣٤٥٦٧٨٩';
 
 /**

@@ -45,21 +45,42 @@ const paxOptions = computed(() => [
   { value: '3', label: t('trip.booking.pax3') },
 ]);
 
-/**
- * Unit price — the selected option's price when options exist, otherwise the
- * trip's own display price (parsed from any digit script).
- */
-const unitPrice = computed(() =>
-  selectedOption.value
-    ? Number(selectedOption.value.price_amount) || 0
-    : parsePriceAmount(props.trip.price.en || props.trip.price.ar)
+/** The trip's own (no-option) price, parsed from any digit script. */
+const basePriceAmount = computed(() => parsePriceAmount(props.trip.price.en || props.trip.price.ar));
+/** Limited-seats offer on the trip itself (see supabase/migrations/20260722120000_discount_offers.sql). */
+const offer = computed(() =>
+  getOfferInfo(props.trip.discountSeatsLimit, props.trip.discountSeatsClaimed, props.trip.discountAmount)
 );
+const discountPriceAmount = computed(() => props.trip.discountAmount ?? 0);
 /** With options, require a choice before a price is shown (matches the design). */
 const needsChoice = computed(() => hasOptions.value && !selectedOption.value);
+
+/**
+ * The offer discounts the trip's own (no-option) price point. When options
+ * exist it only carries over to the option that mirrors that base price (the
+ * "early booking" room type) — other room types keep their own price.
+ */
+const discountAppliesToSelection = computed(() => {
+  if (!offer.value.active) return false;
+  if (!hasOptions.value) return true;
+  return selectedOption.value != null && Number(selectedOption.value.price_amount) === basePriceAmount.value;
+});
+
+/** Unit price — selected option's price when options exist, else base price; discounted when the offer applies. */
+const unitPrice = computed(() => {
+  const chosen = selectedOption.value ? Number(selectedOption.value.price_amount) || 0 : basePriceAmount.value;
+  return discountAppliesToSelection.value ? discountPriceAmount.value : chosen;
+});
 /** Big price shown at the top of the card. */
 const priceLabel = computed(() => {
   if (needsChoice.value) return '—';
-  return hasOptions.value ? formatPrice(unitPrice.value, locale.value) : lc(props.trip.price);
+  if (hasOptions.value) return formatPrice(unitPrice.value, locale.value);
+  return discountAppliesToSelection.value && props.trip.discountPrice ? lc(props.trip.discountPrice) : lc(props.trip.price);
+});
+/** Struck-through original price, shown next to `priceLabel` while the offer applies. */
+const originalPriceLabel = computed(() => {
+  if (!discountAppliesToSelection.value) return '';
+  return hasOptions.value ? formatPrice(basePriceAmount.value, locale.value) : lc(props.trip.price);
 });
 const qty = computed(() => Number(travellers.value) || 1);
 const totalLabel = computed(() =>
@@ -97,7 +118,13 @@ async function addToCart() {
 
 <template>
   <Card variant="elevated" padding="lg" class="book-card">
+    <div v-if="discountAppliesToSelection" class="bookcard__offer">
+      <Icon name="tag" :size="13" :stroke-width="2.4" />
+      {{ trip.discountLabel ? lc(trip.discountLabel) : t('common.offerBadge') }}
+      <span v-if="offer.seatsLeft != null">· {{ t('common.discountSeatsLeft', { count: offer.seatsLeft }) }}</span>
+    </div>
     <div class="bookcard__price">
+      <s v-if="originalPriceLabel" class="bookcard__was">{{ originalPriceLabel }}</s>
       <span class="bookcard__amount">{{ priceLabel }}</span>
       <Icon v-if="!needsChoice" name="saudi-riyal" :size="20" class="bookcard__riyal" />
       <span class="sr-only">{{ t('common.currency') }}</span>
@@ -157,7 +184,14 @@ async function addToCart() {
 </template>
 
 <style scoped>
+.bookcard__offer {
+  display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap;
+  background: var(--brand-strong, #7c444e); color: #fff;
+  font-family: var(--font-body); font-weight: 800; font-size: 12px;
+  padding: 5px 11px; border-radius: var(--radius-pill); margin-bottom: 10px;
+}
 .bookcard__price { display: flex; align-items: center; gap: 6px; }
+.bookcard__was { font-family: var(--font-body); font-weight: 700; font-size: var(--text-lg); color: var(--text-muted); text-decoration: line-through; }
 .bookcard__amount { font-family: var(--font-display); font-weight: 800; font-size: 32px; color: var(--text-strong); }
 .bookcard__riyal { width: 0.72em; height: 0.72em; color: var(--text-strong); flex: none; }
 .bookcard__per { font-size: 13px; color: var(--text-muted); align-self: flex-end; margin-bottom: 4px; }

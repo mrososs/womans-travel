@@ -19,10 +19,15 @@ withDefaults(
     availableLabel?: string;
     /** Optional "price excludes VAT" note shown under the price. */
     vatNote?: string;
+    /** Pre-discount price, shown struck through next to `price` when set. */
+    originalPrice?: string;
+    /** Pre-localized offer ribbon text (e.g. "Offer for the first 5"). */
+    offerLabel?: string;
   }>(),
   {
     img: '', price: '', kindLabel: '', fromLabel: '', currency: '', viewLabel: 'عرض',
     availableNow: false, availableLabel: 'متاح الآن', vatNote: '',
+    originalPrice: '', offerLabel: '',
   }
 );
 
@@ -35,6 +40,10 @@ const emit = defineEmits<{ open: [] }>();
       <img v-if="img" class="pkg__img" :src="img" :alt="title" loading="lazy" decoding="async">
       <Icon v-else :name="icon" :size="64" :stroke-width="1.2" color="#fff" />
       <Badge v-if="kindLabel" variant="solid" class="pkg__badge">{{ kindLabel }}</Badge>
+      <span v-if="offerLabel" class="pkg__offer">
+        <Icon name="tag" :size="13" :stroke-width="2.4" />
+        {{ offerLabel }}
+      </span>
       <span v-if="availableNow" class="pkg__available">
         <span class="pkg__available-dot" />
         {{ availableLabel }}
@@ -48,6 +57,7 @@ const emit = defineEmits<{ open: [] }>();
       <p class="pkg__desc">{{ desc }}</p>
       <div v-if="price" class="pkg__price">
         <span class="pkg__from">{{ fromLabel }}</span>
+        <s v-if="originalPrice" class="pkg__was">{{ originalPrice }}</s>
         <b>{{ price }}</b>
         <Icon name="saudi-riyal" :size="18" class="pkg__riyal" />
         <span class="sr-only">{{ currency }}</span>
@@ -73,6 +83,15 @@ const emit = defineEmits<{ open: [] }>();
 }
 .pkg:hover .pkg__media::after { opacity: 1; }
 .pkg__badge { position: absolute; top: 12px; inset-inline-start: 12px; z-index: 2; }
+.pkg__offer {
+  position: absolute; top: 50px; inset-inline-start: 12px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--brand-strong, #7c444e); color: #fff;
+  font-family: var(--font-body); font-weight: 800; font-size: 12px;
+  padding: 5px 11px; border-radius: var(--radius-pill);
+  box-shadow: 0 2px 10px rgba(124, 68, 78, 0.45);
+}
+.pkg__offer svg { width: 13px; height: 13px; }
 .pkg__available {
   position: absolute; top: 12px; inset-inline-end: 12px; z-index: 2;
   display: inline-flex; align-items: center; gap: 6px;
@@ -107,6 +126,7 @@ const emit = defineEmits<{ open: [] }>();
 .pkg__desc { font-size: 14px; color: var(--text-muted); line-height: 1.8; margin: 0; }
 .pkg__price { margin-top: auto; padding-top: 8px; display: flex; align-items: center; gap: 6px; }
 .pkg__from { font-size: 12px; color: var(--text-muted); }
+.pkg__was { font-family: var(--font-body); font-weight: 700; font-size: var(--text-sm); color: var(--text-muted); text-decoration: line-through; }
 .pkg__price b { font-family: var(--font-display); font-weight: 800; font-size: var(--text-2xl); color: var(--text-strong); }
 .pkg__riyal { width: 0.8em; height: 0.8em; color: var(--text-strong); flex: none; }
 .pkg__vat { margin: 4px 0 0; font-size: 11.5px; color: var(--text-subtle); }

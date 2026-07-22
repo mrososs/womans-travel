@@ -45,6 +45,20 @@ const kindOptions = [
       <label class="pform__label">{{ t('admin.descEn') }}</label>
       <textarea v-model="model.desc_en" class="pform__textarea" rows="3" />
     </div>
+
+    <div class="pform__field">
+      <label class="pform__label">{{ t('admin.discountTitle') }}</label>
+      <p class="pform__hint">{{ t('admin.discountHint') }}</p>
+    </div>
+    <div class="pform__grid">
+      <Input v-model="model.discount_price_ar" :label="t('admin.discountPriceAr')" />
+      <Input v-model="model.discount_price_en" :label="t('admin.discountPriceEn')" />
+      <Input v-model.number="model.discount_price_amount" type="number" :label="t('admin.discountPriceAmount')" />
+      <Input v-model.number="model.discount_seats_limit" type="number" :label="t('admin.discountSeatsLimit')" />
+      <Input v-model="model.discount_label_ar" :label="t('admin.discountLabelAr')" />
+      <Input v-model="model.discount_label_en" :label="t('admin.discountLabelEn')" />
+      <Input :model-value="model.discount_seats_claimed ?? 0" type="number" disabled :label="t('admin.discountSeatsClaimed')" />
+    </div>
   </div>
 </template>
 
@@ -54,6 +68,7 @@ const kindOptions = [
 @media (max-width: 560px) { .pform__grid { grid-template-columns: 1fr; } }
 .pform__field { display: flex; flex-direction: column; gap: 7px; }
 .pform__label { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--text-strong); }
+.pform__hint { font-size: var(--text-sm); color: var(--text-muted); margin: 0; }
 .pform__textarea {
   font-family: var(--font-body); font-size: var(--text-base); color: var(--text-strong);
   background: var(--surface-card); border: 1.5px solid var(--border-default);

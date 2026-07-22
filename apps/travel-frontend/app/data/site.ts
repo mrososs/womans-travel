@@ -31,6 +31,12 @@ export interface Trip {
   duration: Loc;
   dates: Loc;
   price: Loc;
+  /** Limited-seats offer price, shown alongside `price` while seats remain. */
+  discountPrice: Loc | null;
+  discountAmount: number | null;
+  discountLabel: Loc | null;
+  discountSeatsLimit: number | null;
+  discountSeatsClaimed: number | null;
 }
 
 export interface Category {

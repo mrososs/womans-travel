@@ -81,6 +81,20 @@ const variantOptions = [
 
     <Switch v-model="model.featured" :label="t('admin.featured')" />
     <Switch v-model="model.coming_soon" :label="t('admin.comingSoon')" />
+
+    <div class="tform__field">
+      <label class="tform__label">{{ t('admin.discountTitle') }}</label>
+      <p class="tform__hint">{{ t('admin.discountHint') }}</p>
+    </div>
+    <div class="tform__grid">
+      <Input v-model="model.discount_price_ar" :label="t('admin.discountPriceAr')" />
+      <Input v-model="model.discount_price_en" :label="t('admin.discountPriceEn')" />
+      <Input v-model.number="model.discount_price_amount" type="number" :label="t('admin.discountPriceAmount')" />
+      <Input v-model.number="model.discount_seats_limit" type="number" :label="t('admin.discountSeatsLimit')" />
+      <Input v-model="model.discount_label_ar" :label="t('admin.discountLabelAr')" />
+      <Input v-model="model.discount_label_en" :label="t('admin.discountLabelEn')" />
+      <Input :model-value="model.discount_seats_claimed ?? 0" type="number" disabled :label="t('admin.discountSeatsClaimed')" />
+    </div>
   </div>
 </template>
 
@@ -88,4 +102,7 @@ const variantOptions = [
 .tform { display: grid; gap: 16px; }
 .tform__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 560px) { .tform__grid { grid-template-columns: 1fr; } }
+.tform__field { display: flex; flex-direction: column; gap: 7px; }
+.tform__label { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--text-strong); }
+.tform__hint { font-size: var(--text-sm); color: var(--text-muted); margin: 0; }
 </style>

@@ -31,6 +31,15 @@ function mapTrip(r: TripRow): Trip {
     duration: { ar: r.duration_ar, en: r.duration_en },
     dates: { ar: r.dates_ar, en: r.dates_en },
     price: { ar: r.price_ar, en: r.price_en },
+    discountPrice:
+      r.discount_price_amount != null ? { ar: r.discount_price_ar ?? '', en: r.discount_price_en ?? '' } : null,
+    discountAmount: r.discount_price_amount != null ? Number(r.discount_price_amount) : null,
+    discountLabel:
+      r.discount_label_ar != null || r.discount_label_en != null
+        ? { ar: r.discount_label_ar ?? '', en: r.discount_label_en ?? '' }
+        : null,
+    discountSeatsLimit: r.discount_seats_limit,
+    discountSeatsClaimed: r.discount_seats_claimed,
   };
 }
 

@@ -18,6 +18,10 @@ function goPackage(id: string) {
 useHead(() => ({ title: `${t('pages.packages.title')} · ${t('brand')}` }));
 
 const items = computed(() => packages.value ?? []);
+
+function packageOffer(p: { discount_seats_limit: number | null; discount_seats_claimed: number; discount_price_amount: number | null }) {
+  return getOfferInfo(p.discount_seats_limit, p.discount_seats_claimed, p.discount_price_amount);
+}
 const grid = ref<HTMLElement | null>(null);
 useScrollReveal(grid, { selector: '.pkg', stagger: 0.08, watch: ready });
 </script>
@@ -44,7 +48,9 @@ useScrollReveal(grid, { selector: '.pkg', stagger: 0.08, watch: ready });
               :icon="p.icon"
               :grad="p.grad"
               :img="p.image_url"
-              :price="pick(p, 'price')"
+              :price="packageOffer(p).active ? pick(p, 'discount_price') : pick(p, 'price')"
+              :original-price="packageOffer(p).active ? pick(p, 'price') : ''"
+              :offer-label="packageOffer(p).active ? (pick(p, 'discount_label') || t('common.offerBadge')) : ''"
               :currency="t('common.currency')"
               :from-label="t('common.startingFrom')"
               :kind-label="t(`destinations.kinds.${p.kind}`)"

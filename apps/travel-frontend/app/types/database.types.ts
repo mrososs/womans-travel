@@ -41,24 +41,6 @@ export type Database = {
         }
         Relationships: []
       }
-      tax_settings: {
-        Row: {
-          id: number
-          updated_at: string
-          vat_percent: number
-        }
-        Insert: {
-          id?: number
-          updated_at?: string
-          vat_percent?: number
-        }
-        Update: {
-          id?: number
-          updated_at?: string
-          vat_percent?: number
-        }
-        Relationships: []
-      }
       bookings: {
         Row: {
           created_at: string
@@ -427,6 +409,13 @@ export type Database = {
           cost_amount: number | null
           desc_ar: string
           desc_en: string
+          discount_label_ar: string | null
+          discount_label_en: string | null
+          discount_price_amount: number | null
+          discount_price_ar: string | null
+          discount_price_en: string | null
+          discount_seats_claimed: number
+          discount_seats_limit: number | null
           grad: string
           icon: string
           id: string
@@ -443,6 +432,13 @@ export type Database = {
           cost_amount?: number | null
           desc_ar: string
           desc_en: string
+          discount_label_ar?: string | null
+          discount_label_en?: string | null
+          discount_price_amount?: number | null
+          discount_price_ar?: string | null
+          discount_price_en?: string | null
+          discount_seats_claimed?: number
+          discount_seats_limit?: number | null
           grad: string
           icon: string
           id: string
@@ -459,6 +455,13 @@ export type Database = {
           cost_amount?: number | null
           desc_ar?: string
           desc_en?: string
+          discount_label_ar?: string | null
+          discount_label_en?: string | null
+          discount_price_amount?: number | null
+          discount_price_ar?: string | null
+          discount_price_en?: string | null
+          discount_seats_claimed?: number
+          discount_seats_limit?: number | null
           grad?: string
           icon?: string
           id?: string
@@ -628,6 +631,24 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_settings: {
+        Row: {
+          id: number
+          updated_at: string
+          vat_percent: number
+        }
+        Insert: {
+          id?: number
+          updated_at?: string
+          vat_percent?: number
+        }
+        Update: {
+          id?: number
+          updated_at?: string
+          vat_percent?: number
+        }
+        Relationships: []
+      }
       trips: {
         Row: {
           category_id: string | null
@@ -636,6 +657,13 @@ export type Database = {
           created_at: string
           dates_ar: string
           dates_en: string
+          discount_label_ar: string | null
+          discount_label_en: string | null
+          discount_price_amount: number | null
+          discount_price_ar: string | null
+          discount_price_en: string | null
+          discount_seats_claimed: number
+          discount_seats_limit: number | null
           duration_ar: string
           duration_en: string
           featured: boolean
@@ -664,6 +692,13 @@ export type Database = {
           created_at?: string
           dates_ar: string
           dates_en: string
+          discount_label_ar?: string | null
+          discount_label_en?: string | null
+          discount_price_amount?: number | null
+          discount_price_ar?: string | null
+          discount_price_en?: string | null
+          discount_seats_claimed?: number
+          discount_seats_limit?: number | null
           duration_ar: string
           duration_en: string
           featured?: boolean
@@ -692,6 +727,13 @@ export type Database = {
           created_at?: string
           dates_ar?: string
           dates_en?: string
+          discount_label_ar?: string | null
+          discount_label_en?: string | null
+          discount_price_amount?: number | null
+          discount_price_ar?: string | null
+          discount_price_en?: string | null
+          discount_seats_claimed?: number
+          discount_seats_limit?: number | null
           duration_ar?: string
           duration_en?: string
           featured?: boolean
@@ -778,7 +820,7 @@ export type Database = {
         }[]
       }
       admin_overview: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           cost: number
           profit: number
@@ -790,7 +832,7 @@ export type Database = {
         }[]
       }
       get_secret: { Args: { p_name: string }; Returns: string }
-      is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
@@ -917,9 +959,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const

@@ -17,6 +17,10 @@ const { has, toggle } = useWishlist();
 const { isLoggedIn } = useAuth();
 const notify = useNotify();
 
+function offer(trip: Trip) {
+  return getOfferInfo(trip.discountSeatsLimit, trip.discountSeatsClaimed, trip.discountAmount);
+}
+
 async function onFavourite(trip: Trip) {
   if (!isLoggedIn.value) {
     notify.error(t('wishlist.loginRequired'));
@@ -46,7 +50,9 @@ async function onFavourite(trip: Trip) {
       :dates="lc(trip.dates)"
       :rating="trip.rating"
       :reviews="trip.reviews"
-      :price="lc(trip.price)"
+      :price="offer(trip).active ? lc(trip.discountPrice!) : lc(trip.price)"
+      :original-price="offer(trip).active ? lc(trip.price) : ''"
+      :offer-label="offer(trip).active ? (trip.discountLabel ? lc(trip.discountLabel) : t('common.offerBadge')) : ''"
       :currency-label="t('common.currency')"
       :price-note="t('common.perPerson')"
       :vat-note="t('common.vatShort')"

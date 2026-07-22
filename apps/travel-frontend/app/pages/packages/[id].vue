@@ -38,6 +38,14 @@ const basePriceAmount = computed(() =>
   pkg.value ? Number((pkg.value.price_en ?? '').replace(/[^0-9.]/g, '')) || 0 : 0
 );
 
+// Limited-seats offer on the package itself (see supabase/migrations/20260722120000_discount_offers.sql).
+const offer = computed(() =>
+  pkg.value
+    ? getOfferInfo(pkg.value.discount_seats_limit, pkg.value.discount_seats_claimed, pkg.value.discount_price_amount)
+    : { active: false, seatsLeft: null }
+);
+const discountPriceAmount = computed(() => Number(pkg.value?.discount_price_amount) || 0);
+
 // Day-by-day itinerary (admin-managed). Each day's `items` are newline-separated.
 const { data: days } = usePackageDays(id);
 const dayList = computed(() => days.value ?? []);
@@ -66,16 +74,36 @@ const selectedOption = computed(
   () => optionList.value.find((o) => o.id === selectedOptionId.value) ?? null
 );
 
-/** Unit price — selected option's price when options exist, else base price. */
-const priceAmount = computed(() =>
-  selectedOption.value ? Number(selectedOption.value.price_amount) || 0 : basePriceAmount.value
-);
 /** With options, require a choice before a price is shown (matches the design). */
 const needsChoice = computed(() => hasOptions.value && !selectedOption.value);
+
+/**
+ * The offer discounts the package's own (no-option) price point. When options
+ * exist it only carries over to the option that mirrors that base price (the
+ * "early booking" room type) — other room types keep their own price.
+ */
+const discountAppliesToSelection = computed(() => {
+  if (!offer.value.active) return false;
+  if (!hasOptions.value) return true;
+  return selectedOption.value != null && Number(selectedOption.value.price_amount) === basePriceAmount.value;
+});
+
+/** Unit price — selected option's price when options exist, else base price; discounted when the offer applies. */
+const priceAmount = computed(() => {
+  const chosen = selectedOption.value ? Number(selectedOption.value.price_amount) || 0 : basePriceAmount.value;
+  return discountAppliesToSelection.value ? discountPriceAmount.value : chosen;
+});
 /** Big price shown in the buy card. */
 const priceLabel = computed(() => {
   if (needsChoice.value) return '—';
-  return hasOptions.value ? formatPrice(priceAmount.value, locale.value) : pkg.value ? pick(pkg.value, 'price') : '';
+  if (hasOptions.value) return formatPrice(priceAmount.value, locale.value);
+  if (!pkg.value) return '';
+  return discountAppliesToSelection.value ? pick(pkg.value, 'discount_price') : pick(pkg.value, 'price');
+});
+/** Struck-through original price, shown next to `priceLabel` while the offer applies. */
+const originalPriceLabel = computed(() => {
+  if (!discountAppliesToSelection.value) return '';
+  return hasOptions.value ? formatPrice(basePriceAmount.value, locale.value) : pkg.value ? pick(pkg.value, 'price') : '';
 });
 
 const qty = ref(1);
@@ -126,6 +154,10 @@ async function toggleWishlist() {
 const relatedOthers = computed(() =>
   (related.value ?? []).filter((p) => p.id !== id.value).slice(0, 3)
 );
+
+function packageOffer(p: { discount_seats_limit: number | null; discount_seats_claimed: number; discount_price_amount: number | null }) {
+  return getOfferInfo(p.discount_seats_limit, p.discount_seats_claimed, p.discount_price_amount);
+}
 
 function goPackage(pid: string) {
   navigateTo(localePath(`/packages/${pid}`));
@@ -197,7 +229,13 @@ function goPackage(pid: string) {
           </div>
 
           <Card variant="elevated" padding="lg" class="pd-buy">
+            <div v-if="discountAppliesToSelection" class="pd-offer">
+              <Icon name="tag" :size="13" :stroke-width="2.4" />
+              {{ pkg && pick(pkg, 'discount_label') ? pick(pkg, 'discount_label') : t('common.offerBadge') }}
+              <span v-if="offer.seatsLeft != null">· {{ t('common.discountSeatsLeft', { count: offer.seatsLeft }) }}</span>
+            </div>
             <div class="pd-price">
+              <s v-if="originalPriceLabel" class="pd-price__was">{{ originalPriceLabel }}</s>
               <span class="pd-price__amount">{{ priceLabel }}</span>
               <Icon v-if="!needsChoice" name="saudi-riyal" :size="20" class="pd-price__riyal" />
               <span class="sr-only">{{ t('common.currency') }}</span>
@@ -254,7 +292,9 @@ function goPackage(pid: string) {
             :icon="p.icon"
             :grad="p.grad"
             :img="p.image_url"
-            :price="pick(p, 'price')"
+            :price="packageOffer(p).active ? pick(p, 'discount_price') : pick(p, 'price')"
+            :original-price="packageOffer(p).active ? pick(p, 'price') : ''"
+            :offer-label="packageOffer(p).active ? (pick(p, 'discount_label') || t('common.offerBadge')) : ''"
             :currency="t('common.currency')"
             :from-label="t('common.startingFrom')"
             :kind-label="t(`destinations.kinds.${p.kind}`)"
@@ -344,7 +384,14 @@ function goPackage(pid: string) {
 
 /* Purchase card */
 .pd-buy { position: sticky; top: 90px; }
+.pd-offer {
+  display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap;
+  background: var(--brand-strong, #7c444e); color: #fff;
+  font-family: var(--font-body); font-weight: 800; font-size: 12px;
+  padding: 5px 11px; border-radius: var(--radius-pill); margin-bottom: 10px;
+}
 .pd-price { display: flex; align-items: center; gap: 6px; }
+.pd-price__was { font-family: var(--font-body); font-weight: 700; font-size: var(--text-lg); color: var(--text-muted); text-decoration: line-through; }
 .pd-price__amount { font-family: var(--font-display); font-weight: 800; font-size: 32px; color: var(--text-strong); }
 .pd-price__riyal { width: 0.72em; height: 0.72em; color: var(--text-strong); flex: none; }
 .pd-price__per { font-size: 13px; color: var(--text-muted); align-self: flex-end; margin-bottom: 5px; }

@@ -24,6 +24,10 @@ const props = withDefaults(
     priceNote?: string;
     /** Optional "price excludes VAT" note shown under the price. */
     vatNote?: string;
+    /** Pre-discount price, shown struck through next to `price` when set. */
+    originalPrice?: string;
+    /** Pre-localized offer ribbon text (e.g. "Offer for the first 5"). Hidden when `comingSoon` is true. */
+    offerLabel?: string;
     /** Screen-reader label for the currency (the Riyal symbol is shown visually). */
     currencyLabel?: string;
     tier?: TripTier | null;
@@ -44,7 +48,8 @@ const props = withDefaults(
   }>(),
   {
     region: '', duration: '', dates: '', rating: null, reviews: null, price: '',
-    priceNote: 'للشخص', vatNote: '', tier: null, seatsText: '', comingSoon: false,
+    priceNote: 'للشخص', vatNote: '', originalPrice: '', offerLabel: '',
+    tier: null, seatsText: '', comingSoon: false,
     comingSoonLabel: 'قريبًا', favourite: false,
     hoverActions: true, wishlistLabel: 'حفظ', removeLabel: 'إزالة من المحفوظات',
     viewLabel: 'عرض', clickable: true,
@@ -76,6 +81,10 @@ const heartColor = computed(() =>
       <span v-if="comingSoon" class="drh-trip__soon">
         <Icon name="clock" :size="13" :stroke-width="2.4" />
         {{ comingSoonLabel }}
+      </span>
+      <span v-else-if="offerLabel" class="drh-trip__offer">
+        <Icon name="tag" :size="13" :stroke-width="2.4" />
+        {{ offerLabel }}
       </span>
       <div v-if="hoverActions" class="drh-trip__actions">
         <IconButton
@@ -111,6 +120,7 @@ const heartColor = computed(() =>
       <div class="drh-trip__foot">
         <div class="drh-trip__price">
           <span class="drh-trip__amount">
+            <s v-if="originalPrice" class="drh-trip__was">{{ originalPrice }}</s>
             <b>{{ price }}</b>
             <Icon name="saudi-riyal" :size="20" class="drh-trip__riyal" />
             <span v-if="currencyLabel" class="sr-only">{{ currencyLabel }}</span>
@@ -180,6 +190,28 @@ const heartColor = computed(() =>
   white-space: nowrap;
 }
 .drh-trip__soon svg { width: 13px; height: 13px; }
+.drh-trip__offer {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 12px;
+  z-index: 4;
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: var(--brand-strong, #7c444e);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(18, 27, 51, 0.18));
+  white-space: nowrap;
+}
+.drh-trip__offer svg { width: 13px; height: 13px; }
 /* Coming-soon cards read as not-yet-available: gentle desaturate + lift scrim.
    Hover actions (save / view) stay available so travellers can still wishlist. */
 .drh-trip--soon .drh-trip__media > * { filter: grayscale(0.45) brightness(0.94); }
@@ -243,6 +275,14 @@ const heartColor = computed(() =>
   color: var(--text-strong);
 }
 .drh-trip__riyal { width: 0.8em; height: 0.8em; }
+.drh-trip__was {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-decoration: line-through;
+  margin-inline-end: 2px;
+}
 .drh-trip__price small { display: block; font-size: var(--text-xs); color: var(--text-muted); }
 .drh-trip__vat { color: var(--text-subtle); }
 </style>
