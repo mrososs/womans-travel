@@ -218,7 +218,15 @@ export async function createTamaraCheckout(
 ): Promise<CreateCheckoutResult> {
   const body = {
     total_amount: money(input.amount, input.currency),
-    ...(input.taxAmount != null ? { tax_amount: money(input.taxAmount, input.currency) } : {}),
+    // Tamara requires tax_amount + shipping_amount present, and
+    // total_amount === sum(items) + tax + shipping - discount. For a travel
+    // service there is no shipping, so it's zero.
+    tax_amount: money(input.taxAmount ?? 0, input.currency),
+    shipping_amount: money(0, input.currency),
+    // REQUIRED — omitting payment_type makes Tamara respond 500. KSA offers
+    // "Pay in 4" interest-free instalments (confirmed via pre-check).
+    payment_type: 'PAY_BY_INSTALMENTS',
+    instalments: 4,
     order_reference_id: input.orderReferenceId,
     description: input.description,
     country_code: input.countryCode,

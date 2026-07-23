@@ -24,8 +24,10 @@ const MOYASAR_API = 'https://api.moyasar.com';
 // checkout on checkout.tabby.ai; the Checkout/Payments API calls happen
 // server-side against api.tabby.ai. checkout.tabby.ai is also whitelisted for
 // script/frame so the optional Tabby promo/installment widget can render.
-const TABBY_API = 'https://api.tabby.ai';
-const TABBY_CHECKOUT = 'https://checkout.tabby.ai';
+// Tabby serves its hosted checkout + API from BOTH .ai and .sa (KSA) hosts —
+// a created session's web_url points at checkout.tabby.sa. Whitelist both TLDs.
+const TABBY_API = 'https://api.tabby.ai https://api.tabby.sa';
+const TABBY_CHECKOUT = 'https://checkout.tabby.ai https://checkout.tabby.sa https://*.tabby.sa';
 
 // Tamara BNPL: server-side API calls to api(.|-sandbox.)tamara.co; the browser
 // is redirected (top-level) to checkout(.|-sandbox.)tamara.co, and the optional
