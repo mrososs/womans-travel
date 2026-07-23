@@ -45,8 +45,16 @@ const DEMO_ITEM = {
 const { items, hydrate, clear } = useCart();
 const { isLoggedIn } = useAuth();
 const localePath = useLocalePath();
+const { locale } = useI18n();
 const config = useRuntimeConfig();
 const publishableKey = config.public.moyasarPublishableKey as string;
+
+// Tabby (Pay in 4) availability + config — loaded from payment_settings on mount.
+const tabbyEnabled = ref(false);
+const tabbyTestMode = ref(true);
+type TabbyPhase = 'idle' | 'redirecting' | 'error';
+const tabbyPhase = ref<TabbyPhase>('idle');
+const tabbyError = ref('');
 
 // Only surface the test-card hint when a Moyasar *test* key is in use, so the
 // live deployment never shows "use test Visa 4111…".
@@ -62,12 +70,21 @@ const subtotal = computed(() =>
 const vat = computed(() => Math.round(subtotal.value * vatRate.value));
 const total = computed(() => subtotal.value + vat.value);
 
+// Tabby splits the total into 4 equal, interest-free payments.
+const tabbyInstallment = computed(() => Math.round((total.value / 4) * 100) / 100);
+const tabbySchedule = computed(() => [
+  { label: 'اليوم', amount: tabbyInstallment.value },
+  { label: 'بعد شهر', amount: tabbyInstallment.value },
+  { label: 'بعد شهرين', amount: tabbyInstallment.value },
+  { label: 'بعد ٣ أشهر', amount: tabbyInstallment.value },
+]);
+
 // Stepper: 1 = traveler details, 2 = payment.
 const step = ref<1 | 2>(1);
 const traveler = ref<TravelerDetails | null>(null);
 
 // Payment method chosen in step 2.
-type PaymentMethod = 'moyasar' | 'bank_transfer';
+type PaymentMethod = 'moyasar' | 'tabby' | 'bank_transfer';
 const method = ref<PaymentMethod>('moyasar');
 
 // Business bank-account details for the manual-transfer option. Defaults mirror
@@ -134,7 +151,53 @@ function selectMethod(m: PaymentMethod) {
   if (method.value === m) return;
   method.value = m;
   bankError.value = '';
+  tabbyError.value = '';
+  tabbyPhase.value = 'idle';
   if (m === 'moyasar' && step.value === 2) begin();
+}
+
+/**
+ * Tabby (Pay in 4): create a pending order + Tabby Checkout Session server-side,
+ * then redirect the shopper to Tabby's hosted checkout. On return, our callback
+ * verifies + captures the payment. If Tabby declines the buyer at scoring time
+ * we surface a friendly message and keep the other methods available.
+ */
+async function startTabby() {
+  if (!isLoggedIn.value) {
+    navigateTo(localePath('/auth/login'));
+    return;
+  }
+  if (!traveler.value) {
+    step.value = 1;
+    return;
+  }
+  tabbyPhase.value = 'redirecting';
+  tabbyError.value = '';
+  try {
+    const res = await $fetch<{ webUrl?: string; rejected?: boolean; reason?: string }>(
+      '/api/payments/tabby/create',
+      { method: 'POST', body: { traveler: traveler.value, lang: locale.value } }
+    );
+    if (res.rejected || !res.webUrl) {
+      tabbyPhase.value = 'error';
+      tabbyError.value =
+        'عذرًا، لم تتم الموافقة على التقسيط عبر تابي لهذا الطلب. يمكنكِ المتابعة بالبطاقة أو التحويل البنكي.';
+      return;
+    }
+    // Full-page redirect to Tabby's hosted checkout (HPP).
+    window.location.href = res.webUrl;
+  } catch (err: unknown) {
+    const status = (err as { statusCode?: number })?.statusCode;
+    if (status === 401) {
+      navigateTo(localePath('/auth/login'));
+      return;
+    }
+    tabbyPhase.value = 'error';
+    tabbyError.value =
+      (err as { statusMessage?: string; message?: string })?.statusMessage ||
+      (err as Error)?.message ||
+      'تعذّر بدء الدفع عبر تابي، حاولي مرة أخرى.';
+  }
 }
 
 /** Copy a bank detail to the clipboard with a brief "copied" confirmation. */
@@ -259,14 +322,23 @@ onMounted(async () => {
 
   // Load the live bank-account details + VAT rate (admin-editable via the dashboard).
   const supa = useSupabaseClient<Database>();
-  const [{ data }, { data: tax }] = await Promise.all([
+  const [{ data }, { data: tax }, { data: pay }] = await Promise.all([
     supa
       .from('bank_settings')
       .select('bank_name, account_name, account_number, iban')
       .eq('id', 1)
       .maybeSingle(),
     supa.from('tax_settings').select('vat_percent').eq('id', 1).maybeSingle(),
+    supa
+      .from('payment_settings')
+      .select('tabby_enabled, tabby_test_mode')
+      .eq('id', 1)
+      .maybeSingle(),
   ]);
+  if (pay) {
+    tabbyEnabled.value = pay.tabby_enabled !== false;
+    tabbyTestMode.value = pay.tabby_test_mode !== false;
+  }
   if (data) {
     bank.value = {
       bankName: data.bank_name,
@@ -289,7 +361,7 @@ onMounted(async () => {
       <h1 class="co__title">إتمام الحجز</h1>
       <p class="co__lead">
         <Icon name="shield-check" :size="16" />
-        جميع المدفوعات مشفّرة ومحمية · تُدار عبر بوابة الدفع السعودية Moyasar
+        جميع المدفوعات مشفّرة ومحمية عبر بوابات دفع سعودية معتمدة
       </p>
     </header>
 
@@ -345,6 +417,19 @@ onMounted(async () => {
               <span class="co-method__label">الدفع الإلكتروني (ميسّر)</span>
             </button>
             <button
+              v-if="tabbyEnabled"
+              type="button"
+              class="co-method co-method--tabby"
+              :class="{ 'is-active': method === 'tabby' }"
+              role="radio"
+              :aria-checked="method === 'tabby'"
+              @click="selectMethod('tabby')"
+            >
+              <span class="co-method__radio"><span class="co-method__dot" /></span>
+              <span class="co-tabby-logo" aria-hidden="true">tabby</span>
+              <span class="co-method__label">قسّميها على 4 دفعات</span>
+            </button>
+            <button
               type="button"
               class="co-method"
               :class="{ 'is-active': method === 'bank_transfer' }"
@@ -391,6 +476,48 @@ onMounted(async () => {
               </p>
             </div>
           </template>
+
+          <!-- ===== Tabby — Pay in 4 (installments) ===== -->
+          <div v-else-if="method === 'tabby'" class="co-tabby">
+            <div class="co-tabby__hero">
+              <span class="co-tabby-logo co-tabby-logo--lg" aria-hidden="true">tabby</span>
+              <p class="co-tabby__tag">قسّمي مبلغ طلبكِ على <strong>4 دفعات</strong> — بدون فوائد ولا رسوم</p>
+            </div>
+
+            <ol class="co-tabby__plan" aria-label="جدول الدفعات">
+              <li v-for="(p, i) in tabbySchedule" :key="i" class="co-tabby__step">
+                <span class="co-tabby__dot">{{ i + 1 }}</span>
+                <span class="co-tabby__when">{{ p.label }}</span>
+                <span class="co-tabby__amt co-price">
+                  {{ nf.format(p.amount) }}<Icon name="saudi-riyal" :size="13" />
+                </span>
+              </li>
+            </ol>
+
+            <div v-if="tabbyPhase === 'error'" class="co-error co-error--inline">
+              <Icon name="alert-triangle" :size="20" />
+              <p>{{ tabbyError }}</p>
+            </div>
+
+            <Button
+              variant="primary"
+              size="lg"
+              :disabled="tabbyPhase === 'redirecting'"
+              @click="startTabby"
+            >
+              <template #iconStart><Icon name="arrow-left" :size="18" /></template>
+              {{ tabbyPhase === 'redirecting' ? 'جارٍ التحويل إلى تابي…' : 'المتابعة إلى تابي' }}
+            </Button>
+
+            <p v-if="tabbyTestMode" class="co-tabby__hint">
+              <Icon name="shield-check" :size="14" />
+              بيئة اختبار — استخدمي رقم الجوال ‎+966500000001 والرمز 8888 لإتمام التجربة.
+            </p>
+            <p v-else class="co-tabby__hint">
+              <Icon name="shield-check" :size="14" />
+              يتم اتخاذ قرار الموافقة على التقسيط لحظيًا من تابي عند المتابعة.
+            </p>
+          </div>
 
           <!-- ===== Manual bank transfer ===== -->
           <div v-else class="co-bank">
@@ -623,7 +750,7 @@ onMounted(async () => {
 .co-mysr__hint :deep(svg) { color: var(--success-500); flex: none; }
 
 /* payment-method selector */
-.co-methods { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-5); }
+.co-methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
 .co-method {
   display: flex; align-items: center; gap: 10px; cursor: pointer; text-align: start;
   padding: 14px 16px; border: 1.5px solid var(--border-default); border-radius: var(--radius-md);
@@ -643,6 +770,49 @@ onMounted(async () => {
 .co-method.is-active .co-method__radio { border-color: var(--brand-solid); }
 .co-method__dot { width: 9px; height: 9px; border-radius: 50%; background: transparent; transition: background var(--dur-fast); }
 .co-method.is-active .co-method__dot { background: var(--brand-solid); }
+
+/* Tabby brand accent (mint green) — used on the method chip + panel. */
+.co-tabby-logo {
+  font-family: var(--font-display); font-weight: var(--weight-extrabold);
+  letter-spacing: -0.02em; color: #001e1e;
+  background: #3fddc5; border-radius: 6px; padding: 2px 8px; line-height: 1.2;
+  font-size: var(--text-sm);
+}
+.co-method--tabby.is-active { border-color: #22c3a6; background: #edfcf8; box-shadow: var(--shadow-sm); }
+.co-method--tabby .co-method__radio { }
+.co-method--tabby.is-active .co-method__radio { border-color: #22c3a6; }
+.co-method--tabby.is-active .co-method__dot { background: #22c3a6; }
+
+/* Tabby panel */
+.co-tabby { display: grid; gap: var(--space-4); }
+.co-tabby__hero {
+  display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+  padding: var(--space-4); border-radius: var(--radius-md);
+  background: #edfcf8; border: 1.5px solid #bff0e5;
+}
+.co-tabby-logo--lg { font-size: var(--text-lg); padding: 4px 12px; }
+.co-tabby__tag { margin: 0; font-size: var(--text-sm); color: var(--text-body); line-height: var(--leading-relaxed); }
+.co-tabby__tag strong { color: #0f8f77; }
+.co-tabby__plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; border: 1.5px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden; }
+.co-tabby__step {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-3);
+  padding: 12px 16px; background: var(--surface-card); border-bottom: 1px solid var(--border-hair);
+}
+.co-tabby__step:last-child { border-bottom: none; }
+.co-tabby__dot {
+  width: 26px; height: 26px; flex: none; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #3fddc5; color: #001e1e; font-family: var(--font-display); font-weight: var(--weight-bold); font-size: var(--text-xs);
+}
+.co-tabby__when { font-size: var(--text-sm); color: var(--text-muted); font-weight: var(--weight-semibold); }
+.co-tabby__amt { font-family: var(--font-display); font-weight: var(--weight-bold); color: var(--text-strong); }
+.co-tabby__hint {
+  display: flex; align-items: center; gap: 6px; justify-content: center;
+  margin: 0; font-size: var(--text-xs); color: var(--text-muted);
+}
+.co-tabby__hint :deep(svg) { color: var(--success-500); flex: none; }
+.co-error--inline { flex-direction: row; padding: var(--space-3) var(--space-4); text-align: start; background: var(--danger-50, #fef2f2); border-radius: var(--radius-md); }
+.co-error--inline p { margin: 0; }
 
 /* bank-transfer card */
 .co-bank { display: grid; gap: var(--space-4); }

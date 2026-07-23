@@ -20,19 +20,26 @@ const SUPABASE_ORIGIN = 'https://snqujifbaottvysziysj.supabase.co';
 const MOYASAR_CDN = 'https://cdn.moyasar.com';
 const MOYASAR_API = 'https://api.moyasar.com';
 
+// Tabby "Pay in 4": the browser is redirected (top-level) to Tabby's hosted
+// checkout on checkout.tabby.ai; the Checkout/Payments API calls happen
+// server-side against api.tabby.ai. checkout.tabby.ai is also whitelisted for
+// script/frame so the optional Tabby promo/installment widget can render.
+const TABBY_API = 'https://api.tabby.ai';
+const TABBY_CHECKOUT = 'https://checkout.tabby.ai';
+
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
-  `form-action 'self' ${MOYASAR_API}`,
+  `form-action 'self' ${MOYASAR_API} ${TABBY_CHECKOUT}`,
   "img-src 'self' data: blob: https:",
   "font-src 'self' https://fonts.gstatic.com data:",
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${MOYASAR_CDN}`,
-  `script-src 'self' 'unsafe-inline' ${MOYASAR_CDN}`,
-  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co ${MOYASAR_API}`,
-  // 3-D Secure challenge iframe (Moyasar + the issuing bank).
-  `frame-src 'self' ${MOYASAR_API} https://*.moyasar.com`,
+  `script-src 'self' 'unsafe-inline' ${MOYASAR_CDN} ${TABBY_CHECKOUT}`,
+  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co ${MOYASAR_API} ${TABBY_API} ${TABBY_CHECKOUT}`,
+  // 3-D Secure challenge iframe (Moyasar + the issuing bank) + Tabby HPP/widget.
+  `frame-src 'self' ${MOYASAR_API} https://*.moyasar.com ${TABBY_CHECKOUT} https://*.tabby.ai`,
   'upgrade-insecure-requests',
 ].join('; ');
 

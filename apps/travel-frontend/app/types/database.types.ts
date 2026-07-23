@@ -476,6 +476,36 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_settings: {
+        Row: {
+          id: number
+          moyasar_enabled: boolean
+          tabby_enabled: boolean
+          tabby_merchant_code: string
+          tabby_public_key: string
+          tabby_test_mode: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          moyasar_enabled?: boolean
+          tabby_enabled?: boolean
+          tabby_merchant_code?: string
+          tabby_public_key?: string
+          tabby_test_mode?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          moyasar_enabled?: boolean
+          tabby_enabled?: boolean
+          tabby_merchant_code?: string
+          tabby_public_key?: string
+          tabby_test_mode?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           desc_ar: string
