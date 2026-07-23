@@ -56,6 +56,15 @@ type TabbyPhase = 'idle' | 'redirecting' | 'error';
 const tabbyPhase = ref<TabbyPhase>('idle');
 const tabbyError = ref('');
 
+// Tamara (BNPL) availability + config + per-buyer eligibility (pre-check).
+const tamaraEnabled = ref(false);
+const tamaraTestMode = ref(true);
+// null = not yet checked / checking; true = eligible; false = not eligible.
+const tamaraEligible = ref<boolean | null>(null);
+type TamaraPhase = 'idle' | 'redirecting' | 'error';
+const tamaraPhase = ref<TamaraPhase>('idle');
+const tamaraError = ref('');
+
 // Only surface the test-card hint when a Moyasar *test* key is in use, so the
 // live deployment never shows "use test Visa 4111…".
 const isTestMode = computed(() => publishableKey.startsWith('pk_test'));
@@ -70,13 +79,13 @@ const subtotal = computed(() =>
 const vat = computed(() => Math.round(subtotal.value * vatRate.value));
 const total = computed(() => subtotal.value + vat.value);
 
-// Tabby splits the total into 4 equal, interest-free payments.
-const tabbyInstallment = computed(() => Math.round((total.value / 4) * 100) / 100);
-const tabbySchedule = computed(() => [
-  { label: 'اليوم', amount: tabbyInstallment.value },
-  { label: 'بعد شهر', amount: tabbyInstallment.value },
-  { label: 'بعد شهرين', amount: tabbyInstallment.value },
-  { label: 'بعد ٣ أشهر', amount: tabbyInstallment.value },
+// BNPL providers split the total into 4 equal, interest-free monthly payments.
+const installment4 = computed(() => Math.round((total.value / 4) * 100) / 100);
+const installmentSchedule = computed(() => [
+  { label: 'اليوم', amount: installment4.value },
+  { label: 'بعد شهر', amount: installment4.value },
+  { label: 'بعد شهرين', amount: installment4.value },
+  { label: 'بعد ٣ أشهر', amount: installment4.value },
 ]);
 
 // Stepper: 1 = traveler details, 2 = payment.
@@ -84,7 +93,7 @@ const step = ref<1 | 2>(1);
 const traveler = ref<TravelerDetails | null>(null);
 
 // Payment method chosen in step 2.
-type PaymentMethod = 'moyasar' | 'tabby' | 'bank_transfer';
+type PaymentMethod = 'moyasar' | 'tabby' | 'tamara' | 'bank_transfer';
 const method = ref<PaymentMethod>('moyasar');
 
 // Business bank-account details for the manual-transfer option. Defaults mirror
@@ -144,6 +153,9 @@ function onTravelerNext(details: TravelerDetails) {
   step.value = 2;
   // Only the electronic gateway needs preparing; the bank card is static.
   if (method.value === 'moyasar') begin();
+  // Pre-check Tamara eligibility in the background so the option can be
+  // greyed-out when it isn't available for this buyer/basket.
+  if (tamaraEnabled.value && tamaraEligible.value === null) checkTamaraEligibility();
 }
 
 /** Switch payment method in step 2 (mounts Moyasar lazily on first select). */
@@ -153,7 +165,66 @@ function selectMethod(m: PaymentMethod) {
   bankError.value = '';
   tabbyError.value = '';
   tabbyPhase.value = 'idle';
+  tamaraError.value = '';
+  tamaraPhase.value = 'idle';
   if (m === 'moyasar' && step.value === 2) begin();
+  if (m === 'tamara' && step.value === 2 && tamaraEligible.value === null) checkTamaraEligibility();
+}
+
+/** Tamara pre-checkout eligibility — server recomputes the total + calls Tamara. */
+async function checkTamaraEligibility() {
+  if (!tamaraEnabled.value) return;
+  tamaraEligible.value = null; // checking
+  try {
+    const res = await $fetch<{ eligible: boolean }>('/api/payments/tamara/precheck', {
+      method: 'POST',
+    });
+    tamaraEligible.value = !!res.eligible;
+  } catch {
+    tamaraEligible.value = false;
+  }
+}
+
+/**
+ * Tamara (BNPL): create a pending order + Tamara checkout session server-side,
+ * then redirect to Tamara's hosted checkout. On return, our callback authorises
+ * + captures and confirms the order.
+ */
+async function startTamara() {
+  if (!isLoggedIn.value) {
+    navigateTo(localePath('/auth/login'));
+    return;
+  }
+  if (!traveler.value) {
+    step.value = 1;
+    return;
+  }
+  tamaraPhase.value = 'redirecting';
+  tamaraError.value = '';
+  try {
+    const res = await $fetch<{ checkoutUrl?: string; rejected?: boolean }>(
+      '/api/payments/tamara/create',
+      { method: 'POST', body: { traveler: traveler.value, lang: locale.value } }
+    );
+    if (res.rejected || !res.checkoutUrl) {
+      tamaraPhase.value = 'error';
+      tamaraError.value =
+        'عذرًا، الدفع عبر تمارا غير متاح لهذا الطلب حاليًا. يمكنكِ المتابعة بالبطاقة أو التحويل البنكي.';
+      return;
+    }
+    window.location.href = res.checkoutUrl;
+  } catch (err: unknown) {
+    const status = (err as { statusCode?: number })?.statusCode;
+    if (status === 401) {
+      navigateTo(localePath('/auth/login'));
+      return;
+    }
+    tamaraPhase.value = 'error';
+    tamaraError.value =
+      (err as { statusMessage?: string; message?: string })?.statusMessage ||
+      (err as Error)?.message ||
+      'تعذّر بدء الدفع عبر تمارا، حاولي مرة أخرى.';
+  }
 }
 
 /**
@@ -331,13 +402,15 @@ onMounted(async () => {
     supa.from('tax_settings').select('vat_percent').eq('id', 1).maybeSingle(),
     supa
       .from('payment_settings')
-      .select('tabby_enabled, tabby_test_mode')
+      .select('tabby_enabled, tabby_test_mode, tamara_enabled, tamara_test_mode')
       .eq('id', 1)
       .maybeSingle(),
   ]);
   if (pay) {
     tabbyEnabled.value = pay.tabby_enabled !== false;
     tabbyTestMode.value = pay.tabby_test_mode !== false;
+    tamaraEnabled.value = pay.tamara_enabled !== false;
+    tamaraTestMode.value = pay.tamara_test_mode !== false;
   }
   if (data) {
     bank.value = {
@@ -430,6 +503,20 @@ onMounted(async () => {
               <span class="co-method__label">قسّميها على 4 دفعات</span>
             </button>
             <button
+              v-if="tamaraEnabled"
+              type="button"
+              class="co-method co-method--tamara"
+              :class="{ 'is-active': method === 'tamara', 'is-ineligible': tamaraEligible === false }"
+              role="radio"
+              :aria-checked="method === 'tamara'"
+              :disabled="tamaraEligible === false"
+              @click="selectMethod('tamara')"
+            >
+              <span class="co-method__radio"><span class="co-method__dot" /></span>
+              <span class="co-tamara-logo" aria-hidden="true">tamara</span>
+              <span class="co-method__label">قسّميها على 4 دفعات</span>
+            </button>
+            <button
               type="button"
               class="co-method"
               :class="{ 'is-active': method === 'bank_transfer' }"
@@ -485,7 +572,7 @@ onMounted(async () => {
             </div>
 
             <ol class="co-tabby__plan" aria-label="جدول الدفعات">
-              <li v-for="(p, i) in tabbySchedule" :key="i" class="co-tabby__step">
+              <li v-for="(p, i) in installmentSchedule" :key="i" class="co-tabby__step">
                 <span class="co-tabby__dot">{{ i + 1 }}</span>
                 <span class="co-tabby__when">{{ p.label }}</span>
                 <span class="co-tabby__amt co-price">
@@ -517,6 +604,63 @@ onMounted(async () => {
               <Icon name="shield-check" :size="14" />
               يتم اتخاذ قرار الموافقة على التقسيط لحظيًا من تابي عند المتابعة.
             </p>
+          </div>
+
+          <!-- ===== Tamara — BNPL (installments) ===== -->
+          <div v-else-if="method === 'tamara'" class="co-tamara">
+            <!-- Eligibility check in flight -->
+            <div v-if="tamaraEligible === null" class="co-loading">
+              <Icon name="loader" :size="26" class="co-spin" />
+              <p>جارٍ التحقق من إتاحة تمارا…</p>
+            </div>
+
+            <!-- Not eligible for this basket/buyer -->
+            <div v-else-if="tamaraEligible === false" class="co-error co-error--inline">
+              <Icon name="alert-triangle" :size="20" />
+              <p>عذرًا، الدفع عبر تمارا غير متاح لهذا الطلب. يمكنكِ اختيار طريقة دفع أخرى.</p>
+            </div>
+
+            <!-- Eligible -->
+            <template v-else>
+              <div class="co-tamara__hero">
+                <span class="co-tamara-logo co-tamara-logo--lg" aria-hidden="true">tamara</span>
+                <p class="co-tamara__tag">قسّمي مبلغ طلبكِ على <strong>4 دفعات</strong> — بدون فوائد ولا رسوم</p>
+              </div>
+
+              <ol class="co-tabby__plan" aria-label="جدول الدفعات">
+                <li v-for="(p, i) in installmentSchedule" :key="i" class="co-tabby__step">
+                  <span class="co-tabby__dot co-tabby__dot--tamara">{{ i + 1 }}</span>
+                  <span class="co-tabby__when">{{ p.label }}</span>
+                  <span class="co-tabby__amt co-price">
+                    {{ nf.format(p.amount) }}<Icon name="saudi-riyal" :size="13" />
+                  </span>
+                </li>
+              </ol>
+
+              <div v-if="tamaraPhase === 'error'" class="co-error co-error--inline">
+                <Icon name="alert-triangle" :size="20" />
+                <p>{{ tamaraError }}</p>
+              </div>
+
+              <Button
+                variant="primary"
+                size="lg"
+                :disabled="tamaraPhase === 'redirecting'"
+                @click="startTamara"
+              >
+                <template #iconStart><Icon name="arrow-left" :size="18" /></template>
+                {{ tamaraPhase === 'redirecting' ? 'جارٍ التحويل إلى تمارا…' : 'المتابعة إلى تمارا' }}
+              </Button>
+
+              <p v-if="tamaraTestMode" class="co-tabby__hint">
+                <Icon name="shield-check" :size="14" />
+                بيئة اختبار — أكملي الدفع عبر صفحة تمارا التجريبية باستخدام بيانات الاختبار.
+              </p>
+              <p v-else class="co-tabby__hint">
+                <Icon name="shield-check" :size="14" />
+                تقسيط ميسّر بدون فوائد — يتم تأكيد الموافقة من تمارا عند المتابعة.
+              </p>
+            </template>
           </div>
 
           <!-- ===== Manual bank transfer ===== -->
@@ -813,6 +957,31 @@ onMounted(async () => {
 .co-tabby__hint :deep(svg) { color: var(--success-500); flex: none; }
 .co-error--inline { flex-direction: row; padding: var(--space-3) var(--space-4); text-align: start; background: var(--danger-50, #fef2f2); border-radius: var(--radius-md); }
 .co-error--inline p { margin: 0; }
+
+/* Tamara brand accent (violet). NOTE: tune hex values to the Tamara merchant
+   kit before go-live (files.tamara.co merchant kit). */
+.co-tamara-logo {
+  font-family: var(--font-display); font-weight: var(--weight-extrabold);
+  letter-spacing: -0.02em; color: #ffffff;
+  background: #6d28d9; border-radius: 6px; padding: 2px 8px; line-height: 1.2;
+  font-size: var(--text-sm);
+}
+.co-method--tamara.is-active { border-color: #6d28d9; background: #f6f1ff; box-shadow: var(--shadow-sm); }
+.co-method--tamara.is-active .co-method__radio { border-color: #6d28d9; }
+.co-method--tamara.is-active .co-method__dot { background: #6d28d9; }
+.co-method.is-ineligible { opacity: 0.55; cursor: not-allowed; }
+.co-method.is-ineligible:hover { border-color: var(--border-default); }
+
+.co-tamara { display: grid; gap: var(--space-4); }
+.co-tamara__hero {
+  display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+  padding: var(--space-4); border-radius: var(--radius-md);
+  background: #f6f1ff; border: 1.5px solid #e2d6ff;
+}
+.co-tamara-logo--lg { font-size: var(--text-lg); padding: 4px 12px; }
+.co-tamara__tag { margin: 0; font-size: var(--text-sm); color: var(--text-body); line-height: var(--leading-relaxed); }
+.co-tamara__tag strong { color: #6d28d9; }
+.co-tabby__dot--tamara { background: #6d28d9; color: #fff; }
 
 /* bank-transfer card */
 .co-bank { display: grid; gap: var(--space-4); }

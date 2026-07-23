@@ -484,6 +484,9 @@ export type Database = {
           tabby_merchant_code: string
           tabby_public_key: string
           tabby_test_mode: boolean
+          tamara_enabled: boolean
+          tamara_public_key: string
+          tamara_test_mode: boolean
           updated_at: string
         }
         Insert: {
@@ -493,6 +496,9 @@ export type Database = {
           tabby_merchant_code?: string
           tabby_public_key?: string
           tabby_test_mode?: boolean
+          tamara_enabled?: boolean
+          tamara_public_key?: string
+          tamara_test_mode?: boolean
           updated_at?: string
         }
         Update: {
@@ -502,6 +508,9 @@ export type Database = {
           tabby_merchant_code?: string
           tabby_public_key?: string
           tabby_test_mode?: boolean
+          tamara_enabled?: boolean
+          tamara_public_key?: string
+          tamara_test_mode?: boolean
           updated_at?: string
         }
         Relationships: []

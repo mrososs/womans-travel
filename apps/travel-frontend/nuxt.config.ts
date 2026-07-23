@@ -27,19 +27,25 @@ const MOYASAR_API = 'https://api.moyasar.com';
 const TABBY_API = 'https://api.tabby.ai';
 const TABBY_CHECKOUT = 'https://checkout.tabby.ai';
 
+// Tamara BNPL: server-side API calls to api(.|-sandbox.)tamara.co; the browser
+// is redirected (top-level) to checkout(.|-sandbox.)tamara.co, and the optional
+// promo widget loads from cdn.tamara.co. A single wildcard covers all subdomains
+// across both sandbox + production.
+const TAMARA = 'https://*.tamara.co';
+
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
-  `form-action 'self' ${MOYASAR_API} ${TABBY_CHECKOUT}`,
+  `form-action 'self' ${MOYASAR_API} ${TABBY_CHECKOUT} ${TAMARA}`,
   "img-src 'self' data: blob: https:",
   "font-src 'self' https://fonts.gstatic.com data:",
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${MOYASAR_CDN}`,
-  `script-src 'self' 'unsafe-inline' ${MOYASAR_CDN} ${TABBY_CHECKOUT}`,
-  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co ${MOYASAR_API} ${TABBY_API} ${TABBY_CHECKOUT}`,
-  // 3-D Secure challenge iframe (Moyasar + the issuing bank) + Tabby HPP/widget.
-  `frame-src 'self' ${MOYASAR_API} https://*.moyasar.com ${TABBY_CHECKOUT} https://*.tabby.ai`,
+  `script-src 'self' 'unsafe-inline' ${MOYASAR_CDN} ${TABBY_CHECKOUT} ${TAMARA}`,
+  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co ${MOYASAR_API} ${TABBY_API} ${TABBY_CHECKOUT} ${TAMARA}`,
+  // 3-D Secure challenge iframe (Moyasar + the issuing bank) + Tabby/Tamara HPP/widget.
+  `frame-src 'self' ${MOYASAR_API} https://*.moyasar.com ${TABBY_CHECKOUT} https://*.tabby.ai ${TAMARA}`,
   'upgrade-insecure-requests',
 ].join('; ');
 
