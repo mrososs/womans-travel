@@ -10,6 +10,7 @@ export type {
   BottomNavItem,
   NavLink,
   FooterColumn,
+  SocialLink,
 } from './types';
 
 // actions

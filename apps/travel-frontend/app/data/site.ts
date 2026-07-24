@@ -91,6 +91,15 @@ export const CONTACT = {
   mailtoHref: 'mailto:info@goldenfuturetravel.com',
 };
 
+/** Social profiles shown in the footer. `snapchat` uses the footer's built-in
+ *  brand glyph (Lucide ships no Snapchat icon); the rest are Lucide names. */
+export const SOCIALS: { icon: string; href?: string; label?: string }[] = [
+  { icon: 'snapchat', href: 'https://www.snapchat.com/add/rahlat2026', label: 'Snapchat' },
+  { icon: 'instagram', label: 'Instagram' },
+  { icon: 'twitter', label: 'X (Twitter)' },
+  { icon: 'facebook', label: 'Facebook' },
+];
+
 /** Official business registration details, shown in the credentials band above
  *  the footer. `commercialRegister` is the Unified National Number issued on the
  *  Ministry of Commerce سجل تجاري certificate for مؤسسة رحلات المستقبل الذهبي. */

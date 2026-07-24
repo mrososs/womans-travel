@@ -6,7 +6,7 @@ import BackToTop from '~/components/BackToTop.vue';
 import WhatsappFab from '~/components/WhatsappFab.vue';
 import CartDrawer from '~/components/cart/CartDrawer.vue';
 import WishlistDrawer from '~/components/wishlist/WishlistDrawer.vue';
-import { NAV, CONTACT } from '~/data/site';
+import { NAV, CONTACT, SOCIALS } from '~/data/site';
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -119,6 +119,7 @@ function onWishlist() {
       logo="/brand/logo-lockup.png"
       :blurb="t('footer.blurb')"
       :columns="footerColumns"
+      :socials="SOCIALS"
       :legal="t('footer.legal')"
       :seal="t('footer.seal')"
       :phone="CONTACT.phoneDisplay"

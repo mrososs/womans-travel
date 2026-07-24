@@ -37,3 +37,12 @@ export interface FooterColumn {
   title: string;
   links: { label: string; href?: string }[];
 }
+
+export interface SocialLink {
+  /** Icon name — a Lucide kebab-case glyph, or `snapchat` for the built-in brand mark. */
+  icon: string;
+  /** External profile URL. When omitted the icon renders as a non-navigating placeholder. */
+  href?: string;
+  /** Accessible label (falls back to the icon name). */
+  label?: string;
+}

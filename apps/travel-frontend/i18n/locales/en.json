@@ -350,6 +350,17 @@
     "lead": "Two ready-to-book travel groups.",
     "viewAll": "View all groups"
   },
+  "homePay": {
+    "eyebrow": "Flexible payment",
+    "title": "Split your trip into 4 payments",
+    "lead": "Book now and pay later — split your trip into 4 monthly payments with no interest and no extra fees, via Tabby and Tamara.",
+    "tabbyDesc": "Pay in 4 with Tabby",
+    "tamaraDesc": "Pay in 4 with Tamara",
+    "noInterest": "No interest",
+    "noFees": "No fees",
+    "shariah": "Shariah-compliant",
+    "note": "Instalment approval is subject to Tabby and Tamara terms and is decided instantly at checkout."
+  },
   "categories": {
     "all": "All",
     "beach": "Beaches",

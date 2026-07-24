@@ -7,6 +7,7 @@ import HeroSearch from '~/components/home/HeroSearch.vue';
 import WhySection from '~/components/home/WhySection.vue';
 import StatsBand from '~/components/home/StatsBand.vue';
 import ReviewsSection from '~/components/home/ReviewsSection.vue';
+import PaymentBand from '~/components/home/PaymentBand.vue';
 import CtaBand from '~/components/home/CtaBand.vue';
 import FaqSection from '~/components/FaqSection.vue';
 import NewsletterBand from '~/components/NewsletterBand.vue';
@@ -143,6 +144,7 @@ function goPackages() {
 
     <WhySection />
     <StatsBand />
+    <PaymentBand />
     <ReviewsSection />
     <FaqSection />
     <CtaBand @explore="goDestinations" />
