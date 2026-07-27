@@ -27,6 +27,7 @@ const rows = computed(() => data.value ?? []);
 function blankPackage(): PackageInsert {
   return {
     id: '', kind: 'intl', title_ar: '', title_en: '', desc_ar: '', desc_en: '',
+    includes_ar: '', includes_en: '',
     price_ar: '', price_en: '', price_amount: null, cost_amount: null,
     icon: 'crown', grad: 'linear-gradient(155deg,#24314B,#9E5863)', image_url: null, sort: 0,
   };

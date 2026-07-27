@@ -212,6 +212,7 @@ export type Database = {
         Row: {
           available: boolean
           created_at: string
+          discount_price_amount: number | null
           id: string
           item_id: string
           item_type: string
@@ -223,6 +224,7 @@ export type Database = {
         Insert: {
           available?: boolean
           created_at?: string
+          discount_price_amount?: number | null
           id?: string
           item_id: string
           item_type: string
@@ -234,6 +236,7 @@ export type Database = {
         Update: {
           available?: boolean
           created_at?: string
+          discount_price_amount?: number | null
           id?: string
           item_id?: string
           item_type?: string
@@ -420,6 +423,8 @@ export type Database = {
           icon: string
           id: string
           image_url: string | null
+          includes_ar: string | null
+          includes_en: string | null
           kind: string
           price_amount: number | null
           price_ar: string | null
@@ -443,6 +448,8 @@ export type Database = {
           icon: string
           id: string
           image_url?: string | null
+          includes_ar?: string | null
+          includes_en?: string | null
           kind: string
           price_amount?: number | null
           price_ar?: string | null
@@ -466,6 +473,8 @@ export type Database = {
           icon?: string
           id?: string
           image_url?: string | null
+          includes_ar?: string | null
+          includes_en?: string | null
           kind?: string
           price_amount?: number | null
           price_ar?: string | null

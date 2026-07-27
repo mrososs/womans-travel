@@ -47,6 +47,16 @@ const kindOptions = [
     </div>
 
     <div class="pform__field">
+      <label class="pform__label">{{ t('admin.includesAr') }}</label>
+      <p class="pform__hint">{{ t('admin.includesHint') }}</p>
+      <textarea v-model="model.includes_ar" class="pform__textarea" rows="5" />
+    </div>
+    <div class="pform__field">
+      <label class="pform__label">{{ t('admin.includesEn') }}</label>
+      <textarea v-model="model.includes_en" class="pform__textarea" rows="5" />
+    </div>
+
+    <div class="pform__field">
       <label class="pform__label">{{ t('admin.discountTitle') }}</label>
       <p class="pform__hint">{{ t('admin.discountHint') }}</p>
     </div>

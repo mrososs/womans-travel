@@ -22,9 +22,18 @@ type Draft = {
   label_ar: string;
   label_en: string;
   price_amount: number;
+  /** Optional marked-down price; blank means this option isn't discounted. */
+  discount_price_amount: string;
   available: boolean;
   sort: number;
 };
+
+/** Blank / zero / unparseable → null, so clearing the field removes the discount. */
+function toDiscount(value: string | null | undefined): number | null {
+  if (value == null || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 const entries = reactive<Draft[]>([]);
 const loading = ref(false);
@@ -36,6 +45,7 @@ function toDraft(row: ItemOptionRow): Draft {
     label_ar: row.label_ar,
     label_en: row.label_en,
     price_amount: Number(row.price_amount) || 0,
+    discount_price_amount: row.discount_price_amount == null ? '' : String(Number(row.discount_price_amount)),
     available: row.available,
     sort: row.sort,
   };
@@ -60,7 +70,10 @@ async function load() {
 watch(() => props.itemId, load, { immediate: true });
 
 function addRow() {
-  entries.push({ label_ar: '', label_en: '', price_amount: 0, available: true, sort: entries.length });
+  entries.push({
+    label_ar: '', label_en: '', price_amount: 0, discount_price_amount: '',
+    available: true, sort: entries.length,
+  });
 }
 
 async function saveRow(i: number) {
@@ -68,6 +81,11 @@ async function saveRow(i: number) {
   if (!e) return;
   if (!e.label_ar.trim() || !e.label_en.trim()) {
     notify.error(t('admin.options.labelRequired'));
+    return;
+  }
+  const discount = toDiscount(e.discount_price_amount);
+  if (discount != null && discount >= (Number(e.price_amount) || 0)) {
+    notify.error(t('admin.options.discountTooHigh'));
     return;
   }
   savingId.value = e.id ?? i;
@@ -79,6 +97,7 @@ async function saveRow(i: number) {
       label_ar: e.label_ar.trim(),
       label_en: e.label_en.trim(),
       price_amount: Number(e.price_amount) || 0,
+      discount_price_amount: discount,
       available: e.available,
       sort: Number(e.sort) || 0,
     });
@@ -127,6 +146,13 @@ async function removeRow(i: number) {
           <Input v-model="e.label_ar" size="sm" :label="t('admin.options.labelAr')" />
           <Input v-model="e.label_en" size="sm" :label="t('admin.options.labelEn')" />
           <Input v-model.number="e.price_amount" size="sm" type="number" :label="t('admin.options.price')" />
+          <Input
+            v-model="e.discount_price_amount"
+            size="sm"
+            type="number"
+            :label="t('admin.options.discountPrice')"
+            :placeholder="t('admin.options.discountPricePh')"
+          />
           <Input v-model.number="e.sort" size="sm" type="number" :label="t('admin.sort')" />
         </div>
         <div class="opts__foot">

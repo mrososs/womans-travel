@@ -64,6 +64,42 @@ export function getOfferInfo(
   return { active: seatsLeft > 0, seatsLeft };
 }
 
+/**
+ * Whether per-option discounts on a trip/package are still live. They ride on
+ * the parent's seat cap when it has one, but — unlike `getOfferInfo` — do not
+ * require the parent to carry a discounted price of its own: an item may
+ * discount only its options (e.g. the Red Sea group's two room types, each
+ * marked down by a different amount).
+ */
+export function optionOffersLive(
+  seatsLimit: number | null | undefined,
+  seatsClaimed: number | null | undefined
+): boolean {
+  if (seatsLimit == null) return true;
+  return seatsLimit - (seatsClaimed ?? 0) > 0;
+}
+
+/** An `item_options` row, as far as pricing is concerned. */
+export interface PricedOption {
+  price_amount: number | string;
+  discount_price_amount?: number | string | null;
+}
+
+/**
+ * The option's own discounted price, or null when it has none / the offer is
+ * over. A discount that isn't actually cheaper is ignored, so a stale value
+ * can never price an option above its regular price.
+ */
+export function getOptionDiscount(
+  option: PricedOption | null | undefined,
+  live: boolean
+): number | null {
+  if (!live || !option || option.discount_price_amount == null) return null;
+  const discounted = Number(option.discount_price_amount);
+  const regular = Number(option.price_amount) || 0;
+  return Number.isFinite(discounted) && discounted > 0 && discounted < regular ? discounted : null;
+}
+
 const LATIN_TO_AR = '٠١٢٣٤٥٦٧٨٩';
 
 /**

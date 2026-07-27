@@ -25,14 +25,26 @@ const selectedOptionId = ref('');
 const optionLabel = (o: { label_ar: string; label_en: string }) =>
   locale.value === 'ar' ? o.label_ar : o.label_en;
 
+/** Options may be marked down individually (each room type by its own amount). */
+const optionOffersActive = computed(() =>
+  optionOffersLive(props.trip.discountSeatsLimit, props.trip.discountSeatsClaimed)
+);
+
 const optionSelectItems = computed(() =>
-  optionList.value.map((o) => ({
-    value: o.id,
-    label: `${optionLabel(o)} · ${formatPrice(Number(o.price_amount) || 0, locale.value)} ${t('common.currency')}`,
-  }))
+  optionList.value.map((o) => {
+    const discounted = getOptionDiscount(o, optionOffersActive.value);
+    return {
+      value: o.id,
+      label: `${optionLabel(o)} · ${formatPrice(discounted ?? (Number(o.price_amount) || 0), locale.value)} ${t('common.currency')}`,
+    };
+  })
 );
 const selectedOption = computed(
   () => optionList.value.find((o) => o.id === selectedOptionId.value) ?? null
+);
+/** The selected option's own discounted price, when it carries one. */
+const selectedOptionDiscount = computed(() =>
+  getOptionDiscount(selectedOption.value, optionOffersActive.value)
 );
 
 const dateOptions = computed(() => [
@@ -56,11 +68,13 @@ const discountPriceAmount = computed(() => props.trip.discountAmount ?? 0);
 const needsChoice = computed(() => hasOptions.value && !selectedOption.value);
 
 /**
- * The offer discounts the trip's own (no-option) price point. When options
- * exist it only carries over to the option that mirrors that base price (the
- * "early booking" room type) — other room types keep their own price.
+ * An option marked down on its own always wins. Otherwise the trip-level offer
+ * discounts the trip's own (no-option) price point, which — when options exist
+ * — only carries over to the option mirroring that base price (the "early
+ * booking" room type); other room types keep their own price.
  */
 const discountAppliesToSelection = computed(() => {
+  if (selectedOptionDiscount.value != null) return true;
   if (!offer.value.active) return false;
   if (!hasOptions.value) return true;
   return selectedOption.value != null && Number(selectedOption.value.price_amount) === basePriceAmount.value;
@@ -68,6 +82,7 @@ const discountAppliesToSelection = computed(() => {
 
 /** Unit price — selected option's price when options exist, else base price; discounted when the offer applies. */
 const unitPrice = computed(() => {
+  if (selectedOptionDiscount.value != null) return selectedOptionDiscount.value;
   const chosen = selectedOption.value ? Number(selectedOption.value.price_amount) || 0 : basePriceAmount.value;
   return discountAppliesToSelection.value ? discountPriceAmount.value : chosen;
 });
@@ -80,6 +95,9 @@ const priceLabel = computed(() => {
 /** Struck-through original price, shown next to `priceLabel` while the offer applies. */
 const originalPriceLabel = computed(() => {
   if (!discountAppliesToSelection.value) return '';
+  if (selectedOptionDiscount.value != null && selectedOption.value) {
+    return formatPrice(Number(selectedOption.value.price_amount) || 0, locale.value);
+  }
   return hasOptions.value ? formatPrice(basePriceAmount.value, locale.value) : lc(props.trip.price);
 });
 const qty = computed(() => Number(travellers.value) || 1);

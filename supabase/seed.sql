@@ -48,20 +48,20 @@ on conflict do nothing;
 
 insert into public.packages (id, kind, icon, grad, title_ar, title_en, desc_ar, desc_en, price_ar, price_en, price_amount, sort, image_url, discount_price_amount, discount_price_ar, discount_price_en, discount_label_ar, discount_label_en, discount_seats_limit) values
   ('turkey-north','intl','mountain-snow','linear-gradient(155deg,#24314B,#4E7A5B)','الشمال التركي','North Turkey','٧ أيام (٦–١٣ أغسطس) بين طرابزون ودير سوميلا وأوزنجول وريزا وآيدر، بإقامة في فندق ٥ نجوم ومشرفة للقروب. شامل تذاكر السفر والمواصلات والإفطار.','7 days (6–13 Aug) across Trabzon, Sumela Monastery, Uzungol, Rize and Ayder, with a 5-star hotel stay and a group escort. Includes travel tickets, transport and breakfast.','٦٬٥٥٠','6,550',6550,0,'/trips/turkey-north.jpg',6150,'٦٬١٥٠','6,150','خصم لأول ٥ مشتركات','Offer for the first 5 travellers',5),
-  ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','٣ أيام (١٩–٢٢ أغسطس) على منتجع فاخر ٥ نجوم بساحل البحر الأحمر، شامل تذاكر الطيران والمواصلات والإفطار ومشرفة للقروب.','3 days (19–22 Aug) at a luxury 5-star Red Sea coast resort. Includes flight tickets, transport, breakfast and a group escort.','٥٬٥٥٠','5,550',5550,1,'/trips/red-sea.webp',null,null,null,null,null,null)
+  ('red-sea','local','palmtree','linear-gradient(155deg,#C6A15B,#B76E79)','باقة البحر الأحمر','Red Sea package','٣ أيام (١٩–٢٢ أغسطس) على منتجع فاخر ٥ نجوم بساحل البحر الأحمر، شامل تذاكر الطيران والمواصلات والإفطار ومشرفة للقروب.','3 days (19–22 Aug) at a luxury 5-star Red Sea coast resort. Includes flight tickets, transport, breakfast and a group escort.','٥٬٥٥٠','5,550',5550,1,'/trips/red-sea.webp',4950,'٤٬٩٥٠','4,950','عرض خاص','Special offer',null)
 on conflict (id) do nothing;
 
 -- Room-type options for the client packages (single / shared room). Idempotent:
 -- only insert a label once per package. item_options has a uuid PK, so we guard
 -- on (item_type, item_id, label_en) instead of relying on ON CONFLICT.
-insert into public.item_options (item_type, item_id, label_ar, label_en, price_amount, available, sort)
-select v.item_type, v.item_id, v.label_ar, v.label_en, v.price_amount, true, v.sort
+insert into public.item_options (item_type, item_id, label_ar, label_en, price_amount, discount_price_amount, available, sort)
+select v.item_type, v.item_id, v.label_ar, v.label_en, v.price_amount, v.discount_price_amount, true, v.sort
 from (values
-  ('package','turkey-north','غرفة مشتركة (حجز مبكر)','Shared room (early booking)',6550::numeric,0),
-  ('package','turkey-north','غرفة مفردة (حجز مبكر)','Single room (early booking)',8650::numeric,1),
-  ('package','red-sea','غرفة مشتركة','Shared room',5550::numeric,0),
-  ('package','red-sea','غرفة مفردة','Single room',8950::numeric,1)
-) as v(item_type, item_id, label_ar, label_en, price_amount, sort)
+  ('package','turkey-north','غرفة مشتركة (حجز مبكر)','Shared room (early booking)',6550::numeric,null::numeric,0),
+  ('package','turkey-north','غرفة مفردة (حجز مبكر)','Single room (early booking)',8650::numeric,null::numeric,1),
+  ('package','red-sea','غرفة مشتركة','Shared room',5550::numeric,4950::numeric,0),
+  ('package','red-sea','غرفة مفردة','Single room',8950::numeric,8000::numeric,1)
+) as v(item_type, item_id, label_ar, label_en, price_amount, discount_price_amount, sort)
 where not exists (
   select 1 from public.item_options o
   where o.item_type = v.item_type and o.item_id = v.item_id and o.label_en = v.label_en
