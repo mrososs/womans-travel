@@ -4,17 +4,21 @@ import { Button, Input, Checkbox, Icon } from '@org/shared-ui';
 
 /**
  * CheckoutTravelerForm — step 1 of the checkout stepper. Collects the traveler's
- * full four-part name, passport number + issue/expiry dates, and the three
- * mandatory declarations (information accuracy + commitment to the group and
- * the destination countries' policies + not bringing children or people with
- * special needs along). On a valid submit it emits `next` with
- * the sanitized traveler payload; the parent then creates the order and mounts
- * the Moyasar card form (step 2).
+ * full four-part Arabic name plus, for international trips, the English name
+ * and passport number + issue/expiry dates — or, for a domestic-only cart
+ * (Red Sea / Taif / Al-Baha / Madinah, etc.), just the national ID/iqama
+ * number instead, since no passport is needed to travel inside Saudi Arabia.
+ * The three mandatory declarations (information accuracy + commitment to the
+ * group + not bringing children or people with special needs along) are
+ * always required. On a valid submit it emits `next` with the sanitized
+ * traveler payload; the parent then creates the order and mounts the payment
+ * step (step 2).
  */
 
 export interface TravelerDetails {
   fullNameAr: string;
   fullNameEn: string;
+  nationalId: string;
   passportNumber: string;
   passportIssueDate: string;
   passportExpiryDate: string;
@@ -23,12 +27,16 @@ export interface TravelerDetails {
   pledgedNoCompanions: boolean;
 }
 
-const props = withDefaults(defineProps<{ busy?: boolean }>(), { busy: false });
+const props = withDefaults(defineProps<{ busy?: boolean; domestic?: boolean }>(), {
+  busy: false,
+  domestic: false,
+});
 const emit = defineEmits<{ next: [traveler: TravelerDetails] }>();
 
 const form = reactive<TravelerDetails>({
   fullNameAr: '',
   fullNameEn: '',
+  nationalId: '',
   passportNumber: '',
   passportIssueDate: '',
   passportExpiryDate: '',
@@ -40,6 +48,7 @@ const form = reactive<TravelerDetails>({
 type FieldKey =
   | 'fullNameAr'
   | 'fullNameEn'
+  | 'nationalId'
   | 'passportNumber'
   | 'passportIssueDate'
   | 'passportExpiryDate';
@@ -47,6 +56,7 @@ type FieldKey =
 const errors = reactive<Record<FieldKey, string>>({
   fullNameAr: '',
   fullNameEn: '',
+  nationalId: '',
   passportNumber: '',
   passportIssueDate: '',
   passportExpiryDate: '',
@@ -63,6 +73,8 @@ const EN_FULL_NAME = /^[A-Za-z][A-Za-z\s'.-]*$/;
 const countParts = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
 // Saudi passport: a single letter followed by 7–8 digits, e.g. "A1234567".
 const SA_PASSPORT = /^[A-Za-z][0-9]{7,8}$/;
+// Saudi national ID (citizen, starts 1) or iqama (resident, starts 2) — 10 digits.
+const SA_NATIONAL_ID = /^[12]\d{9}$/;
 
 // Date bounds for the passport <input type="date"> fields.
 const today = new Date();
@@ -91,41 +103,49 @@ function validate(): boolean {
   else if (!AR_FULL_NAME.test(nameAr))
     fail('fullNameAr', 'الاسم يجب أن يكون بالأحرف العربية فقط');
   else if (countParts(nameAr) < 4)
-    fail('fullNameAr', 'يُرجى إدخال الاسم رباعيًا كما في جواز السفر');
+    fail('fullNameAr', 'يُرجى إدخال الاسم رباعيًا كما في الهوية');
 
-  // Full four-part name (English) — required, Latin letters only, ≥ 4 parts.
-  const nameEn = form.fullNameEn.trim();
-  if (!nameEn) fail('fullNameEn', 'الاسم الرباعي بالإنجليزية مطلوب');
-  else if (!EN_FULL_NAME.test(nameEn))
-    fail('fullNameEn', 'الاسم يجب أن يكون بالأحرف الإنجليزية فقط');
-  else if (countParts(nameEn) < 4)
-    fail('fullNameEn', 'يُرجى إدخال الاسم رباعيًا كما في جواز السفر');
+  if (props.domestic) {
+    // Domestic trip: national ID / iqama instead of a passport.
+    const nationalId = form.nationalId.trim();
+    if (!nationalId) fail('nationalId', 'رقم الهوية الوطنية أو الإقامة مطلوب');
+    else if (!SA_NATIONAL_ID.test(nationalId))
+      fail('nationalId', 'رقم الهوية غير صحيح — يجب أن يكون 10 أرقام تبدأ بـ 1 أو 2');
+  } else {
+    // Full four-part name (English) — required, Latin letters only, ≥ 4 parts.
+    const nameEn = form.fullNameEn.trim();
+    if (!nameEn) fail('fullNameEn', 'الاسم الرباعي بالإنجليزية مطلوب');
+    else if (!EN_FULL_NAME.test(nameEn))
+      fail('fullNameEn', 'الاسم يجب أن يكون بالأحرف الإنجليزية فقط');
+    else if (countParts(nameEn) < 4)
+      fail('fullNameEn', 'يُرجى إدخال الاسم رباعيًا كما في جواز السفر');
 
-  // Passport number — required + Saudi format.
-  const passport = form.passportNumber.trim();
-  if (!passport) fail('passportNumber', 'رقم جواز السفر مطلوب');
-  else if (!SA_PASSPORT.test(passport))
-    fail('passportNumber', 'رقم جواز السفر غير صحيح — حرف يليه 7 أو 8 أرقام (مثال: A1234567)');
+    // Passport number — required + Saudi format.
+    const passport = form.passportNumber.trim();
+    if (!passport) fail('passportNumber', 'رقم جواز السفر مطلوب');
+    else if (!SA_PASSPORT.test(passport))
+      fail('passportNumber', 'رقم جواز السفر غير صحيح — حرف يليه 7 أو 8 أرقام (مثال: A1234567)');
 
-  // Issue date — optional, but cannot be in the future.
-  if (form.passportIssueDate && form.passportIssueDate > todayISO) {
-    fail('passportIssueDate', 'تاريخ الإصدار لا يمكن أن يكون في المستقبل');
-  }
+    // Issue date — optional, but cannot be in the future.
+    if (form.passportIssueDate && form.passportIssueDate > todayISO) {
+      fail('passportIssueDate', 'تاريخ الإصدار لا يمكن أن يكون في المستقبل');
+    }
 
-  // Expiry date — required, in the future, valid ≥ 6 months.
-  if (!form.passportExpiryDate) fail('passportExpiryDate', 'تاريخ انتهاء الجواز مطلوب');
-  else if (form.passportExpiryDate <= todayISO)
-    fail('passportExpiryDate', 'تاريخ انتهاء الجواز يجب أن يكون في المستقبل');
-  else if (form.passportExpiryDate < minExpiryISO)
-    fail('passportExpiryDate', 'يجب أن يكون الجواز صالحًا 6 أشهر على الأقل من اليوم');
+    // Expiry date — required, in the future, valid ≥ 6 months.
+    if (!form.passportExpiryDate) fail('passportExpiryDate', 'تاريخ انتهاء الجواز مطلوب');
+    else if (form.passportExpiryDate <= todayISO)
+      fail('passportExpiryDate', 'تاريخ انتهاء الجواز يجب أن يكون في المستقبل');
+    else if (form.passportExpiryDate < minExpiryISO)
+      fail('passportExpiryDate', 'يجب أن يكون الجواز صالحًا 6 أشهر على الأقل من اليوم');
 
-  // Issue date must precede expiry date when both are provided.
-  if (
-    form.passportIssueDate &&
-    form.passportExpiryDate &&
-    form.passportIssueDate >= form.passportExpiryDate
-  ) {
-    fail('passportIssueDate', 'تاريخ الإصدار يجب أن يسبق تاريخ الانتهاء');
+    // Issue date must precede expiry date when both are provided.
+    if (
+      form.passportIssueDate &&
+      form.passportExpiryDate &&
+      form.passportIssueDate >= form.passportExpiryDate
+    ) {
+      fail('passportIssueDate', 'تاريخ الإصدار يجب أن يسبق تاريخ الانتهاء');
+    }
   }
 
   if (!form.declaredAccurate || !form.pledgedCompliance || !form.pledgedNoCompanions) {
@@ -141,10 +161,11 @@ function submit() {
   if (!validate()) return;
   emit('next', {
     fullNameAr: form.fullNameAr.trim().replace(/\s+/g, ' '),
-    fullNameEn: form.fullNameEn.trim().replace(/\s+/g, ' '),
-    passportNumber: form.passportNumber.trim().toUpperCase(),
-    passportIssueDate: form.passportIssueDate,
-    passportExpiryDate: form.passportExpiryDate,
+    fullNameEn: props.domestic ? '' : form.fullNameEn.trim().replace(/\s+/g, ' '),
+    nationalId: props.domestic ? form.nationalId.trim() : '',
+    passportNumber: props.domestic ? '' : form.passportNumber.trim().toUpperCase(),
+    passportIssueDate: props.domestic ? '' : form.passportIssueDate,
+    passportExpiryDate: props.domestic ? '' : form.passportExpiryDate,
     declaredAccurate: form.declaredAccurate,
     pledgedCompliance: form.pledgedCompliance,
     pledgedNoCompanions: form.pledgedNoCompanions,
@@ -154,12 +175,13 @@ function submit() {
 
 <template>
   <form class="tf" novalidate @submit.prevent="submit">
-    <!-- Full four-part name (Arabic + English) -->
+    <!-- Full four-part name (Arabic + English for intl; Arabic only for domestic) -->
     <fieldset class="tf__group">
       <legend class="tf__legend">
-        <Icon name="user" :size="16" /> الاسم رباعيًا كما في جواز السفر
+        <Icon name="user" :size="16" />
+        {{ domestic ? 'الاسم الرباعي بالعربية' : 'الاسم رباعيًا كما في جواز السفر' }}
       </legend>
-      <div class="tf__grid tf__grid--2">
+      <div class="tf__grid" :class="{ 'tf__grid--2': !domestic }">
         <Input
           v-model="form.fullNameAr"
           label="الاسم الرباعي بالعربية"
@@ -170,6 +192,7 @@ function submit() {
           @update:model-value="clear('fullNameAr')"
         />
         <Input
+          v-if="!domestic"
           v-model="form.fullNameEn"
           label="الاسم الرباعي بالإنجليزية"
           required
@@ -182,8 +205,28 @@ function submit() {
       </div>
     </fieldset>
 
-    <!-- Passport -->
-    <fieldset class="tf__group">
+    <!-- Domestic trip: national ID / iqama instead of a passport -->
+    <fieldset v-if="domestic" class="tf__group">
+      <legend class="tf__legend">
+        <Icon name="id-card" :size="16" /> رقم الهوية
+      </legend>
+      <div class="tf__grid">
+        <Input
+          v-model="form.nationalId"
+          label="رقم الهوية الوطنية أو الإقامة"
+          required
+          dir="ltr"
+          inputmode="numeric"
+          :error="errors.nationalId"
+          :hint="errors.nationalId ? '' : '10 أرقام، تبدأ بـ 1 (سعودي) أو 2 (مقيم)'"
+          placeholder="1234567890"
+          @update:model-value="clear('nationalId')"
+        />
+      </div>
+    </fieldset>
+
+    <!-- International trip: passport -->
+    <fieldset v-else class="tf__group">
       <legend class="tf__legend">
         <Icon name="book-open" :size="16" /> بيانات جواز السفر
       </legend>
@@ -236,7 +279,7 @@ function submit() {
           <Checkbox v-model="form.declaredAccurate" />
           <span class="tf__pledge-ico"><Icon name="file-check-2" :size="19" /></span>
           <span class="tf__pledge-txt">
-            أُقِرّ بأن جميع المعلومات المُدخلة أعلاه صحيحة ومطابقة لبيانات جواز السفر.
+            أُقِرّ بأن جميع المعلومات المُدخلة أعلاه صحيحة ومطابقة لبيانات {{ domestic ? 'الهوية' : 'جواز السفر' }}.
           </span>
         </label>
 
@@ -244,7 +287,12 @@ function submit() {
           <Checkbox v-model="form.pledgedCompliance" />
           <span class="tf__pledge-ico"><Icon name="users" :size="19" /></span>
           <span class="tf__pledge-txt">
-            أتعهّد بالالتزام مع المجموعة واحترام سياسات وقوانين الدول المسافر إليها طوال مدة الرحلة.
+            <template v-if="domestic">
+              أتعهّد بالالتزام مع المجموعة واحترام تعليمات الرحلة طوال مدة البرنامج.
+            </template>
+            <template v-else>
+              أتعهّد بالالتزام مع المجموعة واحترام سياسات وقوانين الدول المسافر إليها طوال مدة الرحلة.
+            </template>
           </span>
         </label>
 

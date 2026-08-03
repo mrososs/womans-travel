@@ -43,6 +43,7 @@ export const DEMO_ITEM = {
 export type TravelerInput = {
   fullNameAr?: unknown;
   fullNameEn?: unknown;
+  nationalId?: unknown;
   passportNumber?: unknown;
   passportIssueDate?: unknown;
   passportExpiryDate?: unknown;
@@ -60,6 +61,8 @@ const AR_FULL_NAME = /^[ء-يـ\s]{2,}$/; // Arabic letters + tatweel + spaces
 const EN_FULL_NAME = /^[A-Za-z][A-Za-z\s'.-]*$/; // Latin letters + spaces
 const countParts = (v: string) => v.split(/\s+/).filter(Boolean).length; // ≥ 4 = full name
 const SA_PASSPORT = /^[A-Za-z][0-9]{7,8}$/; // letter + 7–8 digits, e.g. A1234567
+// Saudi national ID (citizen, starts 1) or Iqama (resident, starts 2) — 10 digits.
+const SA_NATIONAL_ID = /^[12]\d{9}$/;
 
 const bad = (statusMessage: string) => createError({ statusCode: 400, statusMessage });
 
@@ -67,21 +70,57 @@ const bad = (statusMessage: string) => createError({ statusCode: 400, statusMess
  * Validate + normalize the traveler details captured in the checkout stepper.
  * Returns the sanitized object to snapshot onto the order, or throws a 400 with
  * a shopper-facing (Arabic) message when a field is missing or malformed.
+ *
+ * Domestic trips ('local' kind, e.g. Red Sea / Taif / Al-Baha / Madinah) don't
+ * need a passport — Saudi nationals and residents travel on their national ID /
+ * iqama. `domestic` is computed server-side from the authoritative cart (see
+ * `isDomesticCart`), never trusted from the client, so a shopper can't skip
+ * passport capture by lying about what's in their cart.
  */
-export function normalizeTraveler(raw: TravelerInput | undefined) {
+export function normalizeTraveler(raw: TravelerInput | undefined, domestic = false) {
   if (!raw || typeof raw !== 'object') {
     throw bad('بيانات المسافرة مطلوبة قبل الدفع.');
   }
 
   const fullNameAr = str(raw.fullNameAr);
+  if (!fullNameAr) throw bad('الاسم الرباعي بالعربية مطلوب.');
+  if (!AR_FULL_NAME.test(fullNameAr)) throw bad('الاسم يجب أن يكون بالأحرف العربية فقط.');
+  if (countParts(fullNameAr) < 4) throw bad('يُرجى إدخال الاسم رباعيًا كما في الهوية.');
+
+  if (
+    raw.declaredAccurate !== true ||
+    raw.pledgedCompliance !== true ||
+    raw.pledgedNoCompanions !== true
+  ) {
+    throw bad('الرجاء الموافقة على جميع بنود الإقرار والتعهّد قبل المتابعة.');
+  }
+
+  if (domestic) {
+    const nationalId = str(raw.nationalId);
+    if (!nationalId) throw bad('رقم الهوية الوطنية أو الإقامة مطلوب.');
+    if (!SA_NATIONAL_ID.test(nationalId)) {
+      throw bad('رقم الهوية غير صحيح — يجب أن يكون 10 أرقام تبدأ بـ 1 أو 2.');
+    }
+
+    return {
+      fullNameAr,
+      fullNameEn: null,
+      fullName: fullNameAr,
+      nationalId,
+      passportNumber: null,
+      passportIssueDate: null,
+      passportExpiryDate: null,
+      declaredAccurate: true,
+      pledgedCompliance: true,
+      pledgedNoCompanions: true,
+      capturedAt: new Date().toISOString(),
+    };
+  }
+
   const fullNameEn = str(raw.fullNameEn);
   const passportNumber = str(raw.passportNumber).toUpperCase();
   const passportIssueDate = str(raw.passportIssueDate);
   const passportExpiryDate = str(raw.passportExpiryDate);
-
-  if (!fullNameAr) throw bad('الاسم الرباعي بالعربية مطلوب.');
-  if (!AR_FULL_NAME.test(fullNameAr)) throw bad('الاسم يجب أن يكون بالأحرف العربية فقط.');
-  if (countParts(fullNameAr) < 4) throw bad('يُرجى إدخال الاسم رباعيًا كما في جواز السفر.');
 
   if (!fullNameEn) throw bad('الاسم الرباعي بالإنجليزية مطلوب.');
   if (!EN_FULL_NAME.test(fullNameEn)) throw bad('الاسم يجب أن يكون بالأحرف الإنجليزية فقط.');
@@ -108,18 +147,11 @@ export function normalizeTraveler(raw: TravelerInput | undefined) {
     }
   }
 
-  if (
-    raw.declaredAccurate !== true ||
-    raw.pledgedCompliance !== true ||
-    raw.pledgedNoCompanions !== true
-  ) {
-    throw bad('الرجاء الموافقة على جميع بنود الإقرار والتعهّد قبل المتابعة.');
-  }
-
   return {
     fullNameAr,
     fullNameEn,
     fullName: fullNameAr,
+    nationalId: null,
     passportNumber,
     passportIssueDate: passportIssueDate || null,
     passportExpiryDate,
@@ -216,4 +248,31 @@ export async function priceDeposit(client: SupabaseClient<Database>, lines: Pric
   }
 
   return { eligible: true, depositTotal: Math.round(depositTotal * 100) / 100 };
+}
+
+/**
+ * Whether every line in the priced cart is a domestic ('local' kind) trip or
+ * package — e.g. Red Sea / Taif / Al-Baha / Madinah. Drives whether
+ * `normalizeTraveler` requires a passport or a national ID/iqama. Reads
+ * `kind` off the authoritative `trips`/`packages` rows (never trusts the
+ * client); a 'product' line or any unresolved item makes the whole cart
+ * non-domestic, so checkout falls back to the full passport-based form.
+ */
+export async function isDomesticCart(client: SupabaseClient<Database>, lines: PricedLine[]): Promise<boolean> {
+  if (!lines.length) return false;
+
+  const tripIds = [...new Set(lines.filter((l) => l.item_type === 'trip').map((l) => l.item_id))];
+  const packageIds = [...new Set(lines.filter((l) => l.item_type === 'package').map((l) => l.item_id))];
+
+  const kindByKey: Record<string, string> = {};
+  if (tripIds.length) {
+    const { data } = await client.from('trips').select('id, kind').in('id', tripIds);
+    for (const t of data ?? []) kindByKey[`trip:${t.id}`] = t.kind;
+  }
+  if (packageIds.length) {
+    const { data } = await client.from('packages').select('id, kind').in('id', packageIds);
+    for (const p of data ?? []) kindByKey[`package:${p.id}`] = p.kind;
+  }
+
+  return lines.every((l) => kindByKey[`${l.item_type}:${l.item_id}`] === 'local');
 }

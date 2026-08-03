@@ -129,6 +129,16 @@ const depositTotal = computed(() => {
 const remainingAfterDeposit = computed(() => Math.max(0, Math.round((total.value - depositTotal.value) * 100) / 100));
 const bankAmountDue = computed(() => (payDepositOnly.value && depositEligible.value ? depositTotal.value : total.value));
 
+// Domestic-only cart ('local' kind trips/packages — Red Sea, Taif, Al-Baha,
+// Madinah, etc.) skips passport capture in the traveler form below (step 1)
+// in favour of a national ID/iqama — no passport is needed inside Saudi
+// Arabia. The server independently recomputes this from the cart before
+// validating, so this only controls which fields the form shows.
+const kindMap = ref<Record<string, string>>({});
+const isDomesticCart = computed(() =>
+  lines.value.length > 0 && lines.value.every((l) => kindMap.value[`${l.item_type}:${l.item_id}`] === 'local')
+);
+
 type Phase = 'loading' | 'form' | 'error';
 const phase = ref<Phase>('loading');
 const errorMsg = ref('');
@@ -417,7 +427,15 @@ onMounted(async () => {
 
   // Load the live bank-account details + VAT rate (admin-editable via the dashboard).
   const supa = useSupabaseClient<Database>();
-  const [{ data }, { data: tax }, { data: pay }, { data: tripDeposits }, { data: pkgDeposits }] = await Promise.all([
+  const [
+    { data },
+    { data: tax },
+    { data: pay },
+    { data: tripDeposits },
+    { data: pkgDeposits },
+    { data: tripKinds },
+    { data: pkgKinds },
+  ] = await Promise.all([
     supa
       .from('bank_settings')
       .select('bank_name, account_name, account_number, iban')
@@ -431,11 +449,17 @@ onMounted(async () => {
       .maybeSingle(),
     supa.from('trips').select('id, deposit_amount').not('deposit_amount', 'is', null),
     supa.from('packages').select('id, deposit_amount').not('deposit_amount', 'is', null),
+    supa.from('trips').select('id, kind'),
+    supa.from('packages').select('id, kind'),
   ]);
   const dMap: Record<string, number> = {};
   for (const t of tripDeposits ?? []) if (t.deposit_amount != null) dMap[`trip:${t.id}`] = Number(t.deposit_amount);
   for (const p of pkgDeposits ?? []) if (p.deposit_amount != null) dMap[`package:${p.id}`] = Number(p.deposit_amount);
   depositMap.value = dMap;
+  const kMap: Record<string, string> = {};
+  for (const t of tripKinds ?? []) kMap[`trip:${t.id}`] = t.kind;
+  for (const p of pkgKinds ?? []) kMap[`package:${p.id}`] = p.kind;
+  kindMap.value = kMap;
   if (pay) {
     tabbyEnabled.value = pay.tabby_enabled !== false;
     tabbyTestMode.value = pay.tabby_test_mode !== false;
@@ -491,9 +515,10 @@ onMounted(async () => {
         <div v-if="step === 1" class="co-card">
           <h2 class="co-card__title">بيانات المسافرة</h2>
           <p class="co-step__lead">
-            أدخلي بياناتكِ كما وردت في جواز السفر، ثم أقرّي بصحة المعلومات قبل المتابعة إلى الدفع.
+            أدخلي بياناتكِ كما وردت في {{ isDomesticCart ? 'الهوية' : 'جواز السفر' }}، ثم أقرّي بصحة المعلومات قبل
+            المتابعة إلى الدفع.
           </p>
-          <CheckoutTravelerForm @next="onTravelerNext" />
+          <CheckoutTravelerForm :domestic="isDomesticCart" @next="onTravelerNext" />
         </div>
 
         <!-- STEP 2 — payment -->
@@ -704,7 +729,7 @@ onMounted(async () => {
               <input v-model="payDepositOnly" type="checkbox">
               <span>
                 دفع عربون فقط ({{ nf.format(depositTotal) }}<Icon name="saudi-riyal" :size="13" />) بدلاً من كامل
-                المبلغ، ويُسدَّد المتبقي عند الوصول.
+                المبلغ، ويُسدَّد المتبقي قبل الرحلة بيومين.
               </span>
             </label>
 
@@ -714,8 +739,8 @@ onMounted(async () => {
             </div>
             <p v-if="payDepositOnly && depositEligible" class="co-bank__remaining">
               <Icon name="info" :size="14" />
-              المتبقي {{ nf.format(remainingAfterDeposit) }}<Icon name="saudi-riyal" :size="12" /> يُسدَّد لاحقًا بعد
-              الوصول، خارج هذا التحويل.
+              المتبقي {{ nf.format(remainingAfterDeposit) }}<Icon name="saudi-riyal" :size="12" /> يُسدَّد قبل الرحلة
+              بيومين، خارج هذا التحويل.
             </p>
 
             <dl class="co-bank__details">
@@ -1057,12 +1082,19 @@ onMounted(async () => {
   padding: 12px 16px; background: var(--surface-card); border-bottom: 1px solid var(--border-hair);
 }
 .co-bank__row:last-child { border-bottom: none; }
-.co-bank__row dt { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); color: var(--text-muted); font-weight: var(--weight-semibold); }
+.co-bank__row dt { display: inline-flex; align-items: center; gap: 6px; flex: none; font-size: var(--text-xs); color: var(--text-muted); font-weight: var(--weight-semibold); }
 .co-bank__row dt :deep(svg) { color: var(--brand-strong); }
-.co-bank__row dd { margin: 0; font-weight: var(--weight-bold); color: var(--text-strong); font-size: var(--text-sm); text-align: end; }
-.co-bank__mono { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-num); direction: ltr; }
+.co-bank__row dd {
+  margin: 0; flex: 1 1 auto; min-width: 0;
+  font-weight: var(--weight-bold); color: var(--text-strong); font-size: var(--text-sm);
+  text-align: end; overflow-wrap: anywhere; word-break: break-all;
+}
+.co-bank__mono {
+  display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; max-width: 100%; min-width: 0;
+  font-family: var(--font-num); direction: ltr; overflow-wrap: anywhere; word-break: break-all;
+}
 .co-bank__copy {
-  border: none; background: transparent; cursor: pointer; color: var(--text-brand);
+  border: none; background: transparent; cursor: pointer; color: var(--text-brand); flex: none;
   display: inline-flex; padding: 4px; border-radius: var(--radius-sm); transition: background var(--dur-fast);
 }
 .co-bank__copy:hover { background: var(--rose-50); }

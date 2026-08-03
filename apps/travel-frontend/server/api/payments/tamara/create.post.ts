@@ -1,6 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { normalizeTraveler, priceCart, type TravelerInput } from '../../../utils/checkout';
+import { isDomesticCart, normalizeTraveler, priceCart, type TravelerInput } from '../../../utils/checkout';
 import {
   createTamaraCheckout,
   getTamaraApiToken,
@@ -25,11 +25,14 @@ export default defineEventHandler(async (event) => {
   const email = (user as { email?: string } | null)?.email ?? null;
 
   const body = await readBody<{ traveler?: TravelerInput; lang?: string }>(event).catch(() => ({}));
-  const traveler = normalizeTraveler(body?.traveler);
   const lang: 'ar' | 'en' = body?.lang === 'en' ? 'en' : 'ar';
 
   const client = await serverSupabaseClient<Database>(event);
   const { lines, subtotal, vat, total } = await priceCart(client, uid);
+
+  // Domestic carts skip the passport fields for a national ID/iqama.
+  const domestic = await isDomesticCart(client, lines);
+  const traveler = normalizeTraveler(body?.traveler, domestic);
 
   const { data: settings } = await client
     .from('payment_settings')

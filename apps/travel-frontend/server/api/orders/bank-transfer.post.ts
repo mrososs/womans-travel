@@ -1,6 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { normalizeTraveler, priceCart, priceDeposit, type TravelerInput } from '../../utils/checkout';
+import { isDomesticCart, normalizeTraveler, priceCart, priceDeposit, type TravelerInput } from '../../utils/checkout';
 
 /**
  * POST /api/orders/bank-transfer  { traveler, transferReference, payDepositOnly? }
@@ -34,7 +34,6 @@ export default defineEventHandler(async (event) => {
     transferReference?: unknown;
     payDepositOnly?: unknown;
   }>(event).catch(() => ({}));
-  const traveler = normalizeTraveler(body?.traveler);
 
   const transferReference = (typeof body?.transferReference === 'string' ? body.transferReference : '').trim();
   if (transferReference.length < 4) {
@@ -45,6 +44,10 @@ export default defineEventHandler(async (event) => {
 
   // 1) Read the authoritative cart + recompute totals server-side.
   const { lines, subtotal, total } = await priceCart(client, uid);
+
+  // 1a) Domestic carts skip the passport fields for a national ID/iqama.
+  const domestic = await isDomesticCart(client, lines);
+  const traveler = normalizeTraveler(body?.traveler, domestic);
 
   // 1b) Deposit-only request: recompute + require every line to be deposit-eligible.
   const payDepositOnly = body?.payDepositOnly === true;

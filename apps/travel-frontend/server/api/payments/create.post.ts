@@ -1,6 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { normalizeTraveler, priceCart, type TravelerInput } from '../../utils/checkout';
+import { isDomesticCart, normalizeTraveler, priceCart, type TravelerInput } from '../../utils/checkout';
 
 /**
  * POST /api/payments/create
@@ -24,14 +24,18 @@ export default defineEventHandler(async (event) => {
   }
   const email = (user as { email?: string } | null)?.email ?? null;
 
-  // Traveler details captured in the checkout stepper (required before payment).
   const body = await readBody<{ traveler?: TravelerInput }>(event).catch(() => ({}));
-  const traveler = normalizeTraveler(body?.traveler);
 
   const client = await serverSupabaseClient<Database>(event);
 
   // 1) Read the authoritative cart + recompute totals server-side.
   const { lines, subtotal, vat, total } = await priceCart(client, uid);
+
+  // 1b) Traveler details captured in the checkout stepper (required before
+  // payment) — domestic carts (Red Sea / Taif / Al-Baha / Madinah, etc.) skip
+  // the passport fields and use a national ID/iqama instead.
+  const domestic = await isDomesticCart(client, lines);
+  const traveler = normalizeTraveler(body?.traveler, domestic);
 
   // 2) Create the pending order.
   const { data: order, error: orderError } = await client

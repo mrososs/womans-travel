@@ -1,6 +1,6 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { normalizeTraveler, priceCart, type TravelerInput } from '../../../utils/checkout';
+import { isDomesticCart, normalizeTraveler, priceCart, type TravelerInput } from '../../../utils/checkout';
 import {
   createTabbyCheckout,
   getTabbySecretKey,
@@ -33,13 +33,16 @@ export default defineEventHandler(async (event) => {
   const email = (user as { email?: string } | null)?.email ?? null;
 
   const body = await readBody<{ traveler?: TravelerInput; lang?: string }>(event).catch(() => ({}));
-  const traveler = normalizeTraveler(body?.traveler);
   const lang: 'ar' | 'en' = body?.lang === 'en' ? 'en' : 'ar';
 
   const client = await serverSupabaseClient<Database>(event);
 
   // 1) Authoritative cart + server-recomputed totals.
   const { lines, subtotal, vat, total } = await priceCart(client, uid);
+
+  // 1b) Domestic carts skip the passport fields for a national ID/iqama.
+  const domestic = await isDomesticCart(client, lines);
+  const traveler = normalizeTraveler(body?.traveler, domestic);
 
   // 2) Read the secret key up front so we can fail fast before creating an order.
   const secretKey = await getTabbySecretKey(event);
