@@ -1,9 +1,9 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { normalizeTraveler, priceCart, type TravelerInput } from '../../utils/checkout';
+import { normalizeTraveler, priceCart, priceDeposit, type TravelerInput } from '../../utils/checkout';
 
 /**
- * POST /api/orders/bank-transfer  { traveler, transferReference }
+ * POST /api/orders/bank-transfer  { traveler, transferReference, payDepositOnly? }
  *
  * Creates a bank-transfer order for the signed-in shopper. Unlike the Moyasar
  * flow (confirmed by the gateway), a manual transfer is created as
@@ -14,6 +14,12 @@ import { normalizeTraveler, priceCart, type TravelerInput } from '../../utils/ch
  * the traveler manifest is validated + snapshotted, and the customer-entered
  * transfer reference + buyer email are stored on the order. The cart is cleared
  * once the order is recorded.
+ *
+ * When `payDepositOnly` is true, the deposit total (also recomputed
+ * server-side, from `trips`/`packages.deposit_amount`) is charged instead of
+ * the full amount — bank transfer is the only method that supports this.
+ * `total` still records the full booking value; `paid_amount` is what this
+ * order actually collects now.
  */
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);
@@ -23,7 +29,11 @@ export default defineEventHandler(async (event) => {
   }
   const email = (user as { email?: string } | null)?.email ?? null;
 
-  const body = await readBody<{ traveler?: TravelerInput; transferReference?: unknown }>(event).catch(() => ({}));
+  const body = await readBody<{
+    traveler?: TravelerInput;
+    transferReference?: unknown;
+    payDepositOnly?: unknown;
+  }>(event).catch(() => ({}));
   const traveler = normalizeTraveler(body?.traveler);
 
   const transferReference = (typeof body?.transferReference === 'string' ? body.transferReference : '').trim();
@@ -35,6 +45,19 @@ export default defineEventHandler(async (event) => {
 
   // 1) Read the authoritative cart + recompute totals server-side.
   const { lines, subtotal, total } = await priceCart(client, uid);
+
+  // 1b) Deposit-only request: recompute + require every line to be deposit-eligible.
+  const payDepositOnly = body?.payDepositOnly === true;
+  let paidAmount = total;
+  let isDepositPayment = false;
+  if (payDepositOnly) {
+    const deposit = await priceDeposit(client, lines);
+    if (!deposit.eligible || deposit.depositTotal <= 0) {
+      throw createError({ statusCode: 400, statusMessage: 'الدفع بعربون غير متاح لعناصر السلة الحالية.' });
+    }
+    paidAmount = deposit.depositTotal;
+    isDepositPayment = true;
+  }
 
   // 2) Create the pending bank-transfer order.
   const { data: order, error: orderError } = await client
@@ -50,6 +73,8 @@ export default defineEventHandler(async (event) => {
       payment_status: 'pending',
       transfer_reference: transferReference,
       customer_email: email,
+      is_deposit_payment: isDepositPayment,
+      paid_amount: paidAmount,
     })
     .select('id')
     .single();

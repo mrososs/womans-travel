@@ -23,11 +23,14 @@ withDefaults(
     originalPrice?: string;
     /** Pre-localized offer ribbon text (e.g. "Offer for the first 5"). */
     offerLabel?: string;
+    /** When true, show a "sold out" badge and dim the media (takes priority over offer/available-now). */
+    soldOut?: boolean;
+    soldOutLabel?: string;
   }>(),
   {
     img: '', price: '', kindLabel: '', fromLabel: '', currency: '', viewLabel: 'عرض',
     availableNow: false, availableLabel: 'متاح الآن', vatNote: '',
-    originalPrice: '', offerLabel: '',
+    originalPrice: '', offerLabel: '', soldOut: false, soldOutLabel: 'نفذت',
   }
 );
 
@@ -35,16 +38,20 @@ const emit = defineEmits<{ open: [] }>();
 </script>
 
 <template>
-  <Card variant="elevated" padding="none" interactive class="pkg" @click="emit('open')">
+  <Card variant="elevated" padding="none" interactive class="pkg" :class="{ 'pkg--soldout': soldOut }" @click="emit('open')">
     <div class="pkg__media" :style="{ background: grad }">
       <img v-if="img" class="pkg__img" :src="img" :alt="title" loading="lazy" decoding="async">
       <Icon v-else :name="icon" :size="64" :stroke-width="1.2" color="#fff" />
       <Badge v-if="kindLabel" variant="solid" class="pkg__badge">{{ kindLabel }}</Badge>
-      <span v-if="offerLabel" class="pkg__offer">
+      <span v-if="soldOut" class="pkg__soldout">
+        <Icon name="clock" :size="13" :stroke-width="2.4" />
+        {{ soldOutLabel }}
+      </span>
+      <span v-else-if="offerLabel" class="pkg__offer">
         <Icon name="tag" :size="13" :stroke-width="2.4" />
         {{ offerLabel }}
       </span>
-      <span v-if="availableNow" class="pkg__available">
+      <span v-else-if="availableNow" class="pkg__available">
         <span class="pkg__available-dot" />
         {{ availableLabel }}
       </span>
@@ -92,6 +99,17 @@ const emit = defineEmits<{ open: [] }>();
   box-shadow: 0 2px 10px rgba(124, 68, 78, 0.45);
 }
 .pkg__offer svg { width: 13px; height: 13px; }
+.pkg__soldout {
+  position: absolute; top: 12px; inset-inline-end: 12px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--gold-300, #e6c675); color: var(--navy-900, #121b33);
+  font-family: var(--font-body); font-weight: 800; font-size: 12px;
+  padding: 5px 11px; border-radius: var(--radius-pill);
+  box-shadow: 0 2px 10px rgba(18, 27, 51, 0.18);
+}
+.pkg__soldout svg { width: 13px; height: 13px; }
+.pkg--soldout .pkg__img,
+.pkg--soldout .pkg__media > svg { filter: grayscale(0.5) brightness(0.92); }
 .pkg__available {
   position: absolute; top: 12px; inset-inline-end: 12px; z-index: 2;
   display: inline-flex; align-items: center; gap: 6px;

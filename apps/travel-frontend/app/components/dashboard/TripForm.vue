@@ -83,6 +83,12 @@ const variantOptions = [
     <Switch v-model="model.coming_soon" :label="t('admin.comingSoon')" />
 
     <div class="tform__field">
+      <label class="tform__label">{{ t('admin.depositTitle') }}</label>
+      <p class="tform__hint">{{ t('admin.depositHint') }}</p>
+    </div>
+    <Input v-model.number="model.deposit_amount" type="number" :label="t('admin.depositAmount')" />
+
+    <div class="tform__field">
       <label class="tform__label">{{ t('admin.discountTitle') }}</label>
       <p class="tform__hint">{{ t('admin.discountHint') }}</p>
     </div>

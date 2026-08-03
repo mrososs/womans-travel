@@ -141,7 +141,7 @@ const qty = ref(1);
 const added = ref(false);
 
 async function addToCart() {
-  if (!pkg.value) return;
+  if (!pkg.value || pkg.value.sold_out) return;
   if (needsChoice.value) {
     notify.error(t('detail.chooseOption'));
     return;
@@ -213,7 +213,8 @@ function goPackage(pid: string) {
         <div class="pd-hero__content">
           <div class="pd-hero__badges">
             <Badge variant="solid">{{ t(`destinations.kinds.${pkg.kind}`) }}</Badge>
-            <Badge variant="success" dot>{{ t('detail.availability') }}</Badge>
+            <Badge v-if="pkg.sold_out" variant="danger" dot>{{ t('detail.soldOut') }}</Badge>
+            <Badge v-else variant="success" dot>{{ t('detail.availability') }}</Badge>
           </div>
           <h1 class="pd-hero__title">{{ pick(pkg, 'title') }}</h1>
           <p class="pd-hero__sub">{{ pick(pkg, 'desc') }}</p>
@@ -293,9 +294,9 @@ function goPackage(pid: string) {
             </div>
 
             <div class="pd-buyrow">
-              <Button block size="lg" @click="addToCart">
-                <template #iconStart><Icon name="shopping-bag" :size="19" /></template>
-                {{ added ? t('cart.added') : t('cart.addToCart') }}
+              <Button block size="lg" :disabled="pkg.sold_out" @click="addToCart">
+                <template #iconStart><Icon :name="pkg.sold_out ? 'clock' : 'shopping-bag'" :size="19" /></template>
+                {{ pkg.sold_out ? t('detail.soldOut') : (added ? t('cart.added') : t('cart.addToCart')) }}
               </Button>
               <IconButton variant="soft" size="lg" :label="t('wishlist.title')" @click="toggleWishlist">
                 <Icon name="heart" :size="20" :color="has('package', pkg.id) ? 'var(--brand)' : 'var(--brand-strong)'" />
@@ -303,8 +304,14 @@ function goPackage(pid: string) {
             </div>
 
             <div class="pd-note">
-              <Icon name="shield-check" :size="14" color="var(--success-500)" />
-              {{ t('trip.booking.secure') }}
+              <template v-if="pkg.sold_out">
+                <Icon name="clock" :size="14" color="var(--text-muted)" />
+                {{ t('detail.soldOutNote') }}
+              </template>
+              <template v-else>
+                <Icon name="shield-check" :size="14" color="var(--success-500)" />
+                {{ t('trip.booking.secure') }}
+              </template>
             </div>
           </Card>
         </div>
@@ -331,6 +338,8 @@ function goPackage(pid: string) {
             :kind-label="t(`destinations.kinds.${p.kind}`)"
             :view-label="t('actions.view')"
             :vat-note="t('common.vatShort')"
+            :sold-out="p.sold_out"
+            :sold-out-label="t('common.soldOut')"
             @open="goPackage(p.id)"
           />
         </div>

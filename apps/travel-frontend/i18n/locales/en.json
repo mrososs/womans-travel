@@ -17,7 +17,9 @@
     "priceAmount": "Price amount", "costAmount": "Cost (internal)",
     "seats": "Seats left", "rating": "Rating", "reviews": "Reviews",
     "icon": "Icon", "iconPh": "lucide icon name", "grad": "Gradient", "gradPh": "linear-gradient(...)",
-    "featured": "Featured on home", "comingSoon": "Coming soon (not bookable)", "descAr": "Description (Arabic)", "descEn": "Description (English)", "sort": "Sort order",
+    "featured": "Featured on home", "comingSoon": "Coming soon (not bookable)", "soldOut": "Sold out (not bookable)", "descAr": "Description (Arabic)", "descEn": "Description (English)", "sort": "Sort order",
+    "depositTitle": "Deposit payment", "depositHint": "Optional. When a deposit amount is set, the customer can choose to pay just this amount by bank transfer at checkout, and settle the remaining balance later.",
+    "depositAmount": "Deposit amount",
     "includesAr": "What's included (Arabic)", "includesEn": "What's included (English)",
     "includesHint": "One item per line. Left empty, the generic list (flights, luxury stay, breakfast…) is shown — which doesn't fit short trips.",
     "discountTitle": "Discount offer (for a limited number of the first buyers)",
@@ -103,6 +105,8 @@
     "optionPlaceholder": "Choose",
     "chooseOption": "Please choose an option first.",
     "travellers": "Travellers",
+    "soldOut": "Sold out",
+    "soldOutNote": "This trip has sold out and is no longer available for booking.",
     "notFound": "This package was not found.",
     "backToPackages": "Back to packages"
   },
@@ -192,6 +196,7 @@
     "details": "Details",
     "comingSoon": "Coming soon",
     "availableNow": "Available now",
+    "soldOut": "Sold out",
     "vatExcluded": "(Amount excludes VAT)",
     "vatShort": "Price excludes VAT",
     "sar": "SAR",
@@ -204,7 +209,7 @@
     "title": "Reports & statistics",
     "adminArea": "Admin area",
     "backToSite": "Back to site",
-    "nav": { "overview": "Overview", "orders": "Orders", "trips": "Trips", "packages": "Groups", "settings": "Bank account" },
+    "nav": { "overview": "Overview", "orders": "Orders", "deposits": "Deposits", "trips": "Trips", "packages": "Groups", "settings": "Bank account" },
     "bank": {
       "title": "Bank account details",
       "lead": "These details are shown to the customer when they choose bank transfer. You can edit them at any time.",
@@ -288,7 +293,13 @@
     "cancel": "Cancel",
     "approved": "Payment approved — the customer has been notified.",
     "cancelledOk": "Order cancelled.",
-    "actionError": "Couldn't complete the action, please try again."
+    "actionError": "Couldn't complete the action, please try again.",
+    "deposits": {
+      "title": "Deposit orders",
+      "lead": "Orders where the customer paid a deposit only by bank transfer, with the remaining balance to be settled later.",
+      "empty": "No deposit orders yet.",
+      "table": { "deposit": "Deposit paid", "remaining": "Remaining" }
+    }
   },
   "pages": {
     "packages": { "eyebrow": "Our groups", "title": "Thoughtfully crafted groups", "lead": "Complete travel groups — international and domestic — fully arranged with total privacy." },

@@ -177,3 +177,43 @@ export async function priceCart(client: SupabaseClient<Database>, uid: string) {
 
   return { lines, subtotal, vat, total, vatRate };
 }
+
+export interface DepositInfo {
+  /** True only when every cart line's item carries a deposit_amount. */
+  eligible: boolean;
+  /** Sum of each line's deposit_amount × quantity. 0 when not eligible. */
+  depositTotal: number;
+}
+
+/**
+ * Whether the priced cart can be settled with a deposit, and the deposit
+ * total to charge instead of the full amount. Reads `deposit_amount` off the
+ * `trips` / `packages` rows behind each cart line (never trusts the client),
+ * so an admin who hasn't set a deposit on an item simply makes the whole
+ * cart ineligible — there's no partial-deposit cart today.
+ */
+export async function priceDeposit(client: SupabaseClient<Database>, lines: PricedLine[]): Promise<DepositInfo> {
+  if (!lines.length) return { eligible: false, depositTotal: 0 };
+
+  const tripIds = [...new Set(lines.filter((l) => l.item_type === 'trip').map((l) => l.item_id))];
+  const packageIds = [...new Set(lines.filter((l) => l.item_type === 'package').map((l) => l.item_id))];
+
+  const depositByKey: Record<string, number> = {};
+  if (tripIds.length) {
+    const { data } = await client.from('trips').select('id, deposit_amount').in('id', tripIds);
+    for (const t of data ?? []) if (t.deposit_amount != null) depositByKey[`trip:${t.id}`] = Number(t.deposit_amount);
+  }
+  if (packageIds.length) {
+    const { data } = await client.from('packages').select('id, deposit_amount').in('id', packageIds);
+    for (const p of data ?? []) if (p.deposit_amount != null) depositByKey[`package:${p.id}`] = Number(p.deposit_amount);
+  }
+
+  let depositTotal = 0;
+  for (const l of lines) {
+    const amount = depositByKey[`${l.item_type}:${l.item_id}`];
+    if (amount == null) return { eligible: false, depositTotal: 0 };
+    depositTotal += amount * l.quantity;
+  }
+
+  return { eligible: true, depositTotal: Math.round(depositTotal * 100) / 100 };
+}

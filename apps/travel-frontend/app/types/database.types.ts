@@ -315,6 +315,8 @@ export type Database = {
           currency: string
           customer_email: string | null
           id: string
+          is_deposit_payment: boolean
+          paid_amount: number | null
           paid_at: string | null
           payment_method: string | null
           payment_provider: string | null
@@ -332,6 +334,8 @@ export type Database = {
           currency?: string
           customer_email?: string | null
           id?: string
+          is_deposit_payment?: boolean
+          paid_amount?: number | null
           paid_at?: string | null
           payment_method?: string | null
           payment_provider?: string | null
@@ -349,6 +353,8 @@ export type Database = {
           currency?: string
           customer_email?: string | null
           id?: string
+          is_deposit_payment?: boolean
+          paid_amount?: number | null
           paid_at?: string | null
           payment_method?: string | null
           payment_provider?: string | null
@@ -410,6 +416,7 @@ export type Database = {
       packages: {
         Row: {
           cost_amount: number | null
+          deposit_amount: number | null
           desc_ar: string
           desc_en: string
           discount_label_ar: string | null
@@ -429,12 +436,14 @@ export type Database = {
           price_amount: number | null
           price_ar: string | null
           price_en: string | null
+          sold_out: boolean
           sort: number
           title_ar: string
           title_en: string
         }
         Insert: {
           cost_amount?: number | null
+          deposit_amount?: number | null
           desc_ar: string
           desc_en: string
           discount_label_ar?: string | null
@@ -454,12 +463,14 @@ export type Database = {
           price_amount?: number | null
           price_ar?: string | null
           price_en?: string | null
+          sold_out?: boolean
           sort?: number
           title_ar: string
           title_en: string
         }
         Update: {
           cost_amount?: number | null
+          deposit_amount?: number | null
           desc_ar?: string
           desc_en?: string
           discount_label_ar?: string | null
@@ -479,6 +490,7 @@ export type Database = {
           price_amount?: number | null
           price_ar?: string | null
           price_en?: string | null
+          sold_out?: boolean
           sort?: number
           title_ar?: string
           title_en?: string
@@ -705,6 +717,7 @@ export type Database = {
           created_at: string
           dates_ar: string
           dates_en: string
+          deposit_amount: number | null
           discount_label_ar: string | null
           discount_label_en: string | null
           discount_price_amount: number | null
@@ -740,6 +753,7 @@ export type Database = {
           created_at?: string
           dates_ar: string
           dates_en: string
+          deposit_amount?: number | null
           discount_label_ar?: string | null
           discount_label_en?: string | null
           discount_price_amount?: number | null
@@ -775,6 +789,7 @@ export type Database = {
           created_at?: string
           dates_ar?: string
           dates_en?: string
+          deposit_amount?: number | null
           discount_label_ar?: string | null
           discount_label_en?: string | null
           discount_price_amount?: number | null

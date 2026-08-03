@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Input, Select } from '@org/shared-ui';
+import { Input, Select, Switch } from '@org/shared-ui';
 import ImageUpload from '~/components/dashboard/ImageUpload.vue';
 import type { PackageInsert } from '~/composables/useAdminContent';
 
@@ -55,6 +55,14 @@ const kindOptions = [
       <label class="pform__label">{{ t('admin.includesEn') }}</label>
       <textarea v-model="model.includes_en" class="pform__textarea" rows="5" />
     </div>
+
+    <Switch v-model="model.sold_out" :label="t('admin.soldOut')" />
+
+    <div class="pform__field">
+      <label class="pform__label">{{ t('admin.depositTitle') }}</label>
+      <p class="pform__hint">{{ t('admin.depositHint') }}</p>
+    </div>
+    <Input v-model.number="model.deposit_amount" type="number" :label="t('admin.depositAmount')" />
 
     <div class="pform__field">
       <label class="pform__label">{{ t('admin.discountTitle') }}</label>

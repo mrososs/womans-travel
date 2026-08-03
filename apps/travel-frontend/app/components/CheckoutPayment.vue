@@ -110,6 +110,25 @@ const submitting = ref(false);
 const bankError = ref('');
 const copied = ref('');
 
+// Deposit-only bank transfer — `deposit_amount` on trips/packages, keyed
+// "item_type:item_id". Only bank transfer offers this; other methods always
+// charge the full total.
+const depositMap = ref<Record<string, number>>({});
+const payDepositOnly = ref(false);
+const depositEligible = computed(() =>
+  lines.value.length > 0 && lines.value.every((l) => depositMap.value[`${l.item_type}:${l.item_id}`] != null)
+);
+const depositTotal = computed(() => {
+  if (!depositEligible.value) return 0;
+  const sum = lines.value.reduce(
+    (s, l) => s + (depositMap.value[`${l.item_type}:${l.item_id}`] ?? 0) * l.quantity,
+    0
+  );
+  return Math.round(sum * 100) / 100;
+});
+const remainingAfterDeposit = computed(() => Math.max(0, Math.round((total.value - depositTotal.value) * 100) / 100));
+const bankAmountDue = computed(() => (payDepositOnly.value && depositEligible.value ? depositTotal.value : total.value));
+
 type Phase = 'loading' | 'form' | 'error';
 const phase = ref<Phase>('loading');
 const errorMsg = ref('');
@@ -163,6 +182,7 @@ function selectMethod(m: PaymentMethod) {
   if (method.value === m) return;
   method.value = m;
   bankError.value = '';
+  if (m !== 'bank_transfer') payDepositOnly.value = false;
   tabbyError.value = '';
   tabbyPhase.value = 'idle';
   tamaraError.value = '';
@@ -307,7 +327,11 @@ async function submitBankTransfer() {
   try {
     await $fetch<{ orderId: string }>('/api/orders/bank-transfer', {
       method: 'POST',
-      body: { traveler: traveler.value, transferReference: ref_ },
+      body: {
+        traveler: traveler.value,
+        transferReference: ref_,
+        payDepositOnly: payDepositOnly.value && depositEligible.value,
+      },
     });
     await clear(); // server already cleared the DB cart; reset local state too
     navigateTo(localePath('/account/orders'));
@@ -393,7 +417,7 @@ onMounted(async () => {
 
   // Load the live bank-account details + VAT rate (admin-editable via the dashboard).
   const supa = useSupabaseClient<Database>();
-  const [{ data }, { data: tax }, { data: pay }] = await Promise.all([
+  const [{ data }, { data: tax }, { data: pay }, { data: tripDeposits }, { data: pkgDeposits }] = await Promise.all([
     supa
       .from('bank_settings')
       .select('bank_name, account_name, account_number, iban')
@@ -405,7 +429,13 @@ onMounted(async () => {
       .select('tabby_enabled, tabby_test_mode, tamara_enabled, tamara_test_mode')
       .eq('id', 1)
       .maybeSingle(),
+    supa.from('trips').select('id, deposit_amount').not('deposit_amount', 'is', null),
+    supa.from('packages').select('id, deposit_amount').not('deposit_amount', 'is', null),
   ]);
+  const dMap: Record<string, number> = {};
+  for (const t of tripDeposits ?? []) if (t.deposit_amount != null) dMap[`trip:${t.id}`] = Number(t.deposit_amount);
+  for (const p of pkgDeposits ?? []) if (p.deposit_amount != null) dMap[`package:${p.id}`] = Number(p.deposit_amount);
+  depositMap.value = dMap;
   if (pay) {
     tabbyEnabled.value = pay.tabby_enabled !== false;
     tabbyTestMode.value = pay.tabby_test_mode !== false;
@@ -670,10 +700,23 @@ onMounted(async () => {
               سيتم تأكيد حجزكِ بعد مراجعة الإدارة للتحويل.
             </p>
 
+            <label v-if="depositEligible" class="co-bank__deposit">
+              <input v-model="payDepositOnly" type="checkbox">
+              <span>
+                دفع عربون فقط ({{ nf.format(depositTotal) }}<Icon name="saudi-riyal" :size="13" />) بدلاً من كامل
+                المبلغ، ويُسدَّد المتبقي عند الوصول.
+              </span>
+            </label>
+
             <div class="co-bank__amount">
               <span>المبلغ المطلوب تحويله</span>
-              <strong class="co-price">{{ nf.format(total) }}<Icon name="saudi-riyal" :size="18" /></strong>
+              <strong class="co-price">{{ nf.format(bankAmountDue) }}<Icon name="saudi-riyal" :size="18" /></strong>
             </div>
+            <p v-if="payDepositOnly && depositEligible" class="co-bank__remaining">
+              <Icon name="info" :size="14" />
+              المتبقي {{ nf.format(remainingAfterDeposit) }}<Icon name="saudi-riyal" :size="12" /> يُسدَّد لاحقًا بعد
+              الوصول، خارج هذا التحويل.
+            </p>
 
             <dl class="co-bank__details">
               <div class="co-bank__row">
@@ -986,6 +1029,19 @@ onMounted(async () => {
 /* bank-transfer card */
 .co-bank { display: grid; gap: var(--space-4); }
 .co-bank__lead { color: var(--text-muted); font-size: var(--text-sm); line-height: var(--leading-relaxed); margin: 0; }
+.co-bank__deposit {
+  display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+  padding: 12px 14px; border: 1.5px dashed var(--border-default); border-radius: var(--radius-md);
+  background: var(--surface-cream, var(--rose-50));
+}
+.co-bank__deposit input { margin-top: 2px; flex: none; width: 16px; height: 16px; accent-color: var(--brand-solid); }
+.co-bank__deposit span { font-size: var(--text-sm); color: var(--text-body); line-height: var(--leading-relaxed); }
+.co-bank__deposit :deep(svg) { color: var(--brand-strong); }
+.co-bank__remaining {
+  display: flex; align-items: center; gap: 6px; margin: -8px 0 0;
+  font-size: var(--text-xs); color: var(--text-muted);
+}
+.co-bank__remaining :deep(svg) { color: var(--text-brand); flex: none; }
 .co-bank__amount {
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
   padding: var(--space-4); border-radius: var(--radius-md);

@@ -100,7 +100,9 @@ function goPackages() {
               :kind-label="t(`destinations.kinds.${p.kind}`)"
               :view-label="t('actions.view')"
               :vat-note="t('common.vatShort')"
-              available-now
+              :sold-out="p.sold_out"
+              :sold-out-label="t('common.soldOut')"
+              :available-now="!p.sold_out"
               :available-label="t('common.availableNow')"
               @open="goPackage(p.id)"
             />

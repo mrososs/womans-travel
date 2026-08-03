@@ -56,6 +56,8 @@ useScrollReveal(grid, { selector: '.pkg', stagger: 0.08, watch: ready });
               :kind-label="t(`destinations.kinds.${p.kind}`)"
               :view-label="t('actions.view')"
               :vat-note="t('common.vatShort')"
+              :sold-out="p.sold_out"
+              :sold-out-label="t('common.soldOut')"
               @open="goPackage(p.id)"
             />
           </template>
