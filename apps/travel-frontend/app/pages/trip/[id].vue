@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { Badge, Card, Icon } from '@org/shared-ui';
 import BookingCard from '~/components/trip/BookingCard.vue';
 import TripGrid from '~/components/TripGrid.vue';
@@ -25,6 +25,19 @@ const current = computed(() => trip.value!);
 const related = computed(() => (trips.value ?? []).filter((tr) => tr.id !== current.value.id).slice(0, 3));
 
 useHead(() => ({ title: `${lc(current.value.title)} · ${t('brand')}` }));
+
+const analytics = useAnalytics();
+onMounted(() =>
+  analytics.viewItem({
+    item_type: 'trip',
+    item_id: current.value.id,
+    title: lc(current.value.title),
+    // The discounted price when an offer is live — that's what a shopper
+    // would actually pay, so it's what GA should attribute.
+    unit_price: current.value.discountAmount ?? parsePriceAmount(current.value.price.en),
+    quantity: 1,
+  })
+);
 
 function goTrip(id: string) {
   navigateTo(localePath(`/trip/${id}`));

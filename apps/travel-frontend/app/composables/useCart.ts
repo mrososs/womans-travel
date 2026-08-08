@@ -25,6 +25,7 @@ export function useCart() {
   const items = useState<CartItem[]>('durrah-cart', () => []);
   const userId = useAuthUserId();
   const client = useSupabaseClient<Database>();
+  const analytics = useAnalytics();
 
   const count = computed(() => items.value.reduce((n, i) => n + i.quantity, 0));
   const subtotal = computed(() => items.value.reduce((s, i) => s + i.quantity * i.unit_price, 0));
@@ -76,6 +77,9 @@ export function useCart() {
     if (existing) existing.quantity += quantity;
     else items.value.push({ ...item, quantity });
     saveLocal();
+    // Reported here rather than at each call site so every "add to cart"
+    // button in the app is measured by construction.
+    analytics.addToCart({ ...item, quantity });
     await upsertDb(items.value.find((x) => keyOf(x) === keyOf(item))!);
   }
 
@@ -89,6 +93,7 @@ export function useCart() {
   async function remove(item: CartItem) {
     items.value = items.value.filter((x) => keyOf(x) !== keyOf(item));
     saveLocal();
+    analytics.removeFromCart(item);
     await deleteDb(item);
   }
 

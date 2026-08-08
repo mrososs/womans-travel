@@ -29,6 +29,14 @@ const MOYASAR_API = 'https://api.moyasar.com';
 const TABBY_API = 'https://api.tabby.ai https://api.tabby.sa';
 const TABBY_CHECKOUT = 'https://checkout.tabby.ai https://checkout.tabby.sa https://*.tabby.sa';
 
+// Google Analytics 4 (gtag.js). The tag itself is served from
+// www.googletagmanager.com; hits are POSTed to google-analytics.com (and the
+// regional *.analytics.google.com endpoints). Without these entries the CSP
+// blocks the script outright and no measurement ever reaches GA.
+const GTAG_SRC = 'https://www.googletagmanager.com';
+const GA_COLLECT =
+  'https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com';
+
 // Tamara BNPL: server-side API calls to api(.|-sandbox.)tamara.co; the browser
 // is redirected (top-level) to checkout(.|-sandbox.)tamara.co, and the optional
 // promo widget loads from cdn.tamara.co. A single wildcard covers all subdomains
@@ -44,8 +52,8 @@ const CSP = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' https://fonts.gstatic.com data:",
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${MOYASAR_CDN}`,
-  `script-src 'self' 'unsafe-inline' ${MOYASAR_CDN} ${TABBY_CHECKOUT} ${TAMARA}`,
-  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co ${MOYASAR_API} ${TABBY_API} ${TABBY_CHECKOUT} ${TAMARA}`,
+  `script-src 'self' 'unsafe-inline' ${MOYASAR_CDN} ${TABBY_CHECKOUT} ${TAMARA} ${GTAG_SRC}`,
+  `connect-src 'self' ${SUPABASE_ORIGIN} wss://snqujifbaottvysziysj.supabase.co https://*.supabase.co wss://*.supabase.co ${MOYASAR_API} ${TABBY_API} ${TABBY_CHECKOUT} ${TAMARA} ${GA_COLLECT}`,
   // 3-D Secure challenge iframe (Moyasar + the issuing bank) + Tabby/Tamara HPP/widget.
   `frame-src 'self' ${MOYASAR_API} https://*.moyasar.com ${TABBY_CHECKOUT} https://*.tabby.ai ${TAMARA}`,
   'upgrade-insecure-requests',
@@ -187,6 +195,9 @@ export default defineNuxtConfig({
     moyasarWebhookSecret: process.env.MOYASAR_WEBHOOK_SECRET || '',
     public: {
       moyasarPublishableKey: process.env.MOYASAR_PUBLISHABLE_KEY || '',
+      // GA4 measurement ID. Overridable per-environment; the default is the
+      // production property so a deploy that forgets the env var still reports.
+      gaMeasurementId: process.env.GA_MEASUREMENT_ID || 'G-PCLST8J84N',
     },
   },
 

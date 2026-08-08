@@ -1,10 +1,20 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { Card, Button, Icon } from '@org/shared-ui';
 
 const { t } = useI18n();
 const localePath = useLocalePath();
-const { items, subtotal, setQuantity, remove } = useCart();
+const { items, subtotal, setQuantity, remove, hydrate } = useCart();
 const { isLoggedIn } = useAuth();
+const analytics = useAnalytics();
+
+// The cart plugin hydrates without awaiting, so re-await it here (as
+// CheckoutPayment does) before reporting — otherwise view_cart would fire
+// against an empty list on a cold load.
+onMounted(async () => {
+  await hydrate();
+  analytics.viewCart(items.value);
+});
 
 useHead(() => ({ title: `${t('cart.title')} · ${t('brand')}` }));
 

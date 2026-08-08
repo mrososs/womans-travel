@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Card, Badge, Button, Icon, IconButton, Select } from '@org/shared-ui';
 import PackageCard from '~/components/PackageCard.vue';
 import type { Database } from '~/types/database.types';
@@ -33,6 +33,18 @@ const { data: related } = await useAsyncData('packages-related', async () => {
 });
 
 useHead(() => ({ title: pkg.value ? pick(pkg.value, 'title') : t('detail.notFound') }));
+
+const analytics = useAnalytics();
+onMounted(() => {
+  if (!pkg.value) return;
+  analytics.viewItem({
+    item_type: 'package',
+    item_id: pkg.value.id,
+    title: pick(pkg.value, 'title'),
+    unit_price: basePriceAmount.value,
+    quantity: 1,
+  });
+});
 
 const basePriceAmount = computed(() =>
   pkg.value ? Number((pkg.value.price_en ?? '').replace(/[^0-9.]/g, '')) || 0 : 0
