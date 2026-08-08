@@ -1,6 +1,12 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { isDomesticCart, normalizeTraveler, priceCart, type TravelerInput } from '../../utils/checkout';
+import {
+  isDomesticCart,
+  normalizeTraveler,
+  priceCart,
+  reserveCoupon,
+  type TravelerInput,
+} from '../../utils/checkout';
 
 /**
  * POST /api/payments/create
@@ -24,18 +30,38 @@ export default defineEventHandler(async (event) => {
   }
   const email = (user as { email?: string } | null)?.email ?? null;
 
-  const body = await readBody<{ traveler?: TravelerInput }>(event).catch(() => ({}));
+  const body = await readBody<{ traveler?: TravelerInput; couponCode?: string }>(event).catch(
+    () => ({})
+  );
 
   const client = await serverSupabaseClient<Database>(event);
 
-  // 1) Read the authoritative cart + recompute totals server-side.
-  const { lines, subtotal, vat, total } = await priceCart(client, uid);
+  // 1) Read the authoritative cart + recompute totals server-side. The coupon
+  // is re-validated here too — the client's earlier check is never trusted.
+  const { lines, subtotal, coupon, discount, vat, total } = await priceCart(
+    client,
+    uid,
+    body?.couponCode
+  );
 
   // 1b) Traveler details captured in the checkout stepper (required before
   // payment) — domestic carts (Red Sea / Taif / Al-Baha / Madinah, etc.) skip
   // the passport fields and use a national ID/iqama instead.
   const domestic = await isDomesticCart(client, lines);
   const traveler = normalizeTraveler(body?.traveler, domestic);
+
+  // 1c) The shopper can change her coupon while the hosted card form is up,
+  // which re-runs this endpoint. Any earlier pending card order still holds a
+  // reservation on its coupon, so cancel those first — the orders trigger
+  // releases the redemption and the fresh order below can claim it. Scoped to
+  // coupon-bearing orders so plain checkouts are untouched.
+  await client
+    .from('orders')
+    .update({ status: 'cancelled', payment_status: 'cancelled' })
+    .eq('user_id', uid)
+    .eq('payment_method', 'moyasar')
+    .eq('payment_status', 'pending')
+    .not('coupon_id', 'is', null);
 
   // 2) Create the pending order.
   const { data: order, error: orderError } = await client
@@ -50,6 +76,9 @@ export default defineEventHandler(async (event) => {
       payment_method: 'moyasar',
       payment_status: 'pending',
       customer_email: email,
+      coupon_id: coupon?.id ?? null,
+      coupon_code: coupon?.code ?? null,
+      discount_amount: discount,
     })
     .select('id')
     .single();
@@ -57,6 +86,11 @@ export default defineEventHandler(async (event) => {
   if (orderError || !order) {
     throw createError({ statusCode: 500, statusMessage: orderError?.message ?? 'Could not create order' });
   }
+
+  // 2a) Claim the shopper's single redemption. A collision here (two tabs, or
+  // a code spent between validation and now) rejects the checkout rather than
+  // letting the discount be taken twice.
+  if (coupon) await reserveCoupon(client, coupon, order.id, discount);
 
   // 2b) Snapshot the traveler manifest onto the order. Done as a separate,
   // fail-soft update so the flow keeps working even if the traveler_info column
@@ -92,6 +126,8 @@ export default defineEventHandler(async (event) => {
     currency: 'SAR',
     description: `Durrah — طلب رقم ${order.id.slice(0, 8)}`,
     subtotal,
+    discount,
+    couponCode: coupon?.code ?? null,
     vat,
     total,
   };

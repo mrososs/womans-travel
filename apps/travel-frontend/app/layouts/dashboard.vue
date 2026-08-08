@@ -18,6 +18,7 @@ const nav = computed(() => [
   { key: 'overview', to: localePath('/dashboard'), icon: 'layout-dashboard' },
   { key: 'orders', to: localePath('/dashboard/orders'), icon: 'package' },
   { key: 'deposits', to: localePath('/dashboard/deposits'), icon: 'wallet' },
+  { key: 'coupons', to: localePath('/dashboard/coupons'), icon: 'ticket-percent' },
   { key: 'trips', to: localePath('/dashboard/trips'), icon: 'compass' },
   { key: 'packages', to: localePath('/dashboard/packages'), icon: 'crown' },
   { key: 'settings', to: localePath('/dashboard/settings'), icon: 'building-2' },

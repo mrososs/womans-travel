@@ -34,9 +34,13 @@ export default defineEventHandler(async (event) => {
     return { eligible: false, reason: 'disabled' };
   }
 
+  // Price with the shopper's coupon applied so eligibility is checked against
+  // the amount Tamara will actually be asked to finance.
+  const body = await readBody<{ couponCode?: string }>(event).catch(() => ({}));
+
   let total: number;
   try {
-    ({ total } = await priceCart(client, uid));
+    ({ total } = await priceCart(client, uid, body?.couponCode));
   } catch {
     return { eligible: false, reason: 'empty_cart' };
   }

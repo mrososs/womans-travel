@@ -16,19 +16,33 @@ const { hydrate } = useCart();
 const orderId = String(route.query.order ?? '');
 const total = ref<number | null>(null);
 const nf = new Intl.NumberFormat('en-US');
+const analytics = useAnalytics();
 
 useHead({ title: 'تم الدفع بنجاح · دُرّة' });
 
 onMounted(async () => {
   await hydrate();
-  if (orderId) {
-    const { data } = await client
-      .from('orders')
-      .select('total, status')
-      .eq('id', orderId)
-      .maybeSingle();
-    if (data) total.value = Number(data.total);
-  }
+  if (!orderId) return;
+
+  const { data } = await client
+    .from('orders')
+    .select('total, subtotal, status, discount_amount, coupon_code, order_items(item_type, item_id, title, quantity, unit_price)')
+    .eq('id', orderId)
+    .maybeSingle();
+  if (!data) return;
+
+  total.value = Number(data.total);
+
+  // GA4 de-duplicates on transaction_id, so a refresh of this page (or a
+  // second visit from the order history) can't double-count the revenue.
+  analytics.purchase({
+    transactionId: orderId,
+    value: Number(data.total),
+    tax: Math.round((Number(data.total) - Number(data.subtotal) + Number(data.discount_amount ?? 0)) * 100) / 100,
+    discount: Number(data.discount_amount ?? 0),
+    coupon: data.coupon_code,
+    lines: data.order_items ?? [],
+  });
 });
 </script>
 

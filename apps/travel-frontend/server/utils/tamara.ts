@@ -199,6 +199,9 @@ export interface CreateCheckoutInput {
   consumer: { firstName: string; lastName: string; phone: string; email: string };
   items: Array<{ name: string; sku: string; quantity: number; unitPrice: number; referenceId: string }>;
   taxAmount?: number;
+  /** Coupon discount. Required whenever `amount` is net of one — Tamara checks
+   *  total_amount === sum(items) + tax + shipping − discount. */
+  discount?: { amount: number; name: string };
   merchantUrl: { success: string; failure: string; cancel: string; notification: string };
 }
 
@@ -223,6 +226,14 @@ export async function createTamaraCheckout(
     // service there is no shipping, so it's zero.
     tax_amount: money(input.taxAmount ?? 0, input.currency),
     shipping_amount: money(0, input.currency),
+    ...(input.discount
+      ? {
+          discount: {
+            name: input.discount.name,
+            amount: money(input.discount.amount, input.currency),
+          },
+        }
+      : {}),
     // REQUIRED — omitting payment_type makes Tamara respond 500. KSA offers
     // "Pay in 4" interest-free instalments (confirmed via pre-check).
     payment_type: 'PAY_BY_INSTALMENTS',

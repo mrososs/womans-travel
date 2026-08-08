@@ -44,6 +44,8 @@ const DEMO_ITEM = {
 
 const { items, hydrate, clear } = useCart();
 const { isLoggedIn } = useAuth();
+const notify = useNotify();
+const analytics = useAnalytics();
 const localePath = useLocalePath();
 const { locale } = useI18n();
 const config = useRuntimeConfig();
@@ -70,14 +72,44 @@ const tamaraError = ref('');
 const isTestMode = computed(() => publishableKey.startsWith('pk_test'));
 
 const nf = new Intl.NumberFormat('en-US');
+const nf2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/**
+ * Money for display. Whole riyals stay clean ("14,850"), but any fractional
+ * amount always shows both decimals — a discounted VAT line would otherwise
+ * render as "3,712.5" rather than "3,712.50".
+ */
+const money = (n: number) => (Number.isInteger(n) ? nf.format(n) : nf2.format(n));
 
 const lines = computed(() => (items.value.length ? items.value : [DEMO_ITEM]));
 const usingDemo = computed(() => items.value.length === 0);
 const subtotal = computed(() =>
   lines.value.reduce((s, i) => s + i.unit_price * i.quantity, 0)
 );
-const vat = computed(() => Math.round(subtotal.value * vatRate.value));
-const total = computed(() => subtotal.value + vat.value);
+
+// ===== Discount coupon =====
+// The applied coupon carries the *server-computed* figures from
+// /api/coupons/validate, so the summary shows exactly what will be charged
+// rather than a second, subtly-different client calculation. Removing the
+// coupon falls straight back to the original client arithmetic.
+interface AppliedCoupon {
+  code: string;
+  discountPercent: number;
+  discount: number;
+  vat: number;
+  total: number;
+}
+const couponInput = ref('');
+const appliedCoupon = ref<AppliedCoupon | null>(null);
+const couponChecking = ref(false);
+
+const discount = computed(() => appliedCoupon.value?.discount ?? 0);
+// The discount reduces the taxable base, so VAT drops with it.
+const vat = computed(() =>
+  appliedCoupon.value ? appliedCoupon.value.vat : Math.round(subtotal.value * vatRate.value)
+);
+const total = computed(() =>
+  appliedCoupon.value ? appliedCoupon.value.total : subtotal.value + vat.value
+);
 
 // BNPL providers split the total into 4 equal, interest-free monthly payments.
 const installment4 = computed(() => Math.round((total.value / 4) * 100) / 100);
@@ -172,6 +204,81 @@ function loadMoyasar(): Promise<MoyasarGlobal> {
   });
 }
 
+/**
+ * Check the entered coupon against the server. On success the summary switches
+ * to the returned figures; on failure we surface a toast and leave the totals
+ * untouched. The `coupons` table is never readable from the browser — this
+ * endpoint is the only way to test a code.
+ */
+async function checkCoupon() {
+  const code = couponInput.value.trim().toUpperCase();
+  if (!code) return;
+  if (!isLoggedIn.value) {
+    navigateTo(localePath('/auth/login'));
+    return;
+  }
+
+  couponChecking.value = true;
+  try {
+    const res = await $fetch<{
+      valid: boolean;
+      message?: string;
+      code?: string;
+      discountPercent?: number;
+      discount?: number;
+      vat?: number;
+      total?: number;
+    }>('/api/coupons/validate', { method: 'POST', body: { code } });
+
+    if (!res.valid) {
+      appliedCoupon.value = null;
+      notify.error(res.message || 'رمز الكوبون غير صحيح.');
+      return;
+    }
+
+    appliedCoupon.value = {
+      code: res.code ?? code,
+      discountPercent: Number(res.discountPercent ?? 0),
+      discount: Number(res.discount ?? 0),
+      vat: Number(res.vat ?? 0),
+      total: Number(res.total ?? 0),
+    };
+    couponInput.value = appliedCoupon.value.code;
+    notify.success(`تم تطبيق خصم ${+appliedCoupon.value.discountPercent}% على طلبكِ.`);
+    await onCouponChanged();
+  } catch (err: unknown) {
+    const status = (err as { statusCode?: number })?.statusCode;
+    if (status === 401) {
+      navigateTo(localePath('/auth/login'));
+      return;
+    }
+    appliedCoupon.value = null;
+    notify.error(
+      (err as { statusMessage?: string })?.statusMessage || 'تعذّر التحقق من الكوبون، حاولي مرة أخرى.'
+    );
+  } finally {
+    couponChecking.value = false;
+  }
+}
+
+/** Drop the applied coupon and go back to the undiscounted total. */
+async function removeCoupon() {
+  appliedCoupon.value = null;
+  couponInput.value = '';
+  await onCouponChanged();
+}
+
+/**
+ * The Moyasar form is initialised with a fixed amount, so a coupon applied or
+ * removed after it mounted must re-create the order and re-mount the form.
+ * The other methods build their order at submit time and need nothing here.
+ */
+async function onCouponChanged() {
+  if (step.value !== 2 || method.value !== 'moyasar') return;
+  phase.value = 'loading';
+  await begin();
+}
+
 /** Step 1 → 2: store the validated traveler details and start the payment. */
 function onTravelerNext(details: TravelerDetails) {
   if (!isLoggedIn.value) {
@@ -180,6 +287,7 @@ function onTravelerNext(details: TravelerDetails) {
   }
   traveler.value = details;
   step.value = 2;
+  analytics.beginCheckout(lines.value, appliedCoupon.value?.code);
   // Only the electronic gateway needs preparing; the bank card is static.
   if (method.value === 'moyasar') begin();
   // Pre-check Tamara eligibility in the background so the option can be
@@ -191,6 +299,7 @@ function onTravelerNext(details: TravelerDetails) {
 function selectMethod(m: PaymentMethod) {
   if (method.value === m) return;
   method.value = m;
+  analytics.addPaymentInfo(lines.value, m, appliedCoupon.value?.code);
   bankError.value = '';
   if (m !== 'bank_transfer') payDepositOnly.value = false;
   tabbyError.value = '';
@@ -208,6 +317,7 @@ async function checkTamaraEligibility() {
   try {
     const res = await $fetch<{ eligible: boolean }>('/api/payments/tamara/precheck', {
       method: 'POST',
+      body: { couponCode: appliedCoupon.value?.code ?? null },
     });
     tamaraEligible.value = !!res.eligible;
   } catch {
@@ -234,7 +344,14 @@ async function startTamara() {
   try {
     const res = await $fetch<{ checkoutUrl?: string; rejected?: boolean }>(
       '/api/payments/tamara/create',
-      { method: 'POST', body: { traveler: traveler.value, lang: locale.value } }
+      {
+        method: 'POST',
+        body: {
+          traveler: traveler.value,
+          lang: locale.value,
+          couponCode: appliedCoupon.value?.code ?? null,
+        },
+      }
     );
     if (res.rejected || !res.checkoutUrl) {
       tamaraPhase.value = 'error';
@@ -277,7 +394,14 @@ async function startTabby() {
   try {
     const res = await $fetch<{ webUrl?: string; rejected?: boolean; reason?: string }>(
       '/api/payments/tabby/create',
-      { method: 'POST', body: { traveler: traveler.value, lang: locale.value } }
+      {
+        method: 'POST',
+        body: {
+          traveler: traveler.value,
+          lang: locale.value,
+          couponCode: appliedCoupon.value?.code ?? null,
+        },
+      }
     );
     if (res.rejected || !res.webUrl) {
       tabbyPhase.value = 'error';
@@ -335,13 +459,31 @@ async function submitBankTransfer() {
   submitting.value = true;
   bankError.value = '';
   try {
-    await $fetch<{ orderId: string }>('/api/orders/bank-transfer', {
+    // Snapshot the lines before clear() empties them for the purchase event.
+    const purchasedLines = [...lines.value];
+    const res = await $fetch<{
+      orderId: string;
+      total: number;
+      discount?: number;
+      couponCode?: string | null;
+    }>('/api/orders/bank-transfer', {
       method: 'POST',
       body: {
         traveler: traveler.value,
         transferReference: ref_,
         payDepositOnly: payDepositOnly.value && depositEligible.value,
+        couponCode: appliedCoupon.value?.code ?? null,
       },
+    });
+    // A bank transfer never passes through /checkout/success, so this is the
+    // only place its purchase can be reported.
+    analytics.purchase({
+      transactionId: res.orderId,
+      value: Number(res.total),
+      tax: vat.value,
+      discount: Number(res.discount ?? 0),
+      coupon: res.couponCode ?? null,
+      lines: purchasedLines,
     });
     await clear(); // server already cleared the DB cart; reset local state too
     navigateTo(localePath('/account/orders'));
@@ -390,12 +532,20 @@ async function begin() {
       amount: number;
       currency: string;
       description: string;
-    }>('/api/payments/create', { method: 'POST', body: { traveler: traveler.value } });
+    }>('/api/payments/create', {
+      method: 'POST',
+      body: { traveler: traveler.value, couponCode: appliedCoupon.value?.code ?? null },
+    });
 
     // 2) Load + mount Moyasar's hosted form.
     const Moyasar = await loadMoyasar();
     phase.value = 'form';
     await nextTick();
+
+    // Re-mounting after a coupon change would otherwise stack a second form
+    // inside the same container.
+    const mount = document.querySelector('.mysr-form');
+    if (mount) mount.innerHTML = '';
 
     Moyasar.init({
       element: '.mysr-form',
@@ -631,7 +781,7 @@ onMounted(async () => {
                 <span class="co-tabby__dot">{{ i + 1 }}</span>
                 <span class="co-tabby__when">{{ p.label }}</span>
                 <span class="co-tabby__amt co-price">
-                  {{ nf.format(p.amount) }}<Icon name="saudi-riyal" :size="13" />
+                  {{ money(p.amount) }}<Icon name="saudi-riyal" :size="13" />
                 </span>
               </li>
             </ol>
@@ -687,7 +837,7 @@ onMounted(async () => {
                   <span class="co-tabby__dot co-tabby__dot--tamara">{{ i + 1 }}</span>
                   <span class="co-tabby__when">{{ p.label }}</span>
                   <span class="co-tabby__amt co-price">
-                    {{ nf.format(p.amount) }}<Icon name="saudi-riyal" :size="13" />
+                    {{ money(p.amount) }}<Icon name="saudi-riyal" :size="13" />
                   </span>
                 </li>
               </ol>
@@ -728,18 +878,18 @@ onMounted(async () => {
             <label v-if="depositEligible" class="co-bank__deposit">
               <input v-model="payDepositOnly" type="checkbox">
               <span>
-                دفع عربون فقط ({{ nf.format(depositTotal) }}<Icon name="saudi-riyal" :size="13" />) بدلاً من كامل
+                دفع عربون فقط ({{ money(depositTotal) }}<Icon name="saudi-riyal" :size="13" />) بدلاً من كامل
                 المبلغ، ويُسدَّد المتبقي قبل الرحلة بيومين.
               </span>
             </label>
 
             <div class="co-bank__amount">
               <span>المبلغ المطلوب تحويله</span>
-              <strong class="co-price">{{ nf.format(bankAmountDue) }}<Icon name="saudi-riyal" :size="18" /></strong>
+              <strong class="co-price">{{ money(bankAmountDue) }}<Icon name="saudi-riyal" :size="18" /></strong>
             </div>
             <p v-if="payDepositOnly && depositEligible" class="co-bank__remaining">
               <Icon name="info" :size="14" />
-              المتبقي {{ nf.format(remainingAfterDeposit) }}<Icon name="saudi-riyal" :size="12" /> يُسدَّد قبل الرحلة
+              المتبقي {{ money(remainingAfterDeposit) }}<Icon name="saudi-riyal" :size="12" /> يُسدَّد قبل الرحلة
               بيومين، خارج هذا التحويل.
             </p>
 
@@ -816,25 +966,65 @@ onMounted(async () => {
               <span class="co-item__title">{{ l.title }}</span>
               <span class="co-item__qty">×{{ l.quantity }}</span>
               <span class="co-item__price co-price">
-                {{ nf.format(l.unit_price * l.quantity) }}<Icon name="saudi-riyal" :size="13" />
+                {{ money(l.unit_price * l.quantity) }}<Icon name="saudi-riyal" :size="13" />
               </span>
+            </div>
+          </div>
+
+          <!-- Discount coupon — applies to every payment method, so it lives
+               in the summary rather than inside one payment panel. -->
+          <div class="co-coupon">
+            <label class="co-coupon__label" for="co-coupon-input">
+              <Icon name="ticket-percent" :size="15" /> كوبون الخصم
+            </label>
+            <div v-if="!appliedCoupon" class="co-coupon__row">
+              <input
+                id="co-coupon-input"
+                v-model="couponInput"
+                type="text"
+                class="co-coupon__input"
+                placeholder="أدخلي رمز الكوبون"
+                autocomplete="off"
+                :disabled="couponChecking"
+                @keydown.enter.prevent="checkCoupon"
+              >
+              <button
+                type="button"
+                class="co-coupon__btn"
+                :disabled="couponChecking || !couponInput.trim()"
+                @click="checkCoupon"
+              >
+                {{ couponChecking ? '…' : 'تحقق' }}
+              </button>
+            </div>
+            <div v-else class="co-coupon__applied">
+              <span class="co-coupon__badge">
+                <Icon name="check" :size="14" />
+                <bdi>{{ appliedCoupon.code }}</bdi>
+                <span class="co-coupon__pct">−{{ +appliedCoupon.discountPercent }}%</span>
+              </span>
+              <button type="button" class="co-coupon__remove" @click="removeCoupon">إزالة</button>
             </div>
           </div>
 
           <div class="co-lines co-lines--totals">
             <div class="co-line">
               <span class="co-line__k">المجموع الفرعي</span>
-              <span class="co-line__v co-price">{{ nf.format(subtotal) }}<Icon name="saudi-riyal" :size="13" /></span>
+              <span class="co-line__v co-price">{{ money(subtotal) }}<Icon name="saudi-riyal" :size="13" /></span>
+            </div>
+            <div v-if="discount > 0" class="co-line co-line--discount">
+              <span class="co-line__k">الخصم ({{ appliedCoupon?.code }})</span>
+              <span class="co-line__v co-price">−{{ money(discount) }}<Icon name="saudi-riyal" :size="13" /></span>
             </div>
             <div class="co-line">
               <span class="co-line__k">ضريبة القيمة المضافة ({{ vatPercentLabel }}%)</span>
-              <span class="co-line__v co-price">{{ nf.format(vat) }}<Icon name="saudi-riyal" :size="13" /></span>
+              <span class="co-line__v co-price">{{ money(vat) }}<Icon name="saudi-riyal" :size="13" /></span>
             </div>
           </div>
 
           <div class="co-total">
             <span class="co-total__k">الإجمالي</span>
-            <span class="co-total__v co-price">{{ nf.format(total) }}<Icon name="saudi-riyal" :size="20" /></span>
+            <span class="co-total__v co-price">{{ money(total) }}<Icon name="saudi-riyal" :size="20" /></span>
           </div>
 
           <p class="co-reassure">
@@ -1129,6 +1319,58 @@ onMounted(async () => {
 .co-line { display: flex; align-items: center; justify-content: space-between; font-size: var(--text-sm); }
 .co-line__k { color: var(--text-muted); }
 .co-line__v { font-weight: var(--weight-semibold); color: var(--text-body); }
+.co-line--discount .co-line__k,
+.co-line--discount .co-line__v { color: var(--success-500); font-weight: var(--weight-bold); }
+
+/* coupon */
+.co-coupon {
+  display: grid; gap: 8px;
+  padding: var(--space-4) 0;
+  border-top: 1.5px solid var(--border-hair);
+}
+.co-coupon__label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-display); font-weight: var(--weight-bold);
+  font-size: var(--text-sm); color: var(--text-strong);
+}
+.co-coupon__label :deep(svg) { color: var(--text-brand); }
+.co-coupon__row { display: flex; gap: 8px; }
+.co-coupon__input {
+  flex: 1; min-width: 0;
+  padding: 10px 12px; border: 1.5px solid var(--border-default); border-radius: var(--radius-md);
+  font-family: var(--font-num); font-size: var(--text-sm); letter-spacing: 0.04em;
+  color: var(--text-strong); background: var(--surface-card);
+  text-transform: uppercase;
+  transition: border-color var(--dur-fast);
+}
+.co-coupon__input:focus { outline: none; border-color: var(--brand-solid); }
+.co-coupon__input::placeholder { text-transform: none; letter-spacing: normal; font-family: var(--font-body); }
+.co-coupon__btn {
+  flex: none; padding: 10px 18px; border-radius: var(--radius-md);
+  border: 1.5px solid var(--brand-solid); background: transparent; cursor: pointer;
+  font-family: var(--font-display); font-weight: var(--weight-bold); font-size: var(--text-sm);
+  color: var(--brand-strong);
+  transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
+}
+.co-coupon__btn:hover:not(:disabled) { background: var(--brand-solid); color: #fff; }
+.co-coupon__btn:focus-visible { outline: none; box-shadow: var(--ring-brand); }
+.co-coupon__btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.co-coupon__applied { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.co-coupon__badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: var(--radius-pill);
+  background: var(--success-100); color: var(--success-500);
+  font-family: var(--font-num); font-weight: var(--weight-bold); font-size: var(--text-sm); letter-spacing: 0.04em;
+}
+.co-coupon__pct { font-size: var(--text-xs); }
+.co-coupon__remove {
+  border: none; background: transparent; cursor: pointer; padding: 6px 8px;
+  font-family: var(--font-body); font-weight: var(--weight-bold); font-size: var(--text-sm);
+  color: var(--text-muted); border-radius: var(--radius-sm);
+  transition: color var(--dur-base) var(--ease-standard);
+}
+.co-coupon__remove:hover { color: var(--danger-500); }
+.co-coupon__remove:focus-visible { outline: none; box-shadow: var(--ring-brand); }
 .co-price { display: inline-flex; align-items: center; gap: 3px; font-family: var(--font-num); }
 .co-price :deep(svg) { width: 0.85em; height: 0.85em; }
 

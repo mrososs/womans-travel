@@ -1,6 +1,13 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { isDomesticCart, normalizeTraveler, priceCart, priceDeposit, type TravelerInput } from '../../utils/checkout';
+import {
+  isDomesticCart,
+  normalizeTraveler,
+  priceCart,
+  priceDeposit,
+  reserveCoupon,
+  type TravelerInput,
+} from '../../utils/checkout';
 
 /**
  * POST /api/orders/bank-transfer  { traveler, transferReference, payDepositOnly? }
@@ -33,6 +40,7 @@ export default defineEventHandler(async (event) => {
     traveler?: TravelerInput;
     transferReference?: unknown;
     payDepositOnly?: unknown;
+    couponCode?: string;
   }>(event).catch(() => ({}));
 
   const transferReference = (typeof body?.transferReference === 'string' ? body.transferReference : '').trim();
@@ -42,8 +50,9 @@ export default defineEventHandler(async (event) => {
 
   const client = await serverSupabaseClient<Database>(event);
 
-  // 1) Read the authoritative cart + recompute totals server-side.
-  const { lines, subtotal, total } = await priceCart(client, uid);
+  // 1) Read the authoritative cart + recompute totals server-side (coupon
+  // included — the client's earlier validation is never trusted).
+  const { lines, subtotal, coupon, discount, total } = await priceCart(client, uid, body?.couponCode);
 
   // 1a) Domestic carts skip the passport fields for a national ID/iqama.
   const domestic = await isDomesticCart(client, lines);
@@ -58,8 +67,10 @@ export default defineEventHandler(async (event) => {
     if (!deposit.eligible || deposit.depositTotal <= 0) {
       throw createError({ statusCode: 400, statusMessage: 'الدفع بعربون غير متاح لعناصر السلة الحالية.' });
     }
-    paidAmount = deposit.depositTotal;
-    isDepositPayment = true;
+    // A coupon reduces `total` but not the per-item deposit, so a deep discount
+    // could otherwise make the "deposit" exceed the whole booking.
+    paidAmount = Math.min(deposit.depositTotal, total);
+    isDepositPayment = paidAmount < total;
   }
 
   // 2) Create the pending bank-transfer order.
@@ -78,6 +89,9 @@ export default defineEventHandler(async (event) => {
       customer_email: email,
       is_deposit_payment: isDepositPayment,
       paid_amount: paidAmount,
+      coupon_id: coupon?.id ?? null,
+      coupon_code: coupon?.code ?? null,
+      discount_amount: discount,
     })
     .select('id')
     .single();
@@ -85,6 +99,9 @@ export default defineEventHandler(async (event) => {
   if (orderError || !order) {
     throw createError({ statusCode: 500, statusMessage: orderError?.message ?? 'Could not create order' });
   }
+
+  // 2a) Claim the shopper's single redemption of the coupon.
+  if (coupon) await reserveCoupon(client, coupon, order.id, discount);
 
   // 2b) Snapshot the traveler manifest (fail-soft, mirrors the Moyasar flow).
   const { error: travelerError } = await client
@@ -114,5 +131,5 @@ export default defineEventHandler(async (event) => {
   // 4) The order now owns the items — clear the shopper's cart.
   await client.from('cart_items').delete().eq('user_id', uid);
 
-  return { orderId: order.id, total, currency: 'SAR' };
+  return { orderId: order.id, total, discount, couponCode: coupon?.code ?? null, currency: 'SAR' };
 });

@@ -171,12 +171,98 @@ export interface PricedLine {
   line_total: number;
 }
 
+/** The coupon resolved for a priced cart, or null when none was applied. */
+export interface AppliedCoupon {
+  id: string;
+  code: string;
+  discountPercent: number;
+}
+
+/** Shopper-facing (Arabic) copy for each `validate_coupon` reason slug. */
+export const COUPON_REASON_MESSAGES: Record<string, string> = {
+  not_found: 'رمز الكوبون غير صحيح.',
+  paused: 'هذا الكوبون متوقّف حاليًا.',
+  expired: 'انتهت صلاحية هذا الكوبون.',
+  exhausted: 'تم استخدام هذا الكوبون بالكامل.',
+  already_used: 'لقد استخدمتِ هذا الكوبون من قبل.',
+  unauthenticated: 'الرجاء تسجيل الدخول لاستخدام الكوبون.',
+};
+
+export function couponReasonMessage(reason: string | null | undefined): string {
+  return COUPON_REASON_MESSAGES[reason ?? ''] ?? 'رمز الكوبون غير صحيح.';
+}
+
+/**
+ * Resolve a coupon code through the `validate_coupon` RPC. The RPC is
+ * SECURITY DEFINER and keys the per-shopper "used once" check off `auth.uid()`,
+ * so it must be called with the *request-scoped* client — never a service-role
+ * one. Returns null for a blank code; throws a 400 with shopper-facing Arabic
+ * copy when the code is present but not usable.
+ */
+export async function resolveCoupon(
+  client: SupabaseClient<Database>,
+  code: string | null | undefined
+): Promise<AppliedCoupon | null> {
+  const normalized = typeof code === 'string' ? code.trim().toUpperCase() : '';
+  if (!normalized) return null;
+
+  const { data, error } = await client.rpc('validate_coupon', { p_code: normalized });
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message });
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row || row.valid !== true || !row.coupon_id) {
+    throw createError({ statusCode: 400, statusMessage: couponReasonMessage(row?.reason) });
+  }
+
+  return {
+    id: row.coupon_id,
+    code: normalized,
+    discountPercent: Number(row.discount_percent ?? 0),
+  };
+}
+
+/**
+ * Claim the shopper's single redemption of a coupon against a freshly created
+ * order. Goes through the `reserve_coupon` RPC, which re-validates server-side
+ * and turns the partial-unique-index collision into a clean error — so two
+ * concurrent checkouts can never both spend the same code.
+ */
+export async function reserveCoupon(
+  client: SupabaseClient<Database>,
+  coupon: AppliedCoupon,
+  orderId: string,
+  discountAmount: number
+): Promise<void> {
+  const { error } = await client.rpc('reserve_coupon', {
+    p_coupon_id: coupon.id,
+    p_order_id: orderId,
+    p_discount: discountAmount,
+  });
+  if (!error) return;
+
+  // `reserve_coupon` raises 'coupon_invalid:<reason>' for every rejection.
+  const reason = /coupon_invalid:(\w+)/.exec(error.message)?.[1];
+  throw createError({ statusCode: 409, statusMessage: couponReasonMessage(reason) });
+}
+
 /**
  * Read the shopper's authoritative cart from the DB (owner-scoped by RLS) and
  * recompute the totals server-side. Falls back to a single demo trip when the
  * cart is empty so the flow stays testable. Throws on read error / empty total.
+ *
+ * An optional `couponCode` is validated here rather than trusted from the
+ * client. The discount reduces the **taxable base before VAT** — the ZATCA
+ * treatment of a trade discount — so the VAT line drops with it:
+ *
+ *   taxable = subtotal − discount   →   vat = taxable × rate   →   total = taxable + vat
  */
-export async function priceCart(client: SupabaseClient<Database>, uid: string) {
+export async function priceCart(
+  client: SupabaseClient<Database>,
+  uid: string,
+  couponCode?: string | null
+) {
   const { data: cart, error: cartError } = await client
     .from('cart_items')
     .select('item_type, item_id, title, unit_price, quantity')
@@ -203,11 +289,19 @@ export async function priceCart(client: SupabaseClient<Database>, uid: string) {
   if (subtotal <= 0) {
     throw createError({ statusCode: 400, statusMessage: 'Cart total must be greater than zero' });
   }
-  const vatRate = await getVatRate(client);
-  const vat = Math.round(subtotal * vatRate * 100) / 100;
-  const total = Math.round((subtotal + vat) * 100) / 100;
 
-  return { lines, subtotal, vat, total, vatRate };
+  const coupon = await resolveCoupon(client, couponCode);
+  // Never let a stale/oversized percentage push the taxable base below zero.
+  const discount = coupon
+    ? Math.min(subtotal, Math.round(subtotal * (coupon.discountPercent / 100) * 100) / 100)
+    : 0;
+  const taxable = Math.round((subtotal - discount) * 100) / 100;
+
+  const vatRate = await getVatRate(client);
+  const vat = Math.round(taxable * vatRate * 100) / 100;
+  const total = Math.round((taxable + vat) * 100) / 100;
+
+  return { lines, subtotal, coupon, discount, taxable, vat, total, vatRate };
 }
 
 export interface DepositInfo {

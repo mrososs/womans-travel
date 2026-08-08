@@ -116,6 +116,8 @@ export interface CreateSessionInput {
   merchantCode: string;
   buyer: { name: string; email: string; phone: string };
   items: Array<{ reference_id: string; title: string; quantity: number; unit_price: number }>;
+  /** Coupon discount already deducted from `amount`; sent for reconciliation. */
+  discountAmount?: number;
   merchantUrls: { success: string; cancel: string; failure: string };
 }
 
@@ -140,6 +142,9 @@ export async function createTabbyCheckout(
       },
       order: {
         reference_id: input.orderReferenceId,
+        ...(input.discountAmount
+          ? { discount_amount: toTabbyAmount(input.discountAmount) }
+          : {}),
         items: input.items.map((i) => ({
           reference_id: i.reference_id,
           title: i.title,

@@ -1,6 +1,12 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { isDomesticCart, normalizeTraveler, priceCart, type TravelerInput } from '../../../utils/checkout';
+import {
+  isDomesticCart,
+  normalizeTraveler,
+  priceCart,
+  reserveCoupon,
+  type TravelerInput,
+} from '../../../utils/checkout';
 import {
   createTabbyCheckout,
   getTabbySecretKey,
@@ -32,13 +38,19 @@ export default defineEventHandler(async (event) => {
   }
   const email = (user as { email?: string } | null)?.email ?? null;
 
-  const body = await readBody<{ traveler?: TravelerInput; lang?: string }>(event).catch(() => ({}));
+  const body = await readBody<{ traveler?: TravelerInput; lang?: string; couponCode?: string }>(
+    event
+  ).catch(() => ({}));
   const lang: 'ar' | 'en' = body?.lang === 'en' ? 'en' : 'ar';
 
   const client = await serverSupabaseClient<Database>(event);
 
-  // 1) Authoritative cart + server-recomputed totals.
-  const { lines, subtotal, vat, total } = await priceCart(client, uid);
+  // 1) Authoritative cart + server-recomputed totals (coupon re-validated here).
+  const { lines, subtotal, coupon, discount, vat, total } = await priceCart(
+    client,
+    uid,
+    body?.couponCode
+  );
 
   // 1b) Domestic carts skip the passport fields for a national ID/iqama.
   const domestic = await isDomesticCart(client, lines);
@@ -98,6 +110,9 @@ export default defineEventHandler(async (event) => {
       payment_method: 'tabby',
       payment_status: 'pending',
       customer_email: email,
+      coupon_id: coupon?.id ?? null,
+      coupon_code: coupon?.code ?? null,
+      discount_amount: discount,
     })
     .select('id')
     .single();
@@ -105,6 +120,10 @@ export default defineEventHandler(async (event) => {
   if (orderError || !order) {
     throw createError({ statusCode: 500, statusMessage: orderError?.message ?? 'Could not create order' });
   }
+
+  // 5a) Claim the shopper's single redemption. If Tabby later rejects the
+  // buyer the order is marked 'rejected', which releases this reservation.
+  if (coupon) await reserveCoupon(client, coupon, order.id, discount);
 
   // 5b) Snapshot traveler manifest (fail-soft) + line items.
   await client.from('orders').update({ traveler_info: traveler }).eq('id', order.id);
@@ -135,6 +154,9 @@ export default defineEventHandler(async (event) => {
       lang,
       merchantCode,
       buyer,
+      // `amount` is already net of the coupon; this only keeps Tabby's own
+      // order breakdown (items vs. charged amount) reconcilable.
+      discountAmount: discount,
       items: lines.map((l) => ({
         reference_id: `${l.item_type}:${l.item_id}`,
         title: l.title,
@@ -174,6 +196,8 @@ export default defineEventHandler(async (event) => {
     amount: total,
     currency: 'SAR',
     subtotal,
+    discount,
+    couponCode: coupon?.code ?? null,
     vat,
     total,
   };

@@ -181,6 +181,90 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_redemptions: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          discount_amount: number
+          id: string
+          order_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          discount_percent: number
+          expires_at: string | null
+          id: string
+          max_redemptions: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          discount_percent: number
+          expires_at?: string | null
+          id?: string
+          max_redemptions?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          discount_percent?: number
+          expires_at?: string | null
+          id?: string
+          max_redemptions?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       faqs: {
         Row: {
           answer_ar: string
@@ -311,9 +395,12 @@ export type Database = {
       }
       orders: {
         Row: {
+          coupon_code: string | null
+          coupon_id: string | null
           created_at: string
           currency: string
           customer_email: string | null
+          discount_amount: number
           id: string
           is_deposit_payment: boolean
           paid_amount: number | null
@@ -330,9 +417,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           currency?: string
           customer_email?: string | null
+          discount_amount?: number
           id?: string
           is_deposit_payment?: boolean
           paid_amount?: number | null
@@ -349,9 +439,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          coupon_code?: string | null
+          coupon_id?: string | null
           created_at?: string
           currency?: string
           customer_email?: string | null
+          discount_amount?: number
           id?: string
           is_deposit_payment?: boolean
           paid_amount?: number | null
@@ -367,7 +460,15 @@ export type Database = {
           traveler_info?: Json | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       package_days: {
         Row: {
@@ -896,6 +997,19 @@ export type Database = {
       }
       get_secret: { Args: { p_name: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      reserve_coupon: {
+        Args: { p_coupon_id: string; p_discount: number; p_order_id: string }
+        Returns: string
+      }
+      validate_coupon: {
+        Args: { p_code: string }
+        Returns: {
+          coupon_id: string
+          discount_percent: number
+          reason: string
+          valid: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

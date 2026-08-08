@@ -1,6 +1,12 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server';
 import type { Database } from '~/types/database.types';
-import { isDomesticCart, normalizeTraveler, priceCart, type TravelerInput } from '../../../utils/checkout';
+import {
+  isDomesticCart,
+  normalizeTraveler,
+  priceCart,
+  reserveCoupon,
+  type TravelerInput,
+} from '../../../utils/checkout';
 import {
   createTamaraCheckout,
   getTamaraApiToken,
@@ -24,11 +30,17 @@ export default defineEventHandler(async (event) => {
   if (!uid) throw createError({ statusCode: 401, statusMessage: 'Sign in to check out' });
   const email = (user as { email?: string } | null)?.email ?? null;
 
-  const body = await readBody<{ traveler?: TravelerInput; lang?: string }>(event).catch(() => ({}));
+  const body = await readBody<{ traveler?: TravelerInput; lang?: string; couponCode?: string }>(
+    event
+  ).catch(() => ({}));
   const lang: 'ar' | 'en' = body?.lang === 'en' ? 'en' : 'ar';
 
   const client = await serverSupabaseClient<Database>(event);
-  const { lines, subtotal, vat, total } = await priceCart(client, uid);
+  const { lines, subtotal, coupon, discount, vat, total } = await priceCart(
+    client,
+    uid,
+    body?.couponCode
+  );
 
   // Domestic carts skip the passport fields for a national ID/iqama.
   const domestic = await isDomesticCart(client, lines);
@@ -78,12 +90,19 @@ export default defineEventHandler(async (event) => {
       payment_method: 'tamara',
       payment_status: 'pending',
       customer_email: email,
+      coupon_id: coupon?.id ?? null,
+      coupon_code: coupon?.code ?? null,
+      discount_amount: discount,
     })
     .select('id')
     .single();
   if (orderError || !order) {
     throw createError({ statusCode: 500, statusMessage: orderError?.message ?? 'Could not create order' });
   }
+
+  // Claim the shopper's single redemption. A Tamara rejection below marks the
+  // order 'rejected', which releases it again.
+  if (coupon) await reserveCoupon(client, coupon, order.id, discount);
 
   await client.from('orders').update({ traveler_info: traveler }).eq('id', order.id);
   const { error: itemsError } = await client.from('order_items').insert(
@@ -117,6 +136,9 @@ export default defineEventHandler(async (event) => {
       referenceId: `${l.item_type}:${l.item_id}`,
     })),
     taxAmount: vat,
+    // Tamara enforces total_amount === sum(items) + tax + shipping − discount,
+    // so a coupon MUST be declared here or the session is rejected outright.
+    discount: discount > 0 ? { amount: discount, name: coupon?.code ?? 'DISCOUNT' } : undefined,
     merchantUrl: {
       success: `${callback}?status=success`,
       failure: `${callback}?status=failure`,
@@ -142,6 +164,8 @@ export default defineEventHandler(async (event) => {
     amount: total,
     currency: 'SAR',
     subtotal,
+    discount,
+    couponCode: coupon?.code ?? null,
     vat,
     total,
   };
