@@ -265,6 +265,10 @@
     "ordersTable": {
       "date": "التاريخ",
       "buyer": "المشترية",
+      "mobile": "رقم الجوال",
+      "document": "الجواز / الهوية",
+      "passportLabel": "جواز السفر",
+      "nationalIdLabel": "هوية / إقامة",
       "items": "العناصر",
       "method": "طريقة الدفع",
       "status": "الحالة",

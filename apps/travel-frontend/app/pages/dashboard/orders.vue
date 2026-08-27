@@ -15,6 +15,21 @@ useHead(() => ({ title: `${t('dashboard.nav.orders')} · ${t('brand')}` }));
 
 const bcp47 = computed(() => (locale.value === 'ar' ? 'ar' : 'en'));
 
+/**
+ * The traveler manifest snapshotted onto the order at checkout
+ * (see server/utils/checkout.ts → normalizeTraveler). International bookings
+ * carry a passport number; domestic-only carts carry a national ID/iqama
+ * instead. Older orders predate one or both fields, hence every field optional.
+ */
+interface TravelerInfo {
+  fullNameAr?: string | null;
+  fullNameEn?: string | null;
+  phone?: string | null;
+  nationalId?: string | null;
+  passportNumber?: string | null;
+  passportExpiryDate?: string | null;
+}
+
 interface OrderRow {
   id: string;
   created_at: string;
@@ -25,37 +40,76 @@ interface OrderRow {
   payment_method: string | null;
   payment_status: string;
   transfer_reference: string | null;
+  traveler_info: TravelerInfo | null;
   order_items: { title: string | null; quantity: number; item_type: string | null }[];
+}
+
+/** Buyer contact resolved from the `profiles` row behind each order. */
+interface BuyerProfile {
+  name: string;
+  phone: string;
 }
 
 const { data, pending } = useAsyncData('admin-orders', async () => {
   const { data: orders } = await client
     .from('orders')
     .select(
-      'id, created_at, status, total, currency, user_id, payment_method, payment_status, transfer_reference, order_items(title, quantity, item_type)'
+      'id, created_at, status, total, currency, user_id, payment_method, payment_status, transfer_reference, traveler_info, order_items(title, quantity, item_type)'
     )
     .order('created_at', { ascending: false })
     .limit(50);
 
   const ids = [...new Set((orders ?? []).map((o) => o.user_id))];
-  const names: Record<string, string> = {};
+  const buyers: Record<string, BuyerProfile> = {};
   if (ids.length) {
-    const { data: profiles } = await client.from('profiles').select('id, full_name').in('id', ids);
-    for (const p of profiles ?? []) names[p.id] = p.full_name ?? '';
+    // `phone` is the fallback for orders placed before checkout captured a
+    // mobile on the manifest — admins can read every profile via RLS is_admin().
+    const { data: profiles } = await client
+      .from('profiles')
+      .select('id, full_name, phone')
+      .in('id', ids);
+    for (const p of profiles ?? []) {
+      buyers[p.id] = { name: p.full_name ?? '', phone: p.phone ?? '' };
+    }
   }
-  return { orders: (orders ?? []) as OrderRow[], names };
+  return { orders: (orders ?? []) as OrderRow[], buyers };
 });
 
 // Local, mutable copy so an approve/cancel updates the row instantly.
 const rows = ref<OrderRow[]>([]);
 watch(data, (v) => (rows.value = v ? [...v.orders] : []), { immediate: true });
-const names = computed(() => data.value?.names ?? {});
+const buyers = computed(() => data.value?.buyers ?? {});
 
 function fmtDate(iso: string) {
   return new Intl.DateTimeFormat(bcp47.value, { dateStyle: 'medium' }).format(new Date(iso));
 }
-function buyer(userId: string) {
-  return names.value[userId] || `${userId.slice(0, 8)}…`;
+function buyer(o: OrderRow) {
+  // Manifest name first — it's the four-part name the traveler documents carry,
+  // which is what the ops team books on; the account name is the fallback.
+  return (
+    o.traveler_info?.fullNameAr ||
+    buyers.value[o.user_id]?.name ||
+    `${o.user_id.slice(0, 8)}…`
+  );
+}
+/** Mobile from the order's manifest, falling back to the buyer's profile. */
+function mobile(o: OrderRow) {
+  return o.traveler_info?.phone || buyers.value[o.user_id]?.phone || '';
+}
+/**
+ * The travel document on the manifest: a passport for international bookings,
+ * a national ID/iqama for domestic-only ones. Returns the label to show next to
+ * the number so an ID is never mistaken for a passport.
+ */
+function travelDoc(o: OrderRow): { label: string; value: string } {
+  const info = o.traveler_info;
+  if (info?.passportNumber) {
+    return { label: t('dashboard.ordersTable.passportLabel'), value: info.passportNumber };
+  }
+  if (info?.nationalId) {
+    return { label: t('dashboard.ordersTable.nationalIdLabel'), value: info.nationalId };
+  }
+  return { label: '', value: '' };
 }
 function itemsLabel(items: { title: string | null; quantity: number }[]) {
   if (!items?.length) return '—';
@@ -112,6 +166,8 @@ async function act(o: OrderRow, action: 'approve' | 'cancel') {
             <tr>
               <th>{{ t('dashboard.ordersTable.date') }}</th>
               <th>{{ t('dashboard.ordersTable.buyer') }}</th>
+              <th>{{ t('dashboard.ordersTable.mobile') }}</th>
+              <th>{{ t('dashboard.ordersTable.document') }}</th>
               <th>{{ t('dashboard.ordersTable.items') }}</th>
               <th>{{ t('dashboard.ordersTable.method') }}</th>
               <th>{{ t('dashboard.ordersTable.status') }}</th>
@@ -122,7 +178,21 @@ async function act(o: OrderRow, action: 'approve' | 'cancel') {
           <tbody>
             <tr v-for="o in rows" :key="o.id">
               <td>{{ fmtDate(o.created_at) }}</td>
-              <td>{{ buyer(o.user_id) }}</td>
+              <td>{{ buyer(o) }}</td>
+              <td>
+                <a v-if="mobile(o)" class="orders__tel" :href="`tel:${mobile(o)}`">
+                  <Icon name="phone" :size="14" />
+                  <bdi>{{ mobile(o) }}</bdi>
+                </a>
+                <span v-else class="orders__dash">—</span>
+              </td>
+              <td>
+                <span v-if="travelDoc(o).value" class="orders__doc">
+                  <bdi class="orders__doc-num">{{ travelDoc(o).value }}</bdi>
+                  <small>{{ travelDoc(o).label }}</small>
+                </span>
+                <span v-else class="orders__dash">—</span>
+              </td>
               <td class="orders__items">{{ itemsLabel(o.order_items) }}</td>
               <td>
                 <span class="orders__method">
@@ -154,7 +224,7 @@ async function act(o: OrderRow, action: 'approve' | 'cancel') {
               </td>
             </tr>
             <tr v-if="!rows.length">
-              <td colspan="7" class="orders__empty">{{ t('dashboard.empty') }}</td>
+              <td colspan="9" class="orders__empty">{{ t('dashboard.empty') }}</td>
             </tr>
           </tbody>
         </table>
@@ -170,7 +240,7 @@ async function act(o: OrderRow, action: 'approve' | 'cancel') {
 }
 .orders__loading { padding: 40px; text-align: center; color: var(--text-muted); }
 .orders__table { width: 100%; overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; min-width: 820px; }
+table { width: 100%; border-collapse: collapse; min-width: 1080px; }
 thead th {
   font-family: var(--font-body); font-weight: 700; font-size: 13px;
   color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em;
@@ -181,6 +251,18 @@ tbody td { padding: 14px; font-size: 14px; color: var(--text-body); border-botto
 .orders__method { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--text-strong); }
 .orders__method :deep(svg) { color: var(--brand-strong); }
 .orders__ref { display: block; margin-top: 4px; font-size: 12px; color: var(--text-muted); font-family: var(--font-num); }
+/* Mobile + travel document: LTR numerals in a tabular font so the ops team can
+   scan a column of numbers, with the document type spelled out underneath. */
+.orders__tel {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-num); color: var(--text-strong);
+  text-decoration: none; border-bottom: 1px dashed var(--border-strong);
+}
+.orders__tel:hover { color: var(--brand-strong); border-bottom-color: var(--brand-strong); }
+.orders__tel :deep(svg) { color: var(--brand-strong); flex: none; }
+.orders__doc { display: inline-flex; flex-direction: column; gap: 2px; }
+.orders__doc-num { font-family: var(--font-num); font-weight: 600; color: var(--text-strong); letter-spacing: 0.02em; }
+.orders__doc small { font-size: 11px; color: var(--text-muted); }
 .orders__actions { display: inline-flex; gap: 8px; }
 .orders__dash { color: var(--text-subtle); }
 tbody tr:hover { background: var(--rose-50); }

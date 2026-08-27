@@ -265,6 +265,10 @@
     "ordersTable": {
       "date": "Date",
       "buyer": "Buyer",
+      "mobile": "Mobile",
+      "document": "Passport / ID",
+      "passportLabel": "Passport",
+      "nationalIdLabel": "National ID / Iqama",
       "items": "Items",
       "method": "Payment method",
       "status": "Status",

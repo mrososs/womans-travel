@@ -21,6 +21,16 @@ useHead(() => ({ title: `${t('dashboard.nav.deposits')} · ${t('brand')}` }));
 
 const bcp47 = computed(() => (locale.value === 'ar' ? 'ar' : 'en'));
 
+/** Traveler manifest snapshotted at checkout — see dashboard/orders.vue. */
+interface TravelerInfo {
+  fullNameAr?: string | null;
+  fullNameEn?: string | null;
+  phone?: string | null;
+  nationalId?: string | null;
+  passportNumber?: string | null;
+  passportExpiryDate?: string | null;
+}
+
 interface DepositOrderRow {
   id: string;
   created_at: string;
@@ -30,14 +40,21 @@ interface DepositOrderRow {
   user_id: string;
   payment_status: string;
   transfer_reference: string | null;
+  traveler_info: TravelerInfo | null;
   order_items: { title: string | null; quantity: number; item_type: string | null }[];
+}
+
+/** Buyer contact resolved from the `profiles` row behind each order. */
+interface BuyerProfile {
+  name: string;
+  phone: string;
 }
 
 const { data, pending } = useAsyncData('admin-deposit-orders', async () => {
   const { data: orders } = await client
     .from('orders')
     .select(
-      'id, created_at, total, paid_amount, currency, user_id, payment_status, transfer_reference, order_items(title, quantity, item_type)'
+      'id, created_at, total, paid_amount, currency, user_id, payment_status, transfer_reference, traveler_info, order_items(title, quantity, item_type)'
     )
     .eq('payment_method', 'bank_transfer')
     .eq('is_deposit_payment', true)
@@ -45,24 +62,51 @@ const { data, pending } = useAsyncData('admin-deposit-orders', async () => {
     .limit(50);
 
   const ids = [...new Set((orders ?? []).map((o) => o.user_id))];
-  const names: Record<string, string> = {};
+  const buyers: Record<string, BuyerProfile> = {};
   if (ids.length) {
-    const { data: profiles } = await client.from('profiles').select('id, full_name').in('id', ids);
-    for (const p of profiles ?? []) names[p.id] = p.full_name ?? '';
+    // `phone` is the fallback for orders placed before checkout captured a
+    // mobile on the manifest.
+    const { data: profiles } = await client
+      .from('profiles')
+      .select('id, full_name, phone')
+      .in('id', ids);
+    for (const p of profiles ?? []) {
+      buyers[p.id] = { name: p.full_name ?? '', phone: p.phone ?? '' };
+    }
   }
-  return { orders: (orders ?? []) as DepositOrderRow[], names };
+  return { orders: (orders ?? []) as DepositOrderRow[], buyers };
 });
 
 // Local, mutable copy so an approve/cancel updates the row instantly.
 const rows = ref<DepositOrderRow[]>([]);
 watch(data, (v) => (rows.value = v ? [...v.orders] : []), { immediate: true });
-const names = computed(() => data.value?.names ?? {});
+const buyers = computed(() => data.value?.buyers ?? {});
 
 function fmtDate(iso: string) {
   return new Intl.DateTimeFormat(bcp47.value, { dateStyle: 'medium' }).format(new Date(iso));
 }
-function buyer(userId: string) {
-  return names.value[userId] || `${userId.slice(0, 8)}…`;
+function buyer(o: DepositOrderRow) {
+  // Manifest name first — the four-part name on the traveler's documents.
+  return (
+    o.traveler_info?.fullNameAr ||
+    buyers.value[o.user_id]?.name ||
+    `${o.user_id.slice(0, 8)}…`
+  );
+}
+/** Mobile from the order's manifest, falling back to the buyer's profile. */
+function mobile(o: DepositOrderRow) {
+  return o.traveler_info?.phone || buyers.value[o.user_id]?.phone || '';
+}
+/** Passport for international bookings, national ID/iqama for domestic ones. */
+function travelDoc(o: DepositOrderRow): { label: string; value: string } {
+  const info = o.traveler_info;
+  if (info?.passportNumber) {
+    return { label: t('dashboard.ordersTable.passportLabel'), value: info.passportNumber };
+  }
+  if (info?.nationalId) {
+    return { label: t('dashboard.ordersTable.nationalIdLabel'), value: info.nationalId };
+  }
+  return { label: '', value: '' };
 }
 function itemsLabel(items: { title: string | null; quantity: number }[]) {
   if (!items?.length) return '—';
@@ -115,6 +159,8 @@ async function act(o: DepositOrderRow, action: 'approve' | 'cancel') {
             <tr>
               <th>{{ t('dashboard.ordersTable.date') }}</th>
               <th>{{ t('dashboard.ordersTable.buyer') }}</th>
+              <th>{{ t('dashboard.ordersTable.mobile') }}</th>
+              <th>{{ t('dashboard.ordersTable.document') }}</th>
               <th>{{ t('dashboard.ordersTable.items') }}</th>
               <th style="text-align:end">{{ t('dashboard.deposits.table.deposit') }}</th>
               <th style="text-align:end">{{ t('dashboard.deposits.table.remaining') }}</th>
@@ -126,7 +172,21 @@ async function act(o: DepositOrderRow, action: 'approve' | 'cancel') {
           <tbody>
             <tr v-for="o in rows" :key="o.id">
               <td>{{ fmtDate(o.created_at) }}</td>
-              <td>{{ buyer(o.user_id) }}</td>
+              <td>{{ buyer(o) }}</td>
+              <td>
+                <a v-if="mobile(o)" class="deposits__tel" :href="`tel:${mobile(o)}`">
+                  <Icon name="phone" :size="14" />
+                  <bdi>{{ mobile(o) }}</bdi>
+                </a>
+                <span v-else class="deposits__dash">—</span>
+              </td>
+              <td>
+                <span v-if="travelDoc(o).value" class="deposits__doc">
+                  <bdi class="deposits__doc-num">{{ travelDoc(o).value }}</bdi>
+                  <small>{{ travelDoc(o).label }}</small>
+                </span>
+                <span v-else class="deposits__dash">—</span>
+              </td>
               <td class="deposits__items">
                 {{ itemsLabel(o.order_items) }}
                 <span v-if="o.transfer_reference" class="deposits__ref">
@@ -156,7 +216,7 @@ async function act(o: DepositOrderRow, action: 'approve' | 'cancel') {
               </td>
             </tr>
             <tr v-if="!rows.length">
-              <td colspan="8" class="deposits__empty">{{ t('dashboard.deposits.empty') }}</td>
+              <td colspan="10" class="deposits__empty">{{ t('dashboard.deposits.empty') }}</td>
             </tr>
           </tbody>
         </table>
@@ -173,7 +233,7 @@ async function act(o: DepositOrderRow, action: 'approve' | 'cancel') {
 .deposits__lead { color: var(--text-muted); font-size: var(--text-sm); margin: 0 0 20px; }
 .deposits__loading { padding: 40px; text-align: center; color: var(--text-muted); }
 .deposits__table { width: 100%; overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+table { width: 100%; border-collapse: collapse; min-width: 1160px; }
 thead th {
   font-family: var(--font-body); font-weight: 700; font-size: 13px;
   color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em;
@@ -182,6 +242,17 @@ thead th {
 tbody td { padding: 14px; font-size: 14px; color: var(--text-body); border-bottom: 1px solid var(--border-hair); white-space: nowrap; vertical-align: top; }
 .deposits__items { white-space: normal; max-width: 280px; color: var(--text-muted); }
 .deposits__ref { display: block; margin-top: 4px; font-size: 12px; color: var(--text-muted); font-family: var(--font-num); }
+/* Mobile + travel document — mirrors dashboard/orders.vue. */
+.deposits__tel {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-num); color: var(--text-strong);
+  text-decoration: none; border-bottom: 1px dashed var(--border-strong);
+}
+.deposits__tel:hover { color: var(--brand-strong); border-bottom-color: var(--brand-strong); }
+.deposits__tel :deep(svg) { color: var(--brand-strong); flex: none; }
+.deposits__doc { display: inline-flex; flex-direction: column; gap: 2px; }
+.deposits__doc-num { font-family: var(--font-num); font-weight: 600; color: var(--text-strong); letter-spacing: 0.02em; }
+.deposits__doc small { font-size: 11px; color: var(--text-muted); }
 .deposits__actions { display: inline-flex; gap: 8px; }
 .deposits__dash { color: var(--text-subtle); }
 tbody tr:hover { background: var(--rose-50); }
