@@ -69,11 +69,13 @@ export default defineEventHandler(async (event) => {
     .filter(Boolean);
   const firstName = nameParts[0] || 'Durrah';
   const lastName = nameParts.slice(1).join(' ') || 'Customer';
-  const phone = profile?.phone || (testMode ? '+966500000000' : '');
+  // The checkout manifest always carries a validated E.164 mobile; the profile
+  // is only a fallback for a manifest that predates that field.
+  const phone = traveler.phone || profile?.phone || (testMode ? '+966500000000' : '');
   if (!phone) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'رقم الجوال مطلوب للدفع عبر تمارا — يُرجى إضافته إلى ملفكِ الشخصي.',
+      statusMessage: 'رقم الجوال مطلوب للدفع عبر تمارا — يُرجى إدخاله في بيانات التواصل.',
     });
   }
 

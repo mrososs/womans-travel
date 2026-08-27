@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref, watch } from 'vue';
 import { Button, Input, Checkbox, Icon } from '@org/shared-ui';
 
 /**
  * CheckoutTravelerForm — step 1 of the checkout stepper. Collects the traveler's
- * full four-part Arabic name plus, for international trips, the English name
+ * full four-part Arabic name, her mobile number (always required — the ops team
+ * contacts her on it, and Tabby/Tamara need it) plus, for international trips,
+ * the English name
  * and passport number + issue/expiry dates — or, for a domestic-only cart
  * (Red Sea / Taif / Al-Baha / Madinah, etc.), just the national ID/iqama
  * number instead, since no passport is needed to travel inside Saudi Arabia.
@@ -18,6 +20,7 @@ import { Button, Input, Checkbox, Icon } from '@org/shared-ui';
 export interface TravelerDetails {
   fullNameAr: string;
   fullNameEn: string;
+  phone: string;
   nationalId: string;
   passportNumber: string;
   passportIssueDate: string;
@@ -36,6 +39,7 @@ const emit = defineEmits<{ next: [traveler: TravelerDetails] }>();
 const form = reactive<TravelerDetails>({
   fullNameAr: '',
   fullNameEn: '',
+  phone: '',
   nationalId: '',
   passportNumber: '',
   passportIssueDate: '',
@@ -45,9 +49,21 @@ const form = reactive<TravelerDetails>({
   pledgedNoCompanions: false,
 });
 
+// Prefill the mobile from the shopper's saved profile so the common case is a
+// single tap. Only fills a still-empty field — never overwrites what she typed.
+const { profile } = useProfile();
+watch(
+  profile,
+  (p) => {
+    if (!form.phone && p?.phone) form.phone = p.phone;
+  },
+  { immediate: true }
+);
+
 type FieldKey =
   | 'fullNameAr'
   | 'fullNameEn'
+  | 'phone'
   | 'nationalId'
   | 'passportNumber'
   | 'passportIssueDate'
@@ -56,6 +72,7 @@ type FieldKey =
 const errors = reactive<Record<FieldKey, string>>({
   fullNameAr: '',
   fullNameEn: '',
+  phone: '',
   nationalId: '',
   passportNumber: '',
   passportIssueDate: '',
@@ -75,6 +92,15 @@ const countParts = (value: string) => value.trim().split(/\s+/).filter(Boolean).
 const SA_PASSPORT = /^[A-Za-z][0-9]{7,8}$/;
 // Saudi national ID (citizen, starts 1) or iqama (resident, starts 2) — 10 digits.
 const SA_NATIONAL_ID = /^[12]\d{9}$/;
+// Saudi mobile, digits only after stripping spaces/dashes/'+'. Accepts the local
+// form (05XXXXXXXX / 5XXXXXXXX) and the international one (966… / 00966…, with
+// or without the trunk 0). Mirrors `normalizeSaMobile` in server/utils/checkout.ts.
+const SA_MOBILE = /^(?:00966|966)?0?(5\d{8})$/;
+/** `+9665XXXXXXXX` for a valid Saudi mobile, otherwise ''. */
+function normalizeMobile(value: string) {
+  const match = SA_MOBILE.exec(value.replace(/\D/g, ''));
+  return match ? `+966${match[1]}` : '';
+}
 
 // Date bounds for the passport <input type="date"> fields.
 const today = new Date();
@@ -104,6 +130,12 @@ function validate(): boolean {
     fail('fullNameAr', 'الاسم يجب أن يكون بالأحرف العربية فقط');
   else if (countParts(nameAr) < 4)
     fail('fullNameAr', 'يُرجى إدخال الاسم رباعيًا كما في الهوية');
+
+  // Mobile — required on every cart; ops calls the traveler on this number.
+  const phone = form.phone.trim();
+  if (!phone) fail('phone', 'رقم الجوال مطلوب');
+  else if (!normalizeMobile(phone))
+    fail('phone', 'رقم الجوال غير صحيح — يبدأ بـ 05 ويتكون من 10 أرقام (مثال: 0512345678)');
 
   if (props.domestic) {
     // Domestic trip: national ID / iqama instead of a passport.
@@ -162,6 +194,7 @@ function submit() {
   emit('next', {
     fullNameAr: form.fullNameAr.trim().replace(/\s+/g, ' '),
     fullNameEn: props.domestic ? '' : form.fullNameEn.trim().replace(/\s+/g, ' '),
+    phone: normalizeMobile(form.phone),
     nationalId: props.domestic ? form.nationalId.trim() : '',
     passportNumber: props.domestic ? '' : form.passportNumber.trim().toUpperCase(),
     passportIssueDate: props.domestic ? '' : form.passportIssueDate,
@@ -201,6 +234,26 @@ function submit() {
           :hint="errors.fullNameEn ? '' : 'كما هو مكتوب في جواز السفر'"
           placeholder="e.g. Noura Abdullah Mohammed Alahmad"
           @update:model-value="clear('fullNameEn')"
+        />
+      </div>
+    </fieldset>
+
+    <!-- Contact — the number the operations team calls about this booking -->
+    <fieldset class="tf__group">
+      <legend class="tf__legend">
+        <Icon name="phone" :size="16" /> بيانات التواصل
+      </legend>
+      <div class="tf__grid">
+        <Input
+          v-model="form.phone"
+          label="رقم الجوال"
+          required
+          dir="ltr"
+          type="tel"
+          :error="errors.phone"
+          :hint="errors.phone ? '' : 'يبدأ بـ 05 — سيتم التواصل معكِ عليه بخصوص الحجز'"
+          placeholder="05XXXXXXXX"
+          @update:model-value="clear('phone')"
         />
       </div>
     </fieldset>

@@ -75,13 +75,15 @@ export default defineEventHandler(async (event) => {
     : {
         name: buyerName,
         email: email || 'customer@example.com',
-        phone: profile?.phone || '',
+        // The checkout manifest always carries a validated E.164 mobile; the
+        // profile is only a fallback for a manifest that predates that field.
+        phone: traveler.phone || profile?.phone || '',
       };
 
   if (!testMode && !buyer.phone) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'رقم الجوال مطلوب للدفع عبر تابي — يُرجى إضافته إلى ملفكِ الشخصي.',
+      statusMessage: 'رقم الجوال مطلوب للدفع عبر تابي — يُرجى إدخاله في بيانات التواصل.',
     });
   }
 

@@ -43,6 +43,7 @@ export const DEMO_ITEM = {
 export type TravelerInput = {
   fullNameAr?: unknown;
   fullNameEn?: unknown;
+  phone?: unknown;
   nationalId?: unknown;
   passportNumber?: unknown;
   passportIssueDate?: unknown;
@@ -63,6 +64,22 @@ const countParts = (v: string) => v.split(/\s+/).filter(Boolean).length; // ≥ 
 const SA_PASSPORT = /^[A-Za-z][0-9]{7,8}$/; // letter + 7–8 digits, e.g. A1234567
 // Saudi national ID (citizen, starts 1) or Iqama (resident, starts 2) — 10 digits.
 const SA_NATIONAL_ID = /^[12]\d{9}$/;
+// Saudi mobile, digits only after stripping spaces/dashes/'+'. Accepts the local
+// form (05XXXXXXXX / 5XXXXXXXX) and the international one (966… / 00966…, with
+// or without the trunk 0), capturing the 9-digit subscriber part `5XXXXXXXX`.
+const SA_MOBILE = /^(?:00966|966)?0?(5\d{8})$/;
+
+/**
+ * Normalize a Saudi mobile number to E.164 (`+9665XXXXXXXX`), or return '' when
+ * it isn't a valid Saudi mobile. Storing one canonical shape means the ops team
+ * (dashboard) and the BNPL providers (Tabby/Tamara both require E.164) always
+ * read the same value regardless of how the shopper typed it.
+ */
+export function normalizeSaMobile(raw: unknown): string {
+  const digits = (typeof raw === 'string' ? raw : '').replace(/\D/g, '');
+  const match = SA_MOBILE.exec(digits);
+  return match ? `+966${match[1]}` : '';
+}
 
 const bad = (statusMessage: string) => createError({ statusCode: 400, statusMessage });
 
@@ -87,6 +104,12 @@ export function normalizeTraveler(raw: TravelerInput | undefined, domestic = fal
   if (!AR_FULL_NAME.test(fullNameAr)) throw bad('الاسم يجب أن يكون بالأحرف العربية فقط.');
   if (countParts(fullNameAr) < 4) throw bad('يُرجى إدخال الاسم رباعيًا كما في الهوية.');
 
+  // Mobile number — required on every cart (domestic and international). The
+  // operations team contacts the traveler on it, and Tabby/Tamara require it.
+  if (!str(raw.phone)) throw bad('رقم الجوال مطلوب.');
+  const phone = normalizeSaMobile(raw.phone);
+  if (!phone) throw bad('رقم الجوال غير صحيح — يجب أن يبدأ بـ 05 ويتكون من 10 أرقام (مثال: 0512345678).');
+
   if (
     raw.declaredAccurate !== true ||
     raw.pledgedCompliance !== true ||
@@ -106,6 +129,7 @@ export function normalizeTraveler(raw: TravelerInput | undefined, domestic = fal
       fullNameAr,
       fullNameEn: null,
       fullName: fullNameAr,
+      phone,
       nationalId,
       passportNumber: null,
       passportIssueDate: null,
@@ -151,6 +175,7 @@ export function normalizeTraveler(raw: TravelerInput | undefined, domestic = fal
     fullNameAr,
     fullNameEn,
     fullName: fullNameAr,
+    phone,
     nationalId: null,
     passportNumber,
     passportIssueDate: passportIssueDate || null,
